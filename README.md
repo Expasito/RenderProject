@@ -8,17 +8,17 @@ The basic code structure is:
 
 #include <Render/Render.h>
 
-int main(){
-  Render::init();
-  Render::loadModel("model file path","model name");
-  Render::addInstance("model name",{translations},{rotations},{scales});
+int main(){<br><br>
+  Render::init();<br>
+  Render::loadModel("model file path","model name");<br>
+  Render::addInstance("model name",{translations},{rotations},{scales});<br>
   
-  while(Render::keepWindow){
-    Render::rendAll();
-  }
+  while(Render::keepWindow){<br>
+    Render::rendAll();<br>
+  }<br>
   
-  Render::exit()
-}
+  Render::exit()<br>
+}<br>
 
 
 The only changes the user needs to make is specify the 3 components for each instance of a model. There currently is no error checking for misnamed models but that is in the works.
