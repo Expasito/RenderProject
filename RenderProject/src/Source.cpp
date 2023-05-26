@@ -24,10 +24,14 @@ int main() {
 	}
 
 
-
+	Render::removeInstances("Cube");
+	Render::removeInstances("Cube");
+	Render::removeAllInstances();
 
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+		//Render::addInstance("Cube", { 1,1,1 }, { 1,1,1 }, { 1,1,1 });
 
 		Render::renderAll();
 

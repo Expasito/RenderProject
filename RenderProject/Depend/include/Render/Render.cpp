@@ -44,6 +44,24 @@ void Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::ve
 	}
 }
 
+void Render::removeInstances(std::string name) {
+	for (object o : Render::objects) {
+		if (o.name.compare(name) == 0) {
+			o.translations->clear();
+			o.rotations->clear();
+			o.scalations->clear();
+		}
+	}
+}
+
+void Render::removeAllInstances() {
+	for (object o : Render::objects) {
+		o.translations->clear();
+		o.rotations->clear();
+		o.scalations->clear();
+	}
+}
+
 void Render::prepBuffers() {
 	glGenVertexArrays(1, &Render::VAO);
 	glBindVertexArray(Render::VAO);

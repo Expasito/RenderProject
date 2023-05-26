@@ -39,6 +39,8 @@ public:
 	static void exit();
 	static void addModel(const char* path, std::string name);
 	static void addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal);
+	static void removeInstances(std::string name);
+	static void removeAllInstances();
 	static void draw();
 	static void renderAll();
 	
