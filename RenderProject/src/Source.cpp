@@ -26,6 +26,7 @@ int main() {
 
 	Render::removeInstances("Cube");
 	Render::removeInstances("Cube");
+	Render::addInstance("Monkey", {1,1,1}, {90,1,1}, {2,1,4});
 	Render::removeAllInstances();
 
 	while (Render::keepWindow) {
