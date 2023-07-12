@@ -11,7 +11,7 @@ glm::mat4 Render::projection = glm::mat4(1.0f);
 float Render::dt;
 float Render::lastFrame = 0;
 bool Render::keepWindow = true;
-unsigned int Render::VAO=-1, Render::positionBuffer = -1, Render::translationBuffer = -1, Render::rotationBuffer = -1, Render::scalationBuffer = -1, Render::EBO = -1;
+unsigned int Render::VAO=-1, Render::positionBuffer = -1, Render::translationBuffer = -1, Render::rotationBuffer = -1, Render::scalationBuffer = -1, Render::colorBuffer = -1,Render::EBO = -1;
 
 Camera Render::camera(0, 0, -10);
 
@@ -31,15 +31,16 @@ Render::Model::Model() {
 
 void Render::addModel(const char* filepath, std::string name) {
 	Render::Model m = loadModel(filepath);
-	objects.push_back({m,name, new std::vector<glm::vec3>, new std::vector<glm::vec3>, new std::vector<glm::vec3>});
+	objects.push_back({m,name, new std::vector<glm::vec3>, new std::vector<glm::vec3>, new std::vector<glm::vec3>, new std::vector<glm::vec3>});
 }
 
-void Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal) {
+void Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
 	for (object o : Render::objects) {
 		if (o.name.compare(name)==0) {
 			o.translations->push_back(pos);
 			o.rotations->push_back(rot);
 			o.scalations->push_back(scal);
+			o.colors->push_back(color);
 		}
 	}
 }
@@ -70,6 +71,7 @@ void Render::prepBuffers() {
 	glGenBuffers(1, &Render::translationBuffer);
 	glGenBuffers(1, &Render::rotationBuffer);
 	glGenBuffers(1, &Render::scalationBuffer);
+	glGenBuffers(1, &Render::colorBuffer);
 	glGenBuffers(1, &Render::EBO);
 }
 
@@ -100,6 +102,9 @@ void Render::draw() {
 		/*glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.scalations->size(), &scals[0], GL_STATIC_DRAW);*/
 		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.scalations->size(), &(*o.scalations)[0], GL_STATIC_DRAW);
 
+		glBindBuffer(GL_ARRAY_BUFFER, Render::colorBuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.colors->size(), &(*o.colors)[0], GL_STATIC_DRAW);
+
 		glBindBuffer(GL_ARRAY_BUFFER, Render::positionBuffer);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 		glEnableVertexAttribArray(0);
@@ -119,6 +124,12 @@ void Render::draw() {
 		glEnableVertexAttribArray(3);
 		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 		glVertexAttribDivisor(3, 1);
+
+
+		glBindBuffer(GL_ARRAY_BUFFER, Render::colorBuffer);
+		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+		glVertexAttribDivisor(4, 1);
 
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Render::EBO);

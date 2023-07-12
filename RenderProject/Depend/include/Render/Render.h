@@ -21,6 +21,8 @@ public:
 		std::vector<glm::vec3>* translations;
 		std::vector<glm::vec3>* rotations;
 		std::vector<glm::vec3>* scalations;
+		std::vector<glm::vec3>* colors;
+		
 	};
 	static std::vector<object> objects;
 	static GLFWwindow* window;
@@ -38,7 +40,7 @@ public:
 	static void init();
 	static void exit();
 	static void addModel(const char* path, std::string name);
-	static void addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal);
+	static void addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal,glm::vec3 colors);
 	static void removeInstances(std::string name);
 	static void removeAllInstances();
 	static void draw();
@@ -46,7 +48,7 @@ public:
 	
 	
 private:
-	static unsigned int VAO, positionBuffer, translationBuffer, rotationBuffer, scalationBuffer, EBO;
+	static unsigned int VAO, positionBuffer, translationBuffer, rotationBuffer, scalationBuffer, colorBuffer, EBO;
 	static char* loadShader(const char* filepath);
 	static void shaderBuildStatus(unsigned int shader, int result);
 	static void compileShader(const char* filepath1, const char* filepath2, unsigned int* program);

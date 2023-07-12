@@ -3,9 +3,11 @@ layout (location = 0) in vec3 aPos;
 layout(location = 1) in vec3 translations;
 layout(location = 2) in vec3 rotations;
 layout(location = 3) in vec3 scalations;
-//layout (location = 1) in vec4 stuff;
-//layout(location = 2) in vec3 aRot;
+layout(location = 4) in vec3 colors;
+
+out vec3 colors_;
 out vec3 position;
+out vec4 transformed_;
 
 
 mat4 translate(float x, float y, float z) {
@@ -57,8 +59,15 @@ uniform mat4 projection;
 
 void main(){
 	position = vec3(aPos);
+    colors_ = vec3(colors);
 
-	gl_Position = projection * view * translate(-translations.x, translations.y, translations.z) * RotateX(rotations.x) * RotateY(rotations.y)* RotateZ(rotations.z) * scale(scalations.x, scalations.y, scalations.z) * vec4(aPos, 1);
+
+    // now we can use this in the other shader
+    vec4 transformed_coordinates = translate(-translations.x, translations.y, translations.z) * RotateX(rotations.x) * RotateY(rotations.y) * RotateZ(rotations.z) * scale(scalations.x, scalations.y, scalations.z) * vec4(aPos, 1);
+    
+    transformed_ = transformed_coordinates;
+
+    gl_Position = projection * view * transformed_coordinates;
 
 
 }

@@ -7,32 +7,134 @@
 int main() {
 	srand(time(0));
 	Render::init();	
-	Render::camera.baseSpeed = 50;
+	Render::camera.baseSpeed = 10;
 	
 
 	Render::addModel("assets/cube2.obj", "Cube");
 	Render::addModel("assets/monkey.obj", "Monkey");
 
 
-	for (int i = 0; i < 1000; i++) {
-		Render::addInstance("Cube",
-			{ (float)rand() / (float)RAND_MAX * 100 - 50 ,(float)rand() / (float)RAND_MAX * 100 - 50 ,(float)rand() / (float)RAND_MAX * 100 - 50 },
-			//{0,0,0},
-			{ (float)rand() / (float)RAND_MAX * 5 , (float)rand() / (float)RAND_MAX * 5 , (float)rand() / (float)RAND_MAX * 5 },
-			{ (float)rand() / (float)RAND_MAX * 5 - 2.5 , (float)rand() / (float)RAND_MAX * 5 - 2.5 , (float)rand() / (float)RAND_MAX * 5 - 2.5 }
-		);
-	}
+	//for (int i = 0; i < 10000; i++) {
+	//	Render::addInstance("Cube",
+	//		{ (float)rand() / (float)RAND_MAX * 100 - 50 ,(float)rand() / (float)RAND_MAX * 100 - 50 ,(float)rand() / (float)RAND_MAX * 100 - 50 },
+	//		//{0,0,0},
+	//		{ (float)rand() / (float)RAND_MAX * 5 , (float)rand() / (float)RAND_MAX * 5 , (float)rand() / (float)RAND_MAX * 5 },
+	//		{ (float)rand() / (float)RAND_MAX * 5 - 2.5 , (float)rand() / (float)RAND_MAX * 5 - 2.5 , (float)rand() / (float)RAND_MAX * 5 - 2.5 }
+	//	);
+	//}
 
+	Render::addInstance("Cube",
+		{ 0,0,0 },
+		{ 0,0,0 },
+		{ 1,1,1 },
+		{ .75,.75,0 }
 
-	Render::removeInstances("Cube");
-	Render::removeInstances("Cube");
-	Render::addInstance("Monkey", {1,1,1}, {90,1,1}, {2,1,4});
-	Render::removeAllInstances();
+	);
+
+	Render::addInstance("Cube",
+		{ 10,0,0 },
+		{ 0,0,0 },
+		{ 1,1,1 },
+		{ 0,.75,0 }
+
+	);
+
+	Render::addInstance("Cube",
+		{ 20,0,0 },
+		{ 0,0,0 },
+		{ 1,1,1 },
+		{ .75,0,0 }
+
+	);
+
+	Render::addInstance("Cube",
+		{ -10,0,0 },
+		{ 0,0,0 },
+		{ 1,1,1 },
+		{ .75,.75,0 }
+
+	);
+
+	Render::addInstance("Cube",
+		{ -20,0,0 },
+		{ 0,0,0 },
+		{ 1,1,1 },
+		{ 0,.75,0 }
+
+	);
+
+	Render::addInstance("Cube",
+		{ 0,10,0 },
+		{ 0,0,0 },
+		{ 1,1,1 },
+		{ .75,0,0 }
+
+	);
+
+	Render::addInstance("Cube",
+		{ 0,20,0 },
+		{ 0,0,0 },
+		{ 1,1,1 },
+		{ .75,.75,0 }
+
+	);
+
+	Render::addInstance("Cube",
+		{ 0,-10,0 },
+		{ 0,0,0 },
+		{ 1,1,1 },
+		{ 0,.75,0 }
+
+	);
+
+	Render::addInstance("Cube",
+		{ 0,-20,0 },
+		{ 0,0,0 },
+		{ 1,1,1 },
+		{ .75,0,0 }
+
+	);
+
+	Render::addInstance("Cube",
+		{ 0,0,10 },
+		{ 0,0,0 },
+		{ 1,1,1 },
+		{ .75,0,0 }
+
+	);
+
+	Render::addInstance("Cube",
+		{ 0,0,20 },
+		{ 0,0,0 },
+		{ 1,1,1 },
+		{ .75,.75,0 }
+
+	);
+
+	Render::addInstance("Cube",
+		{ 0,0,-10 },
+		{ 0,0,0 },
+		{ 1,1,1 },
+		{ 0,.75,0 }
+
+	);
+
+	Render::addInstance("Cube",
+		{ 0,0,-20 },
+		{ 0,0,0 },
+		{ 1,1,1 },
+		{ .75,0,0 }
+
+	);
+
+	//Render::removeInstances("Cube");
+	//Render::removeInstances("Cube");
+	//Render::addInstance("Monkey", {1,1,1}, {90,1,1}, {2,1,4});
+	//Render::removeAllInstances();
 
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-		//Render::addInstance("Cube", { 1,1,1 }, { 1,1,1 }, { 1,1,1 });
 
 		Render::renderAll();
 
