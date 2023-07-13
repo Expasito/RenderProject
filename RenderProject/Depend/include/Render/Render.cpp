@@ -150,7 +150,7 @@ void Render::renderAll() {
 	Render::dt = currentFrame-Render::lastFrame;
 	Render::lastFrame = currentFrame;
 	Render::camera.speed = Render::camera.baseSpeed * Render::dt;
-	glClearColor(.2, .3, .3, 1);
+	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUniformMatrix4fv(glGetUniformLocation(Render::program1, "model"), 1, GL_FALSE, glm::value_ptr(Render::model));

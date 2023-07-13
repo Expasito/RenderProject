@@ -22,7 +22,7 @@ vec3 normalize(vec3 vec) {
 
 
 void main() {
-	Light l = { {0,0,0 },50 };
+	Light l = { {0,0,0 },30 };
 	vec3 new_pos = transformed_.xyz;
 
 	float mag = magnitude(l.position - new_pos);
