@@ -1,5 +1,6 @@
 
 #include <Render/Render.h>
+#include <chrono>
 /*
 *  Use WASD to move, mouse to look and B to change wireframe mode
 */
@@ -14,27 +15,19 @@ class HashTable {
 public:
 	int size;
 	// vector of vectors
-	std::vector<std::string>** arr;
+	std::vector<Render::object*>** arr;
 	HashTable(int size_) {
 		size = size_;
-		arr = (std::vector<std::string>**)malloc(sizeof(std::vector<std::string>*) * size);
+		arr = (std::vector<Render::object*>**)malloc(sizeof(std::vector<Render::object*>*) * size);
 		for (int i = 0; i < size; i++) {
-			arr[i] = new std::vector<std::string>;
+			arr[i] = new std::vector<Render::object*>;
 		}
-	}
 
-	HashTable() {
-		// default will be 20 models
-		size = 20;
-		arr = (std::vector<std::string>**)malloc(sizeof(std::vector<std::string>*) * size);
-		for (int i = 0; i < size; i++) {
-			arr[i] = new std::vector<std::string>;
-		}
 	}
 
 	// add a string to the hash table
-	void add(std::string val) {
-		int index = _hash(val);
+	void add(Render::object* val) {
+		int index = _hash(val->name);
 		arr[index]->push_back(val);
 	}
 
@@ -42,11 +35,12 @@ public:
 	// see all values at each index
 	void see() {
 		for (int i = 0; i < size; i++) {
-			std::vector<std::string>* temp = arr[i];
+			std::vector<Render::object*>* temp = arr[i];
 			std::cout << i <<"(" << temp->size() << ")" << "\n";
-			for (std::string c : *temp) {
-				std::cout << "  " << c << "\n";
+			for (int j = 0; j < temp->size(); j++) {
+				std::cout << (temp)->at(j)->name << "\n";
 			}
+
 			std::cout << "\n";
 		}
 	}
@@ -70,25 +64,53 @@ private:
 };
 
 int main() {
-	HashTable ht(50);
+
+	// test performance of a collatz conjecture test with heap vs stack
+
+	// stack here
+	std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
+	long long  x = 99999999999999;
+
+	while (x != 1) {
+		if (x % 2 == 0) {
+			x /= 2;
+		}
+		else {
+			x = 3 * x + 1;
+		}
+		//std::cout << x << "\n";
+	}
+
+	//long long* x2 = new long long;
+	//
+	//*x2 = 99999999999999;
+
+	//while (*x2 != 1) {
+	//	if (*x2 % 2 == 0) {
+	//		*x2 /= 2;
+	//	}
+	//	else {
+	//		*x2 = 3 * *x2 + 1;
+	//	}
+	//	std::cout << *x2 << "\n";
+	//}
 
 
-	ht.add("Hello");
-	ht.add("Monkey");
-	ht.add("Monke");
-	ht.add("Monk");
-	ht.add("Player");
-	ht.add("player");
-	ht.add("cube");
-	ht.add("CuBe");
+	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-	ht.add("one");
-	ht.add("two");
-	ht.add("three");
-	ht.add("23wruwjjflsjf");
+	float milis = (end - start).count()/1000000.0;
+	
+	std::cout << milis << "\n";
 
-	ht.add("beans");
-	ht.add("beens");
+	//exit(1);
+	HashTable ht(5);
+
+
+	Render::object o = { {},"hello", new std::vector<glm::vec3>, new std::vector<glm::vec3>, new std::vector<glm::vec3>, new std::vector<glm::vec3> };
+	ht.add(&o);
+
+
 
 	ht.see();
 

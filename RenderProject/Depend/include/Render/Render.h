@@ -40,7 +40,7 @@ public:
 	static void init();
 	static void exit();
 	static void addModel(const char* path, std::string name);
-	static void addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal,glm::vec3 colors);
+	static int addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal,glm::vec3 colors);
 	static void removeInstances(std::string name);
 	static void removeAllInstances();
 	static void draw();

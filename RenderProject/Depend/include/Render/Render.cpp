@@ -34,7 +34,8 @@ void Render::addModel(const char* filepath, std::string name) {
 	objects.push_back({m,name, new std::vector<glm::vec3>, new std::vector<glm::vec3>, new std::vector<glm::vec3>, new std::vector<glm::vec3>});
 }
 
-void Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
+// the returned value is the index in the vector
+int Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
 	for (object o : Render::objects) {
 		if (o.name.compare(name)==0) {
 			o.translations->push_back(pos);
@@ -42,6 +43,7 @@ void Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::ve
 			o.scalations->push_back(scal);
 			o.colors->push_back(color);
 		}
+		return o.translations->size();
 	}
 }
 
