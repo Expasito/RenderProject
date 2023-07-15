@@ -257,8 +257,10 @@ int main() {
 	//Render::addInstance("Monkey", {1,1,1}, {90,1,1}, {2,1,4});
 	//Render::removeAllInstances();
 
+
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
 
 
 		Render::renderAll();
