@@ -49,14 +49,17 @@ void main() {
 
 	float angle = acos(dot(ray, camFront_) / (magnitude(ray) * magnitude(camFront_)))*180/3.14159265;
 
-	if (abs(angle) < 30) {
+	if (abs(angle) < 20) {
 		float mag = magnitude(ray);
 		float dist = 1.0 / (mag * mag) * 75.0;
 		FragColor = vec4(colors_.x * dist, colors_.y * dist, colors_.z * dist, 1);
 	}
 	else {
 		float mag = magnitude(ray);
-		float dist = 1.0 / (mag * mag*mag) * 75.0;
+		if (mag < 5) {
+			mag = 5;
+		}
+		float dist = 1.0 / (mag * mag*mag) * 75.0/4;
 		FragColor = vec4(colors_.x * dist, colors_.y * dist, colors_.z * dist, 1);
 	}
 
