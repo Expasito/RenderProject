@@ -8,6 +8,9 @@ std::vector<Render::object> Render::objects;
 glm::mat4 Render::model = glm::mat4(1.0f);
 glm::mat4 Render::view = glm::mat4(1.0f);
 glm::mat4 Render::projection = glm::mat4(1.0f);
+
+unsigned long long Render::instanceCounter = 0;
+
 float Render::dt;
 float Render::lastFrame = 0;
 bool Render::keepWindow = true;
@@ -34,8 +37,8 @@ void Render::addModel(const char* filepath, std::string name) {
 	objects.push_back({m,name, new std::vector<glm::vec3>, new std::vector<glm::vec3>, new std::vector<glm::vec3>, new std::vector<glm::vec3>});
 }
 
-// the returned value is the index in the vector
-int Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
+// the returned value is the unique id for the number
+unsigned long long Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
 	for (object o : Render::objects) {
 		if (o.name.compare(name)==0) {
 			o.translations->push_back(pos);
@@ -47,12 +50,17 @@ int Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec
 	}
 }
 
+void Render::editInstance(std::string name, unsigned long long id, glm::vec3 pos, glm::bvec3 rot, glm::vec3 scal, glm::vec3 color) {
+
+}
+
 void Render::removeInstances(std::string name) {
 	for (object o : Render::objects) {
 		if (o.name.compare(name) == 0) {
 			o.translations->clear();
 			o.rotations->clear();
 			o.scalations->clear();
+			o.colors->clear();
 		}
 	}
 }
@@ -62,6 +70,7 @@ void Render::removeAllInstances() {
 		o.translations->clear();
 		o.rotations->clear();
 		o.scalations->clear();
+		o.colors->clear();
 	}
 }
 
@@ -77,6 +86,7 @@ void Render::prepBuffers() {
 	glGenBuffers(1, &Render::EBO);
 }
 
+//TODO: rewrite so we set the buffer data and vertex attributes at hte same time for speed to not bind buffers as often
 void Render::draw() {
 	for (object o : Render::objects) {
 		if (o.translations->size() <= 0) {

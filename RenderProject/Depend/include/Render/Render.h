@@ -37,10 +37,13 @@ public:
 	static float dt;
 	static float lastFrame;
 	static bool keepWindow;
+	// this counts which entity index we are on for hashing. This will increment and return as the hash key
+	static unsigned long long instanceCounter;
 	static void init();
 	static void exit();
 	static void addModel(const char* path, std::string name);
-	static int addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal,glm::vec3 colors);
+	static unsigned long long addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal,glm::vec3 colors);
+	static void editInstance(std::string name, unsigned long long id, glm::vec3 pos, glm::bvec3 rot, glm::vec3 scal, glm::vec3 color);
 	static void removeInstances(std::string name);
 	static void removeAllInstances();
 	static void draw();
