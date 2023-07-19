@@ -68,80 +68,267 @@ private:
 
 
 
+struct Instance {
+	bool keep;
+	int key;
+	glm::vec3 trans;
+	glm::vec3 rot;
+	glm::vec3 scal;
+};
 
-template<typename T>
-class HashTable2 {
 
-
+class HT {
 public:
+	Instance* table;
 	int size;
-	// vector of vectors
-	std::vector<T>** arr;
-	HashTable2(int size_) {
+	int elements;
+
+	float load;
+
+	HT(int size_) {
+		// allocate memory for our table
+		table = (Instance*)malloc(sizeof(Instance) * size_);
 		size = size_;
-		arr = (std::vector<T>**)malloc(sizeof(std::vector<T>*) * size);
-		for (int i = 0; i < size; i++) {
-			arr[i] = new std::vector<T>;
-		}
 
-	}
-
-	// does not work right now, may make two methods or two hashtables(preferably not)
-	void add(T val) {
-		// this is the hashcode for a string
-		if (typeid(val).hash_code() == 10283618467285603348) {
-			int index = _hash(val->name);
-			arr[index]->push_back(val);
-		}
-
-		// this is for unsigned long long
-		if (typeid(val).hash_code() == 1) {
-			int index = _hash(val);
-			arr[index]->push_back(val);
-		}
-
-		
+		init();
+		elements = 0;
+		load = 0;
 	}
 
 
-	// see all values at each index
-	void see() {
-		for (int i = 0; i < size; i++) {
-			std::vector<T>* temp = arr[i];
-			std::cout << i << "(" << temp->size() << ")" << "\n";
-			for (int j = 0; j < temp->size(); j++) {
-				std::cout << (temp)->at(j) << "\n";
+	// key should be unique from all other keys
+	void add(int key, glm::vec3 trans, glm::vec3 rot, glm::vec3 scal) {
+		int index = _hash(key);
+		int index_ = index;
+
+		while (true) {
+			Instance inst = table[index];
+			if (inst.keep == true) {
+				index++;
+				if (index >= size) {
+					index = 0;
+				}
+			}
+			else {
+				table[index] = { true, key, trans, rot, scal };
+				break;
 			}
 
-			std::cout << "\n";
+			// we have failed to add because no slots are open
+			if (index == index_) {
+				break;
+			}
+			
+		}
+		elements++;
+		load = (float)elements / size;
+	}
+
+	void add(Instance inst_) {
+		int index = _hash(inst_.key);
+		int index_ = index;
+
+		while (true) {
+			Instance inst = table[index];
+			if (inst.keep == true) {
+				index++;
+				if (index >= size) {
+					index = 0;
+				}
+			}
+			else {
+				table[index] = inst_;
+				break;
+			}
+
+			// we have failed to add because no slots are open
+			if (index == index_) {
+				break;
+			}
+
+		}
+		elements++;
+		load = (float)elements / size;
+	}
+
+	// deletes the instance by marking it as open.
+	void remove(int key) {
+		int index = _hash(key);
+		int index_ = index;
+
+		while (true) {
+			Instance inst = table[index];
+			if (inst.key != key) {
+				index++;
+				if (index >= size) {
+					index = 0;
+				}
+			}
+			else {
+				table[index].keep = false;
+				break;
+			}
+
+			// we have failed to add because no slots are open
+			if (index == index_) {
+				break;
+			}
+
+		}
+		elements--;
+		load = (float)elements / size;
+	}
+
+	// only call get if the instance is in there
+	Instance* get(int key) {
+		int index = _hash(key);
+		int index_ = index;
+		while (true) {
+			Instance* inst = &table[index];
+			if (inst->key == key) {
+				return inst;
+			}
+			else {
+				index++;
+				if (index > size) {
+					index = 0;
+				}
+			}
+			if (index == index_) {
+				return NULL;
+			}
 		}
 	}
 
+	void see() {
+		for (int i = 0; i < size; i++) {
+			std::cout << i << "\n";
+			Instance inst = table[i];
+			if (inst.keep) {
+				std::cout << "  " << inst.keep << ": " << inst.key << " : (" << inst.trans.x << ", " << inst.trans.y << ", " << inst.trans.z << ")" << "\n";
 
+			}
+			else {
+				std::cout << "  " << inst.keep << "\n";
+			}
+		}
+
+		std::cout << "load:" << load << "\n\n\n";
+	}
 
 private:
 
-	// honestly works pretty well
-	// just take the character value times the position and sum it up
-	int _hash(std::string val) {
-		int sum = 0;
-		for (int i = 0; i < val.length(); i++) {
-			sum += val[i] * (i + 1);
-		}
-
-
-		return sum % size;
-
+	int _hash(int index) {
+		return index % size;
 	}
 
-	int _hash(unsigned long long val) {
-		return val % size;
+
+	// set all keep values to false so all slots are open
+	void init() {
+		for (int i = 0; i < size; i++) {
+			table[i].keep = false;
+		}
+		elements = 0;
 	}
 };
 
 
+class Instances {
+public:
+	HT* table;
+
+	// min number of slots to keep in the table
+	int minSlots = 4;
+	
+	// this is what to multiply by to resize the table
+	int resizeFactor = 3;
+
+	// maxload only applies for adding. Minload only applies for removing
+	float maxLoad = .99;
+	float minLoad = .125;
+
+	Instances(int size) {
+		table = new HT(size);
+
+	}
+
+	void add(int key, glm::vec3 trans, glm::vec3 rot, glm::vec3 scal) {
+		table->add(key, trans, rot, scal);
+
+		if (table->load > maxLoad) {
+			resize(table->size*resizeFactor);
+		}
+	}
+
+	void remove(int key) {
+		table->remove(key);
+
+		if (table->size/resizeFactor > minSlots && table->load < minLoad) {
+			resize(table->size / resizeFactor);
+		}
+	}
+	
+	void resize(int size) {
+		HT* temp = new HT(size);
+
+		for (int i = 0; i < table->size; i++) {
+			Instance inst = table->table[i];
+			if(inst.keep)
+				temp->add(inst);
+		}
+
+		free(table);
+		table = temp;
+	}
+
+	void see() {
+		table->see();
+	}
+
+
+
+
+};
 
 int main() {
+
+	Instances inst(5);
+
+	inst.see();
+
+	for (int i = 0; i < 30; i++) {
+		inst.add(i, { i,i,i }, {}, {});
+		inst.see();
+	}
+
+	for (int i = 0; i < 28; i++) {
+		inst.remove(i);
+		inst.see();
+	}
+
+
+
+
+
+
+	exit(1);
+
+	/*
+	* 
+	* Here is the plan
+	* We have a hash table for the instances that takes in a struct which holds all of the data
+	* The table will not use chaining but sequential moving to the right for a new spot
+	* 
+	* Add will be O(1), returns a key( aka an 'index') for hashing
+	* get will be O(1), returns a pointer
+	* remove will be O(1), return nothing because we delete the information at the location
+	* 
+	* for rendering
+	* we iterate through the hashtable. If the keep variable is true, then add to a list 
+	* if keep is false, skip over.
+	* Pass this list to the gpu to draw
+	* 
+	*/
 
 
 
@@ -162,7 +349,17 @@ int main() {
 	* 
 	* Idea: we use a hashtable, but rather than chaining, move the index over one. Then we have a buffer of x possible elements
 	* and we will get an approximate index. Then move right until we find the exact match of ids and edit there.
-	*/
+	*
+	* *
+	* Idea2: hash tabel, don't use chaning
+	* make it rehash everything if the load is over .75 or something
+	* will be one fat O(n) operation but will be once in a while, should be one dropped frame
+	* other than that, always o(1)
+	* 
+	
+	
+	
+	/
 
 	//HashTable2<unsigned long long> ht2(10);
 

@@ -342,6 +342,18 @@ void Render::compileShader(const char* fragment, const char* vertex, unsigned in
 	*program = glCreateProgram();
 	glAttachShader(*program, vertexShader);
 	glAttachShader(*program, fragmentShader);
+
+	//// add geometry shader here
+	//char* geometryShaderSource = loadShader("shaders/geometry.shader");
+	//unsigned int geometryShader;
+	//geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+	//glShaderSource(geometryShader, 1, &geometryShaderSource, NULL);
+	//glCompileShader(geometryShader);
+
+	//glGetShaderiv(geometryShader, GL_COMPILE_STATUS, &result);
+	//shaderBuildStatus(geometryShader, result);
+	//glAttachShader(*program, geometryShader);
+
 	glLinkProgram(*program);
 
 	glUseProgram(*program);
