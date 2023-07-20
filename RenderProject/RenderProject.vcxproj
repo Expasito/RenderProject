@@ -432,6 +432,7 @@
     <ClInclude Include="Depend\include\KHR\khrplatform.h" />
     <ClInclude Include="Depend\include\Render\Camera.h" />
     <ClInclude Include="Depend\include\Render\Headers.h" />
+    <ClInclude Include="Depend\include\Render\Instances.h" />
     <ClInclude Include="Depend\include\Render\Render.h" />
   </ItemGroup>
   <ItemGroup>

@@ -15,7 +15,7 @@ float Render::dt;
 float Render::lastFrame = 0;
 bool Render::keepWindow = true;
 unsigned int Render::VAO=-1, Render::positionBuffer = -1, Render::translationBuffer = -1, Render::rotationBuffer = -1, Render::scalationBuffer = -1, Render::colorBuffer = -1,Render::EBO = -1;
-
+unsigned int Render::allBuffer = -1;
 Camera Render::camera(0, 0, -10);
 
 bool Render::left = false, Render::right = false, Render::down = false, Render::up = false, Render::forward = false, Render::backward = false;
@@ -34,19 +34,17 @@ Render::Model::Model() {
 
 void Render::addModel(const char* filepath, std::string name) {
 	Render::Model m = loadModel(filepath);
-	objects.push_back({m,name, new std::vector<glm::vec3>, new std::vector<glm::vec3>, new std::vector<glm::vec3>, new std::vector<glm::vec3>});
+	objects.push_back({ m,name, Instances(15) });
 }
 
 // the returned value is the unique id for the number
-unsigned long long Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
+void Render::addInstance(std::string name, int key, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
 	for (object o : Render::objects) {
 		if (o.name.compare(name)==0) {
-			o.translations->push_back(pos);
-			o.rotations->push_back(rot);
-			o.scalations->push_back(scal);
-			o.colors->push_back(color);
+			o.insts.add(key, pos, rot, scal,color);
+
 		}
-		return o.translations->size();
+		
 	}
 }
 
@@ -54,104 +52,114 @@ void Render::editInstance(std::string name, unsigned long long id, glm::vec3 pos
 
 }
 
-void Render::removeInstances(std::string name) {
-	for (object o : Render::objects) {
-		if (o.name.compare(name) == 0) {
-			o.translations->clear();
-			o.rotations->clear();
-			o.scalations->clear();
-			o.colors->clear();
-		}
-	}
-}
-
-void Render::removeAllInstances() {
-	for (object o : Render::objects) {
-		o.translations->clear();
-		o.rotations->clear();
-		o.scalations->clear();
-		o.colors->clear();
-	}
-}
+//void Render::removeInstances(std::string name) {
+//	for (object o : Render::objects) {
+//		if (o.name.compare(name) == 0) {
+//			o.translations->clear();
+//			o.rotations->clear();
+//			o.scalations->clear();
+//			o.colors->clear();
+//		}
+//	}
+//}
+//
+//void Render::removeAllInstances() {
+//	for (object o : Render::objects) {
+//		o.translations->clear();
+//		o.rotations->clear();
+//		o.scalations->clear();
+//		o.colors->clear();
+//	}
+//}
 
 void Render::prepBuffers() {
 	glGenVertexArrays(1, &Render::VAO);
 	glBindVertexArray(Render::VAO);
 
 	glGenBuffers(1, &Render::positionBuffer);
-	glGenBuffers(1, &Render::translationBuffer);
-	glGenBuffers(1, &Render::rotationBuffer);
-	glGenBuffers(1, &Render::scalationBuffer);
-	glGenBuffers(1, &Render::colorBuffer);
+	//glGenBuffers(1, &Render::translationBuffer);
+	//glGenBuffers(1, &Render::rotationBuffer);
+	//glGenBuffers(1, &Render::scalationBuffer);
+	//glGenBuffers(1, &Render::colorBuffer);
+
+	glGenBuffers(1, &Render::allBuffer);
+
 	glGenBuffers(1, &Render::EBO);
 }
+
+// this will be used to keep the buffer shorter since we do not need the key or the keep value
+struct Instance_ {
+	glm::vec3 trans;
+	glm::vec3 rot;
+	glm::vec3 scal;
+	glm::vec3 color;
+};
 
 //TODO: rewrite so we set the buffer data and vertex attributes at hte same time for speed to not bind buffers as often
 void Render::draw() {
 	for (object o : Render::objects) {
-		if (o.translations->size() <= 0) {
+		int elements = o.insts.table->elements;
+		if (elements <= 0) {
 			continue;
 		}
+
+		// bind the VAO
 		glBindVertexArray(Render::VAO);
 
+		// fill the position buffer and send the data to the gpu
 		glBindBuffer(GL_ARRAY_BUFFER, Render::positionBuffer);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*o.m.vertices.size(), &o.m.vertices[0], GL_STATIC_DRAW);
-
-		
-
-		glBindBuffer(GL_ARRAY_BUFFER, Render::translationBuffer);
-		//std::vector<glm::vec3> trans = *o.translations;
-		//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.translations->size(), &trans[0], GL_STATIC_DRAW);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.translations->size(), &(*o.translations)[0], GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ARRAY_BUFFER, Render::rotationBuffer);
-		//std::vector<glm::vec3> rots = *o.rotations;
-		//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.rotations->size(), &rots[0], GL_STATIC_DRAW);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.rotations->size(), &(*o.rotations)[0], GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ARRAY_BUFFER, Render::scalationBuffer);
-		//std::vector<glm::vec3> scals = *o.scalations;
-		/*glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.scalations->size(), &scals[0], GL_STATIC_DRAW);*/
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.scalations->size(), &(*o.scalations)[0], GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ARRAY_BUFFER, Render::colorBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.colors->size(), &(*o.colors)[0], GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ARRAY_BUFFER, Render::positionBuffer);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 		glEnableVertexAttribArray(0);
 
-		glBindBuffer(GL_ARRAY_BUFFER, Render::translationBuffer);
+		// load buffer data now. Create a buffer of size elements
+		Instance_* buff = (Instance_*)malloc(sizeof(Instance_) * elements);
+		int index = 0;
+		// load buffer with data that is used 
+		for (int i = 0; i < o.insts.table->size; i++) {
+			Instance* in = o.insts.table->get(i);
+			if (in != NULL && in->keep == true) {
+				buff[index].trans = in->trans;
+				buff[index].rot = in->rot;
+				buff[index].scal = in->scal;
+				buff[index].color = in->color;
+				index++;
+			}
+		}
+
+		// load in the buffer of all data
+		glBindBuffer(GL_ARRAY_BUFFER, Render::allBuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*elements*4, buff, GL_STATIC_DRAW);
+
+		
+		// this is translation
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec3), (void*)(0));
 		glVertexAttribDivisor(1, 1);
-
-		glBindBuffer(GL_ARRAY_BUFFER, Render::rotationBuffer);
+		// this is rotation
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec3), (void*)(sizeof(glm::vec3)));
 		glVertexAttribDivisor(2, 1);
-
-
-		glBindBuffer(GL_ARRAY_BUFFER, Render::scalationBuffer);
+		// this is for scalation
 		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-		glVertexAttribDivisor(3, 1);
+		 glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec3), (void*)(2 * sizeof(glm::vec3)));
+		 glVertexAttribDivisor(3, 1);
+		 // this is for color
+		 glEnableVertexAttribArray(4);
+		 glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec3), (void*)(3 * sizeof(glm::vec3)));
+		 glVertexAttribDivisor(4, 1);
 
 
-		glBindBuffer(GL_ARRAY_BUFFER, Render::colorBuffer);
-		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-		glVertexAttribDivisor(4, 1);
-
-
+		 // give the index buffer to the gpu
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Render::EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * o.m.indices.size(), &o.m.indices[0], GL_STATIC_DRAW);
 
 
 
-		glDrawElementsInstanced(GL_TRIANGLES, o.m.indices.size() - 3, GL_UNSIGNED_INT, 0, o.translations->size());
+		glDrawElementsInstanced(GL_TRIANGLES, o.m.indices.size() - 3, GL_UNSIGNED_INT, 0, elements+5);
 
 
+		free(buff);
 
 	}
 }
@@ -312,9 +320,7 @@ void Render::init() {
 void Render::exit() {
 	glfwTerminate();
 	for (object o : Render::objects) {
-		free(o.translations);
-		free(o.rotations);
-		free(o.scalations);
+		free(o.insts.table);
 	}
 
 	glfwDestroyWindow(Render::window);

@@ -1,6 +1,7 @@
 #pragma once
 #include "Headers.h"
 #include "Camera.h"
+#include <Render/Instances.h>
 
 
 class Render
@@ -18,10 +19,7 @@ public:
 	struct object {
 		Model m;
 		std::string name;
-		std::vector<glm::vec3>* translations;
-		std::vector<glm::vec3>* rotations;
-		std::vector<glm::vec3>* scalations;
-		std::vector<glm::vec3>* colors;
+		Instances insts;
 		
 	};
 	static std::vector<object> objects;
@@ -42,7 +40,7 @@ public:
 	static void init();
 	static void exit();
 	static void addModel(const char* path, std::string name);
-	static unsigned long long addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal,glm::vec3 colors);
+	static void addInstance(std::string name, int key, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal,glm::vec3 colors);
 	static void editInstance(std::string name, unsigned long long id, glm::vec3 pos, glm::bvec3 rot, glm::vec3 scal, glm::vec3 color);
 	static void removeInstances(std::string name);
 	static void removeAllInstances();
@@ -52,6 +50,7 @@ public:
 	
 private:
 	static unsigned int VAO, positionBuffer, translationBuffer, rotationBuffer, scalationBuffer, colorBuffer, EBO;
+	static unsigned int allBuffer;
 	static char* loadShader(const char* filepath);
 	static void shaderBuildStatus(unsigned int shader, int result);
 	static void compileShader(const char* filepath1, const char* filepath2, unsigned int* program);

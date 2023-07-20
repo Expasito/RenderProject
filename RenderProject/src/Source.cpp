@@ -66,252 +66,8 @@ private:
 };
 
 
-
-
-struct Instance {
-	bool keep;
-	int key;
-	glm::vec3 trans;
-	glm::vec3 rot;
-	glm::vec3 scal;
-};
-
-
-class HT {
-public:
-	Instance* table;
-	int size;
-	int elements;
-
-	float load;
-
-	HT(int size_) {
-		// allocate memory for our table
-		table = (Instance*)malloc(sizeof(Instance) * size_);
-		size = size_;
-
-		init();
-		elements = 0;
-		load = 0;
-	}
-
-
-	// key should be unique from all other keys
-	void add(int key, glm::vec3 trans, glm::vec3 rot, glm::vec3 scal) {
-		int index = _hash(key);
-		int index_ = index;
-
-		while (true) {
-			Instance inst = table[index];
-			if (inst.keep == true) {
-				index++;
-				if (index >= size) {
-					index = 0;
-				}
-			}
-			else {
-				table[index] = { true, key, trans, rot, scal };
-				break;
-			}
-
-			// we have failed to add because no slots are open
-			if (index == index_) {
-				break;
-			}
-			
-		}
-		elements++;
-		load = (float)elements / size;
-	}
-
-	void add(Instance inst_) {
-		int index = _hash(inst_.key);
-		int index_ = index;
-
-		while (true) {
-			Instance inst = table[index];
-			if (inst.keep == true) {
-				index++;
-				if (index >= size) {
-					index = 0;
-				}
-			}
-			else {
-				table[index] = inst_;
-				break;
-			}
-
-			// we have failed to add because no slots are open
-			if (index == index_) {
-				break;
-			}
-
-		}
-		elements++;
-		load = (float)elements / size;
-	}
-
-	// deletes the instance by marking it as open.
-	void remove(int key) {
-		int index = _hash(key);
-		int index_ = index;
-
-		while (true) {
-			Instance inst = table[index];
-			if (inst.key != key) {
-				index++;
-				if (index >= size) {
-					index = 0;
-				}
-			}
-			else {
-				table[index].keep = false;
-				break;
-			}
-
-			// we have failed to add because no slots are open
-			if (index == index_) {
-				break;
-			}
-
-		}
-		elements--;
-		load = (float)elements / size;
-	}
-
-	// only call get if the instance is in there
-	Instance* get(int key) {
-		int index = _hash(key);
-		int index_ = index;
-		while (true) {
-			Instance* inst = &table[index];
-			if (inst->key == key) {
-				return inst;
-			}
-			else {
-				index++;
-				if (index > size) {
-					index = 0;
-				}
-			}
-			if (index == index_) {
-				return NULL;
-			}
-		}
-	}
-
-	void see() {
-		for (int i = 0; i < size; i++) {
-			std::cout << i << "\n";
-			Instance inst = table[i];
-			if (inst.keep) {
-				std::cout << "  " << inst.keep << ": " << inst.key << " : (" << inst.trans.x << ", " << inst.trans.y << ", " << inst.trans.z << ")" << "\n";
-
-			}
-			else {
-				std::cout << "  " << inst.keep << "\n";
-			}
-		}
-
-		std::cout << "load:" << load << "\n\n\n";
-	}
-
-private:
-
-	int _hash(int index) {
-		return index % size;
-	}
-
-
-	// set all keep values to false so all slots are open
-	void init() {
-		for (int i = 0; i < size; i++) {
-			table[i].keep = false;
-		}
-		elements = 0;
-	}
-};
-
-
-class Instances {
-public:
-	HT* table;
-
-	// min number of slots to keep in the table
-	int minSlots = 4;
-	
-	// this is what to multiply by to resize the table
-	int resizeFactor = 3;
-
-	// maxload only applies for adding. Minload only applies for removing
-	float maxLoad = .99;
-	float minLoad = .125;
-
-	Instances(int size) {
-		table = new HT(size);
-
-	}
-
-	void add(int key, glm::vec3 trans, glm::vec3 rot, glm::vec3 scal) {
-		table->add(key, trans, rot, scal);
-
-		if (table->load > maxLoad) {
-			resize(table->size*resizeFactor);
-		}
-	}
-
-	void remove(int key) {
-		table->remove(key);
-
-		if (table->size/resizeFactor > minSlots && table->load < minLoad) {
-			resize(table->size / resizeFactor);
-		}
-	}
-	
-	void resize(int size) {
-		HT* temp = new HT(size);
-
-		for (int i = 0; i < table->size; i++) {
-			Instance inst = table->table[i];
-			if(inst.keep)
-				temp->add(inst);
-		}
-
-		free(table);
-		table = temp;
-	}
-
-	void see() {
-		table->see();
-	}
-
-
-
-
-};
-
 int main() {
 
-	Instances inst(5);
-
-	inst.see();
-
-	for (int i = 0; i < 30; i++) {
-		inst.add(i, { i,i,i }, {}, {});
-		inst.see();
-	}
-
-	for (int i = 0; i < 28; i++) {
-		inst.remove(i);
-		inst.see();
-	}
-
-
-
-
-
-
-	exit(1);
 
 	/*
 	* 
@@ -444,22 +200,22 @@ int main() {
 	
 
 	Render::addModel("assets/cube2.obj", "Cube");
-	Render::addModel("assets/monkey.obj", "Monkey");
+	//Render::addModel("assets/monkey.obj", "Monkey");
 
 
-	float max_dist = 200;
-	for (int i = 0; i < 50000; i++) {
-		Render::addInstance("Cube",
-			{ (float)rand() / (float)RAND_MAX * max_dist - max_dist/2.0 ,(float)rand() / (float)RAND_MAX * max_dist - max_dist / 2.0,(float)rand() / (float)RAND_MAX * max_dist - max_dist / 2.0 },
-			//{0,0,0},
-			{ (float)rand() / (float)RAND_MAX * 5 , (float)rand() / (float)RAND_MAX * 5 , (float)rand() / (float)RAND_MAX * 5 },
-			{ (float)rand() / (float)RAND_MAX * 5 - 2.5 , (float)rand() / (float)RAND_MAX * 5 - 2.5 , (float)rand() / (float)RAND_MAX * 5 - 2.5 },
-			{.5,.5,.5}
-			//{(float)rand()/(float)RAND_MAX,(float)rand() / (float)RAND_MAX,(float)rand() / (float)RAND_MAX }
-		);
-	}
+	//float max_dist = 200;
+	//for (int i = 0; i < 50000; i++) {
+	//	Render::addInstance("Cube",
+	//		{ (float)rand() / (float)RAND_MAX * max_dist - max_dist/2.0 ,(float)rand() / (float)RAND_MAX * max_dist - max_dist / 2.0,(float)rand() / (float)RAND_MAX * max_dist - max_dist / 2.0 },
+	//		//{0,0,0},
+	//		{ (float)rand() / (float)RAND_MAX * 5 , (float)rand() / (float)RAND_MAX * 5 , (float)rand() / (float)RAND_MAX * 5 },
+	//		{ (float)rand() / (float)RAND_MAX * 5 - 2.5 , (float)rand() / (float)RAND_MAX * 5 - 2.5 , (float)rand() / (float)RAND_MAX * 5 - 2.5 },
+	//		{.5,.5,.5}
+	//		//{(float)rand()/(float)RAND_MAX,(float)rand() / (float)RAND_MAX,(float)rand() / (float)RAND_MAX }
+	//	);
+	//}
 
-	Render::addInstance("Cube",
+	Render::addInstance("Cube",1,
 		{ 0,0,0 },
 		{ 0,0,0 },
 		{ 1,1,1 },
@@ -467,7 +223,7 @@ int main() {
 
 	);
 
-	Render::addInstance("Cube",
+	Render::addInstance("Cube",2,
 		{ 10,0,0 },
 		{ 0,0,0 },
 		{ 1,1,1 },
@@ -475,7 +231,7 @@ int main() {
 
 	);
 
-	Render::addInstance("Cube",
+	Render::addInstance("Cube",3,
 		{ 20,0,0 },
 		{ 0,0,0 },
 		{ 1,1,1 },
@@ -483,7 +239,7 @@ int main() {
 
 	);
 
-	Render::addInstance("Cube",
+	Render::addInstance("Cube",4,
 		{ -10,0,0 },
 		{ 0,0,0 },
 		{ 1,1,1 },
@@ -491,7 +247,7 @@ int main() {
 
 	);
 
-	Render::addInstance("Cube",
+	Render::addInstance("Cube",5,
 		{ -20,0,0 },
 		{ 0,0,0 },
 		{ 1,1,1 },
@@ -499,7 +255,7 @@ int main() {
 
 	);
 
-	Render::addInstance("Cube",
+	Render::addInstance("Cube",6,
 		{ 0,10,0 },
 		{ 0,0,0 },
 		{ 1,1,1 },
@@ -507,7 +263,7 @@ int main() {
 
 	);
 
-	Render::addInstance("Cube",
+	Render::addInstance("Cube",7,
 		{ 0,20,0 },
 		{ 0,0,0 },
 		{ 1,1,1 },
@@ -515,7 +271,7 @@ int main() {
 
 	);
 
-	Render::addInstance("Cube",
+	Render::addInstance("Cube",8,
 		{ 0,-10,0 },
 		{ 0,0,0 },
 		{ 1,1,1 },
@@ -523,7 +279,7 @@ int main() {
 
 	);
 
-	Render::addInstance("Cube",
+	Render::addInstance("Cube",9,
 		{ 0,-20,0 },
 		{ 0,0,0 },
 		{ 1,1,1 },
@@ -531,7 +287,7 @@ int main() {
 
 	);
 
-	Render::addInstance("Cube",
+	Render::addInstance("Cube",10,
 		{ 0,0,10 },
 		{ 0,0,0 },
 		{ 1,1,1 },
@@ -539,7 +295,7 @@ int main() {
 
 	);
 
-	Render::addInstance("Cube",
+	Render::addInstance("Cube",11,
 		{ 0,0,20 },
 		{ 0,0,0 },
 		{ 1,1,1 },
@@ -547,7 +303,7 @@ int main() {
 
 	);
 
-	Render::addInstance("Cube",
+	Render::addInstance("Cube",12,
 		{ 0,0,-10 },
 		{ 0,0,0 },
 		{ 1,1,1 },
@@ -555,7 +311,7 @@ int main() {
 
 	);
 
-	Render::addInstance("Cube",
+	Render::addInstance("Cube",13,
 		{ 0,0,-20 },
 		{ 0,0,0 },
 		{ 1,1,1 },
@@ -568,6 +324,8 @@ int main() {
 	//Render::addInstance("Monkey", {1,1,1}, {90,1,1}, {2,1,4});
 	//Render::removeAllInstances();
 
+	std::vector<float> time(10000);
+
 
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -579,7 +337,13 @@ int main() {
 
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		float milis = (end - begin).count() / 1000000.0;
+		time.push_back(milis);
 		std::cout << "Time difference = " << milis << "[ms]" << " FPS: " << 1000.0/milis << "\n";
+		float sum = 0.0;
+		for (int i = 0; i < time.size(); i++) {
+			sum += time.at(i);
+		}
+		std::cout << "Average: " << sum / time.size() << "\n";
 	}
 
 	Render::exit();
