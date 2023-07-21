@@ -19,7 +19,7 @@ public:
 	struct object {
 		Model m;
 		std::string name;
-		Instances insts;
+		Instances* insts;
 		
 	};
 	static std::vector<object> objects;

@@ -66,7 +66,16 @@ private:
 };
 
 
+//#include <Render/Instances.h>
 int main() {
+
+	//Instances insts(5);
+	//int index__ = 0;
+	//while (true) {
+	//	insts.add(index__, { index__,0,0 }, {}, {}, {});
+	//	//std::cout << insts.table->size << "\n";
+	//}
+	//exit(1);
 
 
 	/*
@@ -326,11 +335,23 @@ int main() {
 
 	std::vector<float> time(10000);
 
+	int index_ = 14;
+
 
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
 		//Render::addInstance("Monkey", { 1,1,1 }, { 90,1,1 }, { 2,1,4 }, {.5,.5,.8});
+
+		Render::addInstance("Cube", index_,
+			{ index_/10.0,0,0},
+			{ 0,0,0 },
+			{ 1,1,1 },
+			{ .75,0,0 }
+		);
+		index_++;
+
+
 
 		Render::renderAll();
 

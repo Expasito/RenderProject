@@ -30,6 +30,10 @@ public:
 		load = 0;
 	}
 
+	~HT() {
+		free(table);
+	}
+
 
 	// key should be unique from all other keys
 	void add(int key, glm::vec3 trans, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
@@ -176,10 +180,10 @@ public:
 	int minSlots = 4;
 
 	// this is what to multiply by to resize the table
-	int resizeFactor = 3;
+	int resizeFactor = 2;
 
 	// maxload only applies for adding. Minload only applies for removing
-	float maxLoad = .99;
+	float maxLoad = .25;
 	float minLoad = .125;
 
 	Instances(int size) {
@@ -189,7 +193,7 @@ public:
 
 	void add(int key, glm::vec3 trans, glm::vec3 rot, glm::vec3 scal,glm::vec3 color) {
 		table->add(key, trans, rot, scal,color);
-
+		std::cout << "             " << table->load << "\n";
 		if (table->load > maxLoad) {
 			resize(table->size * resizeFactor);
 		}
@@ -204,6 +208,7 @@ public:
 	}
 
 	void resize(int size) {
+		//std::cout << "Resizing now:  " << size << "\n";
 		HT* temp = new HT(size);
 
 		for (int i = 0; i < table->size; i++) {
@@ -212,7 +217,11 @@ public:
 				temp->add(inst);
 		}
 
-		free(table);
+
+		delete table;
+
+		//std::cout << "new size: " << temp->size << "\n";
+
 		table = temp;
 	}
 

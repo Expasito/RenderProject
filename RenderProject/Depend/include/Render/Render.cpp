@@ -34,14 +34,14 @@ Render::Model::Model() {
 
 void Render::addModel(const char* filepath, std::string name) {
 	Render::Model m = loadModel(filepath);
-	objects.push_back({ m,name, Instances(15) });
+	objects.push_back({ m,name, new Instances(500) });
 }
 
 // the returned value is the unique id for the number
 void Render::addInstance(std::string name, int key, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
 	for (object o : Render::objects) {
 		if (o.name.compare(name)==0) {
-			o.insts.add(key, pos, rot, scal,color);
+			o.insts->add(key, pos, rot, scal,color);
 
 		}
 		
@@ -73,6 +73,7 @@ void Render::editInstance(std::string name, unsigned long long id, glm::vec3 pos
 //}
 
 void Render::prepBuffers() {
+	// create and bind the vao
 	glGenVertexArrays(1, &Render::VAO);
 	glBindVertexArray(Render::VAO);
 
@@ -85,6 +86,22 @@ void Render::prepBuffers() {
 	glGenBuffers(1, &Render::allBuffer);
 
 	glGenBuffers(1, &Render::EBO);
+
+
+	// set the divisors for each vertex attribute
+	glVertexAttribDivisor(1, 1);
+	glVertexAttribDivisor(2, 1);
+	glVertexAttribDivisor(3, 1);
+	glVertexAttribDivisor(4, 1);
+
+
+	// enable each vertex attribute
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
+
 }
 
 // this will be used to keep the buffer shorter since we do not need the key or the keep value
@@ -98,26 +115,19 @@ struct Instance_ {
 //TODO: rewrite so we set the buffer data and vertex attributes at hte same time for speed to not bind buffers as often
 void Render::draw() {
 	for (object o : Render::objects) {
-		int elements = o.insts.table->elements;
+		int elements = o.insts->table->elements;
+		std::cout << "Elements: " << elements <<" Size: " << o.insts->table->size  << " load: " << o.insts->table->load << "\n";
 		if (elements <= 0) {
 			continue;
 		}
 
-		// bind the VAO
-		glBindVertexArray(Render::VAO);
-
-		// fill the position buffer and send the data to the gpu
-		glBindBuffer(GL_ARRAY_BUFFER, Render::positionBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*o.m.vertices.size(), &o.m.vertices[0], GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-		glEnableVertexAttribArray(0);
-
+		
 		// load buffer data now. Create a buffer of size elements
 		Instance_* buff = (Instance_*)malloc(sizeof(Instance_) * elements);
 		int index = 0;
 		// load buffer with data that is used 
-		for (int i = 0; i < o.insts.table->size; i++) {
-			Instance* in = o.insts.table->get(i);
+		for (int i = 0; i < o.insts->table->size; i++) {
+			Instance* in = o.insts->table->get(i);
 			if (in != NULL && in->keep == true) {
 				buff[index].trans = in->trans;
 				buff[index].rot = in->rot;
@@ -127,28 +137,30 @@ void Render::draw() {
 			}
 		}
 
+		// fill the position buffer and send the data to the gpu
+		glBindBuffer(GL_ARRAY_BUFFER, Render::positionBuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.m.vertices.size(), &o.m.vertices[0], GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+
+
 		// load in the buffer of all data
 		glBindBuffer(GL_ARRAY_BUFFER, Render::allBuffer);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*elements*4, buff, GL_STATIC_DRAW);
 
 		
 		// this is translation
-		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec3), (void*)(0));
-		glVertexAttribDivisor(1, 1);
+		
 		// this is rotation
-		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec3), (void*)(sizeof(glm::vec3)));
-		glVertexAttribDivisor(2, 1);
+		
 		// this is for scalation
-		glEnableVertexAttribArray(3);
 		 glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec3), (void*)(2 * sizeof(glm::vec3)));
-		 glVertexAttribDivisor(3, 1);
+		 
 		 // this is for color
-		 glEnableVertexAttribArray(4);
 		 glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec3), (void*)(3 * sizeof(glm::vec3)));
-		 glVertexAttribDivisor(4, 1);
-
+		 
+		 
 
 		 // give the index buffer to the gpu
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Render::EBO);
@@ -156,7 +168,7 @@ void Render::draw() {
 
 
 
-		glDrawElementsInstanced(GL_TRIANGLES, o.m.indices.size() - 3, GL_UNSIGNED_INT, 0, elements+5);
+		glDrawElementsInstanced(GL_TRIANGLES, o.m.indices.size() - 3, GL_UNSIGNED_INT, 0, elements);
 
 
 		free(buff);
@@ -320,7 +332,7 @@ void Render::init() {
 void Render::exit() {
 	glfwTerminate();
 	for (object o : Render::objects) {
-		free(o.insts.table);
+		free(o.insts->table);
 	}
 
 	glfwDestroyWindow(Render::window);
