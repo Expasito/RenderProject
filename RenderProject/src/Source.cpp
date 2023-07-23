@@ -105,12 +105,13 @@ public:
 	}
 
 	void add(int key, int value) {
+		std::cout << "key added: " << key << "\n";
 		arr[elements] = { key,value };
 		bubbleup(elements);
 		elements++;
-		std::cout << "see here\n";
+		//std::cout << "see here\n";
 		see();
-		std::cout << "end see\n";
+		//std::cout << "end see\n";
 	}
 
 	Element remove() {
@@ -119,21 +120,25 @@ public:
 		arr[1] = arr[elements-1];
 		//std::cout << elements << "\n";
 		//std::cout << "herererererer\n";
-		//see();
 		//std::cout << "sfjsfjskfjs;lfsf\n";
 		bubbledown(1);
 		elements--;
+		see();
 		return out;
+	}
+	Element remove(int key) {
+
 	}
 
 	void bubbledown(int index) {
-		while (index < elements) {
+		while (right(index) < elements) {
 			int leftkey = arr[left(index)].key;
 			int rightkey = arr[right(index)].key;
-			int larger = leftkey < rightkey ? rightkey : leftkey;
-			int dir = leftkey < rightkey ? right(index) : left(index);
-			std::cout << "   index: " << index << " new: " << dir << "\n";
-			if (larger > arr[index].key) {
+			int larger = leftkey > rightkey ? rightkey : leftkey;
+			int dir = leftkey > rightkey ? right(index) : left(index);
+			//std::cout << "   index: " << index << " new: " << dir << "\n";
+			//std::cout << "   indexK: " << arr[index].key << " newK: " << arr[dir].key << "\n";
+			if (larger < arr[index].key) {
 				// flip the two and repeat
 				Element temp = arr[dir];
 				arr[dir] = arr[index];
@@ -152,22 +157,25 @@ public:
 	}
 
 	void bubbleup(int index) {
-		std::cout << "         " << parent(index) << " " << index << "\n";
-		std::cout << "         " << arr[parent(index)].key << " " << arr[index].key << "\n";
-		while (arr[parent(index)].key > arr[index].key && index > 1) {
-			std::cout << "     flipping\n";
+		//std::cout << "         indexes:(Parent,index) " << parent(index) << " " << index << "\n";
+		//std::cout << "            keys:{Parent,index) " << arr[parent(index)].key << " " << arr[index].key << "\n";
+		if (index > 1 && arr[parent(index)].key > arr[index].key) {
+			//std::cout << "     flipping\n";
 			// flip the two elements
 			Element temp = arr[parent(index)];
 			arr[parent(index)] = arr[index];
 			arr[index] = temp;
-			index = parent(index);
+			//index = parent(index);
+			bubbleup(parent(index));
 		}
 	}
 
 	void see() {
+		std::cout << "list: ";
 		for (int i = 1; i < elements; i++) {
-			std::cout << arr[i].key << "\n";
+			std::cout << arr[i].key << " ";
 		}
+		std::cout << "\n";
 	}
 
 	
@@ -184,7 +192,10 @@ int main() {
 
 	MinHeap mh(8);
 
-	mh.see();
+	//mh.see();
+	for (int i = 0; i < 20; i++) {
+		mh.add(rand()/100, 1);
+	}
 
 	mh.add(5, 1);
 	mh.add(2, 1);
@@ -196,25 +207,21 @@ int main() {
 	mh.add(4, 1);
 	mh.add(9, 1);
 
-	//mh.add(11, 1);
-	//mh.add(0, 1);
+	mh.add(11, 1);
+	mh.add(0, 1);
 
 
 	std::cout << "final\n";
 
 	mh.see();
 
-	//std::cout << "removing now\n";
+	std::cout << "removing now\n";
+	int elms = mh.elements;
+	for (int i = 0; i < 29; i++) {
+		MinHeap::Element out = mh.remove();
+		std::cout << out.key << "\n";
 
-	//mh.remove();
-	//while (mh.elements != 0) {
-	//	MinHeap::Element out = mh.remove();
-	//	std::cout << "key: " << out.key << "\n";
-
-
-	//}
-
-	//mh.see();
+	}
 
 
 
