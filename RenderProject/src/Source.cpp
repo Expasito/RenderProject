@@ -187,43 +187,184 @@ private:
 
 };
 
+
+
+/*
+* FillerArray is similar to a dynamic array, but it has 2 new features.
+* 1. when removing an element, the last element goes in to fill its spot, so all elements are sequentail
+* 2. there is a hash table for finding the index of elements efficiently when they get moved.
+* Goal time complexity:
+* Add: O(1): just add to the end of the array
+* Get: O(1): get the index from the hash table and then from the array
+* Remove: O(1): remove the element, fill with the last element and update hashtable
+*
+* All elements are sequential so we do not need to put the correct elements in a new array for graphics
+*/
+class FillerArray {
+public:
+
+	// this is each element in a FillerArray
+	struct Element {
+		int key;
+		//data goes bellow
+	};
+
+	// this will hold the keys and indexes
+	// Note:  a returned Element object with index of -1 means the get/remove function failed to find since index of -1 is not legal
+	class HashTable {
+	public:
+
+		struct Element {
+			bool used;
+			int key;
+			int index;
+		};
+
+		Element* arr;
+		int size;
+		HashTable(int size_) {
+			arr = (Element*)malloc(sizeof(Element) * size_);
+			size = size_;
+
+			init();
+
+		}
+
+		void see() {
+			for (int i = 0; i < size; i++) {
+				Element temp = arr[i];
+				if (temp.used == 1) {
+					std::cout << i << ": (" << temp.key << ", " << temp.index << ")\n";
+				}
+				else {
+					std::cout << i << ":\n";
+
+				}
+				
+			}
+			std::cout << "\n";
+		}
+
+		void add(int key, int index) {
+			int index_ = _hash(key);
+
+			while (true) {
+				Element temp = arr[index_];
+				// 1 means used
+				if (temp.used == 0) {
+					//arr[index_] = { 1,key,index };
+					arr[index_].used = 1;
+					arr[index_].key = key;
+					arr[index_].index = index;
+					break;
+				}
+				else {
+					index_++;
+					if (index_ > size) {
+						index_ = 0;
+					}
+				}
+			}
+		}
+
+		Element get(int key) {
+			int index_ = _hash(key);
+			int index__ = index_;
+
+			while (true) {
+				Element temp = arr[index_];
+				if (temp.key == key) {
+					//arr[index_] = { 1,key,index };
+					return temp;
+					break;
+				}
+				else {
+					index_++;
+					if (index_ > size) {
+						index_ = 0;
+					}
+					// if we do not get a match
+					if (index_ == index__) {
+						return {0,-1,-1};
+					}
+				}
+			}
+		}
+
+		Element remove(int key) {
+			int index_ = _hash(key);
+			int index__ = index_;
+
+			while (true) {
+				Element temp = arr[index_];
+				if (temp.key == key) {
+					//arr[index_] = { 1,key,index };
+					arr[index_].used = 0;
+					return temp;
+					break;
+				}
+				else {
+					index_++;
+					if (index_ > size) {
+						index_ = 0;
+					}
+					// if we do not get a match
+					if (index_ == index__) {
+						return { 0,-1,-1 };
+					}
+				}
+			}
+		}
+
+		int _hash(int key) {
+			return key % size;
+		}
+
+	private:
+
+		void init() {
+			for (int i = 0; i < size; i++) {
+				arr[i].key = -1;
+				arr[i].index = -1;
+				arr[i].used = 0;
+			}
+		}
+
+	};
+
+	// this will hold the actual elements, do the resizing, etc
+	class DynamicArray {
+	public:
+
+	private:
+	};
+
+private:
+
+};
+
+
 //#include <Render/Instances.h>
 int main() {
 
-	MinHeap mh(8);
+	FillerArray::HashTable ht(10);
 
-	//mh.see();
-	for (int i = 0; i < 20; i++) {
-		mh.add(rand()/100, 1);
-	}
+	ht.add(1, 5);
 
-	mh.add(5, 1);
-	mh.add(2, 1);
+	ht.add(1, 6);
 
-	mh.add(1, 1);
-	mh.add(3, 1);
-	mh.add(8, 1);
+	ht.add(2, 5);
 
-	mh.add(4, 1);
-	mh.add(9, 1);
+	ht.add(5, 2);
+	ht.add(7, 3);
 
-	mh.add(11, 1);
-	mh.add(0, 1);
+	ht.see();
 
+	FillerArray::HashTable::Element e = ht.remove(1);
+	ht.remove(2);
+	ht.add(2, 3);
 
-	std::cout << "final\n";
-
-	mh.see();
-
-	std::cout << "removing now\n";
-	int elms = mh.elements;
-	for (int i = 0; i < 29; i++) {
-		MinHeap::Element out = mh.remove();
-		std::cout << out.key << "\n";
-
-	}
-
-
+	ht.see();
 
 	exit(1);
 
