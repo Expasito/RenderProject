@@ -241,6 +241,9 @@ public:
 
 			init();
 
+			elements = 0;
+			load = 0;
+
 		}
 
 		~HashTable() {
@@ -248,6 +251,7 @@ public:
 		}
 
 		void see() {
+			std::cout << "Load: " << load << "\n";
 			for (int i = 0; i < size; i++) {
 				HashTable::Element temp = arr[i];
 				if (temp.used == 1) {
@@ -282,16 +286,21 @@ public:
 					}
 				}
 			}
+
+			elements++;
+			load = (float)elements / size;
+
 		}
 
 
-		HashTable::Element get(int key) {
+		// this returns a reference for editing
+		HashTable::Element* get(int key) {
 			int index_ = _hash(key);
 			int index__ = index_;
 
 			while (true) {
-				HashTable::Element temp = arr[index_];
-				if (temp.key == key) {
+				HashTable::Element* temp = &arr[index_];
+				if (temp->key == key) {
 					//arr[index_] = { 1,key,index };
 					return temp;
 					break;
@@ -303,12 +312,13 @@ public:
 					}
 					// if we do not get a match
 					if (index_ == index__) {
-						return {0,-1,-1};
+						return NULL;
 					}
 				}
 			}
 		}
 
+		// this returns a copy, not a reference
 		HashTable::Element remove(int key) {
 			int index_ = _hash(key);
 			int index__ = index_;
@@ -318,6 +328,8 @@ public:
 				if (temp.key == key) {
 					//arr[index_] = { 1,key,index };
 					arr[index_].used = 0;
+					elements--;
+					load = (float)elements / size;
 					return temp;
 					break;
 				}
@@ -354,31 +366,31 @@ public:
 	class DynamicArray {
 	public:
 		FillerArray::Element* arr;
-		FillerArray::Element* temp;
 		int size;
 		int elements;
-		long key;
 		DynamicArray(int size_) {
 			arr = new FillerArray::Element[size_];
 			size = size_;
 			elements = 0;
-			key = 0;
 		}
 
 		~DynamicArray() {
 			delete[] arr;
 		}
 
-		void add(glm::vec3 trans, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
+		void add(long key, glm::vec3 trans, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
 			arr[elements] = {key, trans,rot,scal,color };
 
 			elements++;
-			key++;
 
 			if (elements == size) {
 				resize(size * 2);
 			}
 
+		}
+
+		FillerArray::Element* get(int index) {
+			return &arr[index];
 		}
 
 		// remove auto puts the last element in the slot to fill the spot
@@ -392,7 +404,7 @@ public:
 		}
 
 		void resize(int size_) {
-			temp = new FillerArray::Element[size_];
+			FillerArray::Element* temp = new FillerArray::Element[size_];
 			for (int i = 0; i < size; i++) {
 				temp[i] = arr[i];
 			}
@@ -406,10 +418,40 @@ public:
 		void see() {
 			std::cout << "Elements: " << elements << " Size: " << size << "\n";
 			for (int i = 0; i < elements; i++) {
-				std::cout << arr[i].key << "\n";
+				std::cout << i << ": Key: " << arr[i].key << " :: " << arr[i].translations.x << " " << arr[i].translations.y << " " << arr[i].translations.z << "\n";
 			}
 			std::cout << "\n";
 		}
+
+	private:
+	};
+
+
+	// 
+	// 
+	// 
+	// NOTE: Or just use the binary heap. It is a priority queue and is linear.
+	// Does not have O(1) add/remove, but is alreayd prebuilt
+	// 
+	// 
+	// 
+	// IPQueue is short of 'In Place Queue'
+	// It is a queue that is fast(all O(1)) but also takes up sequential memory slots
+	// Basically, same as the DynamicArray class
+	/*
+	* Enqueue an element: put on the back of the array, nextIndex is -1(meaning none)
+	* Dequeue an element: take the first element off. Put the last element there and update the refernce
+	* 
+	*/
+	class IPQueue {
+	public:
+		// last and next give the index of the previous and next element in the queue
+		// key is the actual key
+		struct Element {
+			int last;
+			int next;
+			int key;
+		};
 
 	private:
 	};
@@ -437,15 +479,50 @@ public:
 		long newkey = getNextKey();
 
 		ht->add(newkey, da->elements);
-		da->add(trans_, rot_, scal_, color_);
+		da->add(newkey, trans_, rot_, scal_, color_);
+
+		if (ht->load > .75) {
+			// now we need to resize and rehash each key
+			HashTable* temp = new HashTable(ht->size * 2);
+			for (int i = 0; i < ht->size; i++) {
+				temp->add(ht->arr[i].key, ht->arr[i].index);
+			}
+			delete ht;
+			ht = temp;
+		}
 
 		return newkey;
 	}
 
+	FillerArray::Element* get(long key) {
+		int index = ht->get(key)->index;
+		return da->get(index);
 
+	}
+
+	// pay close attention to this method and make sure it works well
+	FillerArray::Element remove(long key) {
+		HashTable::Element* temp = ht->get(key);
+		int index = temp->index;
+		std::cout << "removing at index: " << index << "\n";
+		FillerArray::Element out = da->remove(index);
+		//ht->get(da->elements + 1)->index = index;
+		ht->remove(key);
+
+		// update the hashtable for the last element of the array
+		FillerArray::Element* new_ = da->get(da->elements);
+		ht->get(new_->key)->index = index;
+		//ht->get(key)->index = index;
+		//std::cout << ht->get(key)->key << "\n";
+
+		return out;
+	}
+
+	// time to add the method for getting keys
 	long getNextKey() {
 		return key++;
 	}
+
 	void see() {
 		std::cout << "View Filler Array: \n";
 		std::cout << "   HashTable:\n";
@@ -459,42 +536,44 @@ private:
 };
 
 
+
+
 //#include <Render/Instances.h>
 int main() {
 
-	FillerArray fa(10, 10);
+	FillerArray fa(2,2);
 
-	fa.add({1,1,1}, {}, {}, {});
+	long key = fa.add({1,1,1}, {}, {}, {});
 
 	fa.add({2,2,2}, {}, {}, {});
+
+	long key2 = fa.add({3,3,3}, {}, {}, {});
+	fa.add({ 4,4,4 }, {}, {}, {});
+	fa.add({ 5,5,5 }, {}, {}, {});
+
+	fa.add({ 6,6,6 }, {}, {}, {});
+
+	fa.add({ 7,7,7 }, {}, {}, {});
+
+	fa.add({ 8,8,8 }, {}, {}, {});
+
+
+
+	fa.see();
+	std::cout << "\n\n\n";
+
+	fa.remove(key);
+
+	fa.see();
+
+	fa.remove(key2);
 
 	fa.see();
 
 
 	exit(1);
 
-	FillerArray::DynamicArray da(5);
-	
-	da.add({1,1,1}, {}, {}, {});
-	
-	da.add({1,1,1}, {}, {}, {});
-	
-	da.add({ 1,1,1 }, {}, {}, {});
-	
-	da.add({ 1,1,1 }, {}, {}, {});
-	
-	da.add({ 1,1,1 }, {}, {}, {});
-	
-	da.add({ 1,1,1 }, {}, {}, {});
 
-	da.add({ 1,1,1 }, {}, {}, {});
-
-	da.remove(2);
-
-
-
-
-	da.see();
 
 	//int* a = (int*)malloc(sizeof(int) * 5);
 	//for (int i = 0; i < 5; i++) {
