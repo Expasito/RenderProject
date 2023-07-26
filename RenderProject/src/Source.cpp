@@ -200,6 +200,13 @@ private:
 *
 * All elements are sequential so we do not need to put the correct elements in a new array for graphics
 */
+
+/*
+* How it works:
+* When adding an element: FillerArray's dynamic array returns a key to get that element back
+* This key is added to the Hashtable which gives the index in the array.
+* 
+*/
 class FillerArray {
 public:
 
@@ -207,6 +214,10 @@ public:
 	struct Element {
 		int key;
 		//data goes bellow
+		glm::vec3 translations;
+		glm::vec3 rotations;
+		glm::vec3 scalations;
+		glm::vec3 colors;
 	};
 
 	// this will hold the keys and indexes
@@ -220,19 +231,25 @@ public:
 			int index;
 		};
 
-		Element* arr;
+		HashTable::Element* arr;
 		int size;
+		int elements;
+		float load;
 		HashTable(int size_) {
-			arr = (Element*)malloc(sizeof(Element) * size_);
+			arr = new HashTable::Element[size_];
 			size = size_;
 
 			init();
 
 		}
 
+		~HashTable() {
+			delete[] arr;
+		}
+
 		void see() {
 			for (int i = 0; i < size; i++) {
-				Element temp = arr[i];
+				HashTable::Element temp = arr[i];
 				if (temp.used == 1) {
 					std::cout << i << ": (" << temp.key << ", " << temp.index << ")\n";
 				}
@@ -267,12 +284,13 @@ public:
 			}
 		}
 
-		Element get(int key) {
+
+		HashTable::Element get(int key) {
 			int index_ = _hash(key);
 			int index__ = index_;
 
 			while (true) {
-				Element temp = arr[index_];
+				HashTable::Element temp = arr[index_];
 				if (temp.key == key) {
 					//arr[index_] = { 1,key,index };
 					return temp;
@@ -291,12 +309,12 @@ public:
 			}
 		}
 
-		Element remove(int key) {
+		HashTable::Element remove(int key) {
 			int index_ = _hash(key);
 			int index__ = index_;
 
 			while (true) {
-				Element temp = arr[index_];
+				HashTable::Element temp = arr[index_];
 				if (temp.key == key) {
 					//arr[index_] = { 1,key,index };
 					arr[index_].used = 0;
@@ -335,9 +353,106 @@ public:
 	// this will hold the actual elements, do the resizing, etc
 	class DynamicArray {
 	public:
+		FillerArray::Element* arr;
+		FillerArray::Element* temp;
+		int size;
+		int elements;
+		long key;
+		DynamicArray(int size_) {
+			arr = new FillerArray::Element[size_];
+			size = size_;
+			elements = 0;
+			key = 0;
+		}
+
+		~DynamicArray() {
+			delete[] arr;
+		}
+
+		void add(glm::vec3 trans, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
+			arr[elements] = {key, trans,rot,scal,color };
+
+			elements++;
+			key++;
+
+			if (elements == size) {
+				resize(size * 2);
+			}
+
+		}
+
+		// remove auto puts the last element in the slot to fill the spot
+		FillerArray::Element remove(int index) {
+
+			FillerArray::Element out = arr[index];
+			arr[index] = arr[elements-1];
+			elements--;
+
+			return out;
+		}
+
+		void resize(int size_) {
+			temp = new FillerArray::Element[size_];
+			for (int i = 0; i < size; i++) {
+				temp[i] = arr[i];
+			}
+
+			delete[] arr;
+			arr = temp;
+			size = size_;
+
+		}
+
+		void see() {
+			std::cout << "Elements: " << elements << " Size: " << size << "\n";
+			for (int i = 0; i < elements; i++) {
+				std::cout << arr[i].key << "\n";
+			}
+			std::cout << "\n";
+		}
 
 	private:
 	};
+
+
+	// Time for the real meat of the FillerArray class
+
+	HashTable* ht;
+	DynamicArray* da;
+	long key;
+	// size1_ is the base size for the HashTable and size2_ is the base size for the Dynamic array
+	FillerArray(int size1_, int size2_) {
+		ht = new HashTable(size1_);
+		da = new DynamicArray(size2_);
+		key = 10;
+
+	}
+	
+	~FillerArray() {
+		delete ht;
+		delete da;
+	}
+
+	long add(glm::vec3 trans_, glm::vec3 rot_, glm::vec3 scal_, glm::vec3 color_) {
+		long newkey = getNextKey();
+
+		ht->add(newkey, da->elements);
+		da->add(trans_, rot_, scal_, color_);
+
+		return newkey;
+	}
+
+
+	long getNextKey() {
+		return key++;
+	}
+	void see() {
+		std::cout << "View Filler Array: \n";
+		std::cout << "   HashTable:\n";
+		ht->see();
+		std::cout << "   DynamicArray:\n";
+		da->see();
+	}
 
 private:
 
@@ -346,6 +461,53 @@ private:
 
 //#include <Render/Instances.h>
 int main() {
+
+	FillerArray fa(10, 10);
+
+	fa.add({1,1,1}, {}, {}, {});
+
+	fa.add({2,2,2}, {}, {}, {});
+
+	fa.see();
+
+
+	exit(1);
+
+	FillerArray::DynamicArray da(5);
+	
+	da.add({1,1,1}, {}, {}, {});
+	
+	da.add({1,1,1}, {}, {}, {});
+	
+	da.add({ 1,1,1 }, {}, {}, {});
+	
+	da.add({ 1,1,1 }, {}, {}, {});
+	
+	da.add({ 1,1,1 }, {}, {}, {});
+	
+	da.add({ 1,1,1 }, {}, {}, {});
+
+	da.add({ 1,1,1 }, {}, {}, {});
+
+	da.remove(2);
+
+
+
+
+	da.see();
+
+	//int* a = (int*)malloc(sizeof(int) * 5);
+	//for (int i = 0; i < 5; i++) {
+	//	a[i] = i;
+	//}
+
+	//int* b = (int*)malloc(sizeof(int) * 10);
+
+	//free(a);
+	//a = b;
+
+
+	exit(1);
 
 	FillerArray::HashTable ht(10);
 
