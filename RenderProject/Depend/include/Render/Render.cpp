@@ -1,6 +1,7 @@
 #include "Render.h"
 
 
+
 GLFWwindow* Render::window = NULL;
 unsigned int Render::program1 = -1;
 unsigned int Render::program2 = -1;
@@ -34,14 +35,14 @@ Render::Model::Model() {
 
 void Render::addModel(const char* filepath, std::string name) {
 	Render::Model m = loadModel(filepath);
-	objects.push_back({ m,name, new Instances(500) });
+	objects.push_back({ m,name, new FillerArray(500,500)});
 }
 
 // the returned value is the unique id for the number
 void Render::addInstance(std::string name, int key, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
 	for (object o : Render::objects) {
 		if (o.name.compare(name)==0) {
-			o.insts->add(key, pos, rot, scal,color);
+			o.insts->add(pos, rot, scal, color);
 
 		}
 		
@@ -78,10 +79,6 @@ void Render::prepBuffers() {
 	glBindVertexArray(Render::VAO);
 
 	glGenBuffers(1, &Render::positionBuffer);
-	//glGenBuffers(1, &Render::translationBuffer);
-	//glGenBuffers(1, &Render::rotationBuffer);
-	//glGenBuffers(1, &Render::scalationBuffer);
-	//glGenBuffers(1, &Render::colorBuffer);
 
 	glGenBuffers(1, &Render::allBuffer);
 
@@ -114,69 +111,81 @@ struct Instance_ {
 
 //TODO: rewrite so we set the buffer data and vertex attributes at hte same time for speed to not bind buffers as often
 void Render::draw() {
+
+	float milis;
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
 	for (object o : Render::objects) {
-		int elements = o.insts->table->elements;
-		std::cout << "Elements: " << elements <<" Size: " << o.insts->table->size  << " load: " << o.insts->table->load << "\n";
+		int elements = o.insts->da->elements;
+		std::cout << "Elements: " << elements << "\n";
+		//int elements = o.insts->table->elements;
+		//std::cout << "Elements: " << elements <<" Size: " << o.insts->table->size  << " load: " << o.insts->table->load << "\n";
 		if (elements <= 0) {
 			continue;
 		}
 
 		
-		// load buffer data now. Create a buffer of size elements
-		Instance_* buff = (Instance_*)malloc(sizeof(Instance_) * elements);
-		int index = 0;
-		// load buffer with data that is used 
-		for (int i = 0; i < o.insts->table->size; i++) {
-			Instance* in = o.insts->table->get(i);
-			if (in != NULL && in->keep == true) {
-				buff[index].trans = in->trans;
-				buff[index].rot = in->rot;
-				buff[index].scal = in->scal;
-				buff[index].color = in->color;
-				index++;
-			}
-		}
 
 		// fill the position buffer and send the data to the gpu
 		glBindBuffer(GL_ARRAY_BUFFER, Render::positionBuffer);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.m.vertices.size(), &o.m.vertices[0], GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 
+		std::chrono::steady_clock::time_point posBuff = std::chrono::steady_clock::now();
+		milis = (posBuff - begin).count() / 1000000.0;
+		std::cout << "       Position Buffer: " << milis << "[ms]\n";
 
 		// load in the buffer of all data
 		glBindBuffer(GL_ARRAY_BUFFER, Render::allBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*elements*4, buff, GL_STATIC_DRAW);
+		// we are changing GL_STATIC_DRAW to GL_DYNAMIC_DRAW due to the high refresh rate
+		glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element)*elements, o.insts->da->arr, GL_DYNAMIC_DRAW);
+
+		std::chrono::steady_clock::time_point instBuff = std::chrono::steady_clock::now();
+		milis = (instBuff - posBuff).count() / 1000000.0;
+		std::cout << "       Instance Buffer: " << milis << "[ms]\n";
 
 		
 		// this is translation
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec3), (void*)(0));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
 		
 		// this is rotation
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec3), (void*)(sizeof(glm::vec3)));
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(glm::vec3)+sizeof(int)));
 		
 		// this is for scalation
-		 glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec3), (void*)(2 * sizeof(glm::vec3)));
+		 glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 2 * sizeof(glm::vec3)));
 		 
 		 // this is for color
-		 glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec3), (void*)(3 * sizeof(glm::vec3)));
+		 glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
 		 
-		 
+		 std::chrono::steady_clock::time_point vertexattr = std::chrono::steady_clock::now();
+		 milis = (vertexattr - instBuff).count() / 1000000.0;
+		 std::cout << "         Vertex Attrib: " << milis << "[ms]\n";
+
 
 		 // give the index buffer to the gpu
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Render::EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * o.m.indices.size(), &o.m.indices[0], GL_STATIC_DRAW);
 
+		std::chrono::steady_clock::time_point ebo = std::chrono::steady_clock::now();
+		milis = (ebo - vertexattr).count() / 1000000.0;
+		std::cout << "              EBO bind: " << milis << "[ms]\n";
+
 
 
 		glDrawElementsInstanced(GL_TRIANGLES, o.m.indices.size() - 3, GL_UNSIGNED_INT, 0, elements);
 
+		std::chrono::steady_clock::time_point drawelements = std::chrono::steady_clock::now();
+		milis = (drawelements - ebo).count() / 1000000.0;
+		std::cout << "         Draw Elements: " << milis << "[ms]\n";
 
-		free(buff);
 
 	}
 }
 
 void Render::renderAll() {
+	float milis;
+	// this is the start time 
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	Render::keepWindow = !glfwWindowShouldClose(Render::window);
 	float currentFrame = glfwGetTime();
 	Render::dt = currentFrame-Render::lastFrame;
@@ -195,9 +204,27 @@ void Render::renderAll() {
 	Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
 	Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
 
+	std::chrono::steady_clock::time_point uniforms = std::chrono::steady_clock::now();
+	milis = (uniforms - begin).count() / 1000000.0;
+	std::cout << "   Uniforms: " << milis << "[ms]\n";
+
 	Render::draw();
+
+	std::chrono::steady_clock::time_point draw = std::chrono::steady_clock::now();
+	milis = (draw - uniforms).count() / 1000000.0;
+	std::cout << "   Draw: " << milis << "[ms]\n";
+
 	glfwSwapBuffers(Render::window);
+
+	std::chrono::steady_clock::time_point swap = std::chrono::steady_clock::now();
+	milis = (swap - draw).count() / 1000000.0;
+	std::cout << "   Swap Buffers: " << milis << "[ms]\n";
+	
 	glfwPollEvents();
+
+	std::chrono::steady_clock::time_point poll = std::chrono::steady_clock::now();
+	milis = (poll - swap).count() / 1000000.0;
+	std::cout << "   Poll Events: " << milis << "[ms]\n";
 }
 
 
@@ -332,7 +359,7 @@ void Render::init() {
 void Render::exit() {
 	glfwTerminate();
 	for (object o : Render::objects) {
-		free(o.insts->table);
+		//free(o.insts->table);
 	}
 
 	glfwDestroyWindow(Render::window);

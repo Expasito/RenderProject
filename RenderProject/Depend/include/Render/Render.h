@@ -2,6 +2,7 @@
 #include "Headers.h"
 #include "Camera.h"
 #include <Render/Instances.h>
+#include <Render/FillerArray.h>
 
 
 class Render
@@ -19,7 +20,7 @@ public:
 	struct object {
 		Model m;
 		std::string name;
-		Instances* insts;
+		FillerArray* insts;
 		
 	};
 	static std::vector<object> objects;
