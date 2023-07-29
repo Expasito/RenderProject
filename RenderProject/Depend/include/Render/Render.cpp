@@ -115,7 +115,7 @@ void Render::draw() {
 	float milis;
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-	for (object o : Render::objects) {
+	for (Render::object o : Render::objects) {
 		int elements = o.insts->da->elements;
 		std::cout << "Elements: " << elements << "\n";
 		//int elements = o.insts->table->elements;

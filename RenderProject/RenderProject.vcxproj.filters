@@ -911,10 +911,16 @@
     <ClInclude Include="Depend\include\Render\Render.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Depend\include\Render\Instances.h">
+    <ClInclude Include="Depend\include\Render\utils\Instances.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Depend\include\Render\FillerArray.h">
+    <ClInclude Include="Depend\include\Render\utils\FillerArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Depend\include\Render\utils\MinHeap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Depend\include\Render\utils\HashTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

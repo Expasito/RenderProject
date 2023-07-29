@@ -1,8 +1,8 @@
 #pragma once
 #include "Headers.h"
 #include "Camera.h"
-#include <Render/Instances.h>
-#include <Render/FillerArray.h>
+#include <Render/utils/Instances.h>
+#include <Render/utils/FillerArray.h>
 
 
 class Render
@@ -49,9 +49,9 @@ public:
 	static void renderAll();
 	
 	
-private:
 	static unsigned int VAO, positionBuffer, translationBuffer, rotationBuffer, scalationBuffer, colorBuffer, EBO;
 	static unsigned int allBuffer;
+private:
 	static char* loadShader(const char* filepath);
 	static void shaderBuildStatus(unsigned int shader, int result);
 	static void compileShader(const char* filepath1, const char* filepath2, unsigned int* program);
