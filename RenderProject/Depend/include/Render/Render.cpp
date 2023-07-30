@@ -35,7 +35,7 @@ Render::Model::Model() {
 
 void Render::addModel(const char* filepath, std::string name) {
 	Render::Model m = loadModel(filepath);
-	objects.push_back({ m,name, new FillerArray(500,500)});
+	objects.push_back({ m,name, new FillerArray(500,500,Render::allBuffer)});
 }
 
 // the returned value is the unique id for the number

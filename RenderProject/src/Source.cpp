@@ -37,6 +37,7 @@ void draw() {
 
 	for (Render::object o : Render::objects) {
 		int elements = o.insts->da->elements;
+		std::cout << "Elements: " << elements << "/" << o.insts->da->size << "\n";
 		//std::cout << "Elements: " << elements << "\n";
 		//int elements = o.insts->table->elements;
 		//std::cout << "Elements: " << elements <<" Size: " << o.insts->table->size  << " load: " << o.insts->table->load << "\n";
@@ -124,7 +125,11 @@ int main() {
 
 	srand(time(0));
 	Render::init();	
-	Render::camera.baseSpeed = 10;
+	Render::camera.baseSpeed = 100;
+
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
+	//glFrontFace(GL_CCW);
 	
 
 	Render::addModel("assets/cube2.obj", "Cube");
@@ -257,16 +262,18 @@ int main() {
 	int index_ = 14;
 
 	float milis;
+	float dist = .01;
 
-	for (int i = 0; i < 10000; i++) {
-		Render::addInstance("Cube", index_,
-			{ index_ / 10.0,0,0 },
-			{ 0,0,0 },
-			{ 1,1,1 },
-			{ .75,0,0 }
-		);
-		index_++;
-	}
+	//for (int i = 0; i < 1000000; i++) {
+	//	Render::addInstance("Cube", index_,
+	//		//{ index_ / 10.0,0,0 },
+	//		{(rand()-RAND_MAX/2)/dist,(rand() - RAND_MAX / 2)/dist ,(rand() - RAND_MAX / 2)/dist },
+	//		{ 0,0,0 },
+	//		{ 1,1,1 },
+	//		{ rand()/(float)RAND_MAX,rand() / (float)RAND_MAX,rand() / (float)RAND_MAX }
+	//	);
+	//	index_++;
+	//}
 
 	Render::object o = Render::objects[0];
 	int elements = o.insts->da->elements;
@@ -277,8 +284,10 @@ int main() {
 	// load in the buffer of all data
 	glBindBuffer(GL_ARRAY_BUFFER, Render::allBuffer);
 	// we are changing GL_STATIC_DRAW to GL_DYNAMIC_DRAW due to the high refresh rate
-	glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element)* elements, o.insts->da->arr, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element)* o.insts->da->size, o.insts->da->arr, GL_DYNAMIC_DRAW);
 	std::cout << o.insts->da->elements << "\n";
+
+	index_ = 0;
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
@@ -295,12 +304,26 @@ int main() {
 
 		update();
 
+		for(int i = 0; i < 100;i++) {
+			Render::addInstance("Cube", index_,
+						//{ index_ / 10.0,0,0 },
+						{(rand()-RAND_MAX/2)*dist,(rand() - RAND_MAX / 2)*dist ,(rand() - RAND_MAX / 2)*dist },
+						{ 0,0,0 },
+						{ 1,1,1 },
+						{ rand()/(float)RAND_MAX,rand() / (float)RAND_MAX,rand() / (float)RAND_MAX }
+					);
+		}
+
+		
+		index_++;
+
+
 	std::chrono::steady_clock::time_point add = std::chrono::steady_clock::now();
 	milis = (add - begin).count() / 1000000.0;
 	std::cout << "Add time: " << milis << "[ms]\n";
 	add = std::chrono::steady_clock::now();
 
-		//std::cout << "Elements: " << Render::objects[0].insts->da->elements << "\n";
+		std::cout << "Elements: " << Render::objects[0].insts->da->elements << "\n";
 		
 
 	/*
