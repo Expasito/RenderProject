@@ -27,6 +27,13 @@ bool Render::leftMouseButton = false, Render::rightMouseButton = false, Render::
 Render::Model::Model(std::vector<glm::vec3> verts, std::vector<unsigned int> inds) {
 	vertices = verts;
 	indices = inds;
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
+
+	glGenBuffers(1, &ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
 }
 
 Render::Model::Model() {
@@ -35,14 +42,14 @@ Render::Model::Model() {
 
 void Render::addModel(const char* filepath, std::string name) {
 	Render::Model m = loadModel(filepath);
-	objects.push_back({ m,name, new FillerArray(500,500,Render::allBuffer)});
+	objects.push_back({ m,name, new FillerArray(500,500)});
 }
 
 // the returned value is the unique id for the number
-void Render::addInstance(std::string name, int key, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
+long Render::addInstance(std::string name, int key, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
 	for (object o : Render::objects) {
 		if (o.name.compare(name)==0) {
-			o.insts->add(pos, rot, scal, color);
+			return o.insts->add(pos, rot, scal, color);
 
 		}
 		
@@ -127,8 +134,8 @@ void Render::draw() {
 		
 
 		// fill the position buffer and send the data to the gpu
-		glBindBuffer(GL_ARRAY_BUFFER, Render::positionBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.m.vertices.size(), &o.m.vertices[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, o.m.buffer);
+		//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.m.vertices.size(), &o.m.vertices[0], GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 
 		std::chrono::steady_clock::time_point posBuff = std::chrono::steady_clock::now();
@@ -136,9 +143,9 @@ void Render::draw() {
 		std::cout << "       Position Buffer: " << milis << "[ms]\n";
 
 		// load in the buffer of all data
-		glBindBuffer(GL_ARRAY_BUFFER, Render::allBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, o.insts->buffer);
 		// we are changing GL_STATIC_DRAW to GL_DYNAMIC_DRAW due to the high refresh rate
-		glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element)*elements, o.insts->da->arr, GL_DYNAMIC_DRAW);
+		//glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element)*elements, o.insts->da->arr, GL_DYNAMIC_DRAW);
 
 		std::chrono::steady_clock::time_point instBuff = std::chrono::steady_clock::now();
 		milis = (instBuff - posBuff).count() / 1000000.0;
@@ -163,8 +170,8 @@ void Render::draw() {
 
 
 		 // give the index buffer to the gpu
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Render::EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * o.m.indices.size(), &o.m.indices[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o.m.ebo);
+		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * o.m.indices.size(), &o.m.indices[0], GL_STATIC_DRAW);
 
 		std::chrono::steady_clock::time_point ebo = std::chrono::steady_clock::now();
 		milis = (ebo - vertexattr).count() / 1000000.0;

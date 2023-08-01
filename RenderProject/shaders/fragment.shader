@@ -29,8 +29,7 @@ float dot(vec3 a, vec3 b) {
 void main() {
 	// this is for an ambient light
 	//Light l = { camPos_,30 };
-
-
+	//Light l = { {0,0,0},100 };
 	//vec3 new_pos = transformed_.xyz;
 
 	//float mag = magnitude(l.position - new_pos);
@@ -41,27 +40,27 @@ void main() {
 
 
 	// the ray for pixel to camera
-	vec3 ray = transformed_.xyz - camPos_;
+	//vec3 ray = transformed_.xyz - camPos_;
 
 	// camera direction is just camFront_;
 
 	// the tails are in the same spot due to subtraction direction
 
-	float angle = acos(dot(ray, camFront_) / (magnitude(ray) * magnitude(camFront_)))*180/3.14159265;
+	//float angle = acos(dot(ray, camFront_) / (magnitude(ray) * magnitude(camFront_)))*180/3.14159265;
 
-	if (abs(angle) < 20) {
-		float mag = magnitude(ray);
-		float dist = 1.0 / (mag * mag) * 75.0;
-		FragColor = vec4(colors_.x * dist, colors_.y * dist, colors_.z * dist, 1);
-	}
-	else {
-		float mag = magnitude(ray);
-		if (mag < 5) {
-			mag = 5;
-		}
-		float dist = 1.0 / (mag * mag*mag) * 75.0/4;
-		FragColor = vec4(colors_.x * dist, colors_.y * dist, colors_.z * dist, 1);
-	}
+	//if (abs(angle) < 20) {
+		//float mag = magnitude(ray);
+		//float dist = 1.0 / (mag * mag) * 75.0;
+		//FragColor = vec4(colors_.x * dist, colors_.y * dist, colors_.z * dist, 1);
+	//}
+	//else {
+		//float mag = magnitude(ray);
+		//if (mag < 5) {
+			//mag = 5;
+		//}
+		//float dist = 1.0 / (mag * mag*mag) * 75.0/4;
+		//FragColor = vec4(colors_.x * dist, colors_.y * dist, colors_.z * dist, 1);
+	//}
 
 	FragColor = vec4(colors_,1);
 	//FragColor = vec4(position, 1);

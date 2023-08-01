@@ -22,6 +22,16 @@
 * This key is added to the Hashtable which gives the index in the array.
 *
 */
+
+
+/*
+* In order to support all data being on the gpu, we will have an
+* add, get, edit, remove methods for FillerArray
+* Add will add an element(either individual components or an Element parameter
+* Get will return a copy of the element based on the key provided
+* Edit will take in an element(either individual or the struct) and paste the values in
+* Remove will remove the element and return a copy
+*/
 class FillerArray {
 public:
 
@@ -180,27 +190,23 @@ public:
 	// this will hold the actual elements, do the resizing, etc
 	class DynamicArray {
 	public:
-		FillerArray::Element* arr;
+		//FillerArray::Element* arr;
 		int size;
 		int elements;
 		unsigned int buffer_;
 		DynamicArray(int size_, unsigned int buffer__) {
-			arr = new FillerArray::Element[size_];
+			//arr = new FillerArray::Element[size_];
 			size = size_;
 			elements = 0;
 			buffer_ = buffer__;
 		}
 
 		~DynamicArray() {
-			delete[] arr;
+			//delete[] arr;
 		}
 
 		void add(long key, glm::vec3 trans, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
-			arr[elements] = { key, trans,rot,scal,color };
-
-			//std::cout << "Buffer: " << buffer_ << "\n";
-
-			// now add the element to the gpu
+			// use subdata to give the temporary element to the gpu
 			glBindBuffer(GL_ARRAY_BUFFER, buffer_);
 			FillerArray::Element temp = { key,trans,rot,scal,color };
 			glBufferSubData(GL_ARRAY_BUFFER, elements * sizeof(FillerArray::Element), sizeof(FillerArray::Element), &temp);
@@ -214,40 +220,64 @@ public:
 
 		}
 
-		FillerArray::Element* get(int index) {
-			return &arr[index];
+		FillerArray::Element get(int index) {
+			glBindBuffer(GL_ARRAY_BUFFER, buffer_);
+			FillerArray::Element temp;
+			glGetBufferSubData(GL_ARRAY_BUFFER, index * sizeof(FillerArray::Element), sizeof(FillerArray::Element), &temp);
+			return temp;
+		}
+
+
+		void edit(int index, FillerArray::Element element_) {
+			glBindBuffer(GL_ARRAY_BUFFER, buffer_);
+			glBufferSubData(GL_ARRAY_BUFFER, index * sizeof(FillerArray::Element), sizeof(FillerArray::Element), &element_);
 		}
 
 		// remove auto puts the last element in the slot to fill the spot
 		FillerArray::Element remove(int index) {
+			glBindBuffer(GL_ARRAY_BUFFER, buffer_);
+			FillerArray::Element temp = get(index);
+			FillerArray::Element temp2 = get(elements - 1);
+			glBufferSubData(GL_ARRAY_BUFFER, index * sizeof(FillerArray::Element), sizeof(FillerArray::Element), &temp2);
 
-			FillerArray::Element out = arr[index];
-			arr[index] = arr[elements - 1];
+			//FillerArray::Element out = arr[index];
+			//arr[index] = arr[elements - 1];
 			elements--;
 
-			return out;
+			return temp;
 		}
 
 		void resize(int size_) {
+			glBindBuffer(GL_ARRAY_BUFFER, buffer_);
 			FillerArray::Element* temp = new FillerArray::Element[size_];
-			for (int i = 0; i < size; i++) {
-				temp[i] = arr[i];
-			}
+			unsigned int read, write;
+			// this is the temporary buffer which will hold the copied data
+			glGenBuffers(1, &read);
+			glBindBuffer(GL_COPY_READ_BUFFER, read);
+			glBufferData(GL_COPY_READ_BUFFER, sizeof(FillerArray::Element) * size_, NULL, GL_DYNAMIC_DRAW);
+
+			glCopyBufferSubData(GL_ARRAY_BUFFER, GL_COPY_READ_BUFFER, 0, 0, sizeof(FillerArray::Element) * elements);
+
+			glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element) * size_, NULL, GL_DYNAMIC_DRAW);
+			glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, 0, sizeof(FillerArray::Element) * size_);
+			//for (int i = 0; i < size; i++) {
+			//	temp[i] = arr[i];
+			//}
 
 			// reallocate and add data
-			glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element) * size_, temp, GL_DYNAMIC_DRAW);
+			//glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element) * size_, temp, GL_DYNAMIC_DRAW);
 			//std::cout << "Reallocating\n\n\n";
-			delete[] arr;
-			arr = temp;
+			//delete[] arr;
+			//arr = temp;
 			size = size_;
 
 		}
 
 		void see() {
 			std::cout << "Elements: " << elements << " Size: " << size << "\n";
-			for (int i = 0; i < elements; i++) {
+			/*for (int i = 0; i < elements; i++) {
 				std::cout << i << ": Key: " << arr[i].key << " :: " << arr[i].translations.x << " " << arr[i].translations.y << " " << arr[i].translations.z << "\n";
-			}
+			}*/
 			std::cout << "\n";
 		}
 
@@ -292,12 +322,15 @@ public:
 	long key;
 
 	unsigned int buffer;
+	//unsigned int arr;
 	// size1_ is the base size for the HashTable and size2_ is the base size for the Dynamic array
-	FillerArray(int size1_, int size2_, unsigned int buffer_) {
-		ht = new HashTable(size1_);
-		da = new DynamicArray(size2_,buffer_);
+	FillerArray(int size1_, int size2_) {
 		key = 10;
-		buffer = buffer_;
+		glGenBuffers(1, &buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, buffer);
+		glBufferData(GL_ARRAY_BUFFER, size2_*sizeof(FillerArray::Element), NULL, GL_DYNAMIC_DRAW);
+		ht = new HashTable(size1_);
+		da = new DynamicArray(size2_,buffer);
 
 	}
 
@@ -337,10 +370,16 @@ public:
 		return newkey;
 	}
 
-	FillerArray::Element* get(long key) {
+	FillerArray::Element get(long key) {
 		int index = ht->get(key)->index;
 		return da->get(index);
 
+	}
+
+
+	void edit(long key, glm::vec3 trans, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
+		int index = ht->get(key)->index;
+		da->edit(index, { 1,trans,rot,scal,color });
 	}
 
 	// pay close attention to this method and make sure it works well
@@ -353,8 +392,8 @@ public:
 		ht->remove(key);
 
 		// update the hashtable for the last element of the array
-		FillerArray::Element* new_ = da->get(da->elements);
-		ht->get(new_->key)->index = index;
+		FillerArray::Element new_ = da->get(da->elements);
+		ht->get(new_.key)->index = index;
 		//ht->get(key)->index = index;
 		//std::cout << ht->get(key)->key << "\n";
 

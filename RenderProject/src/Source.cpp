@@ -10,18 +10,6 @@
 
 #include <Render/utils/FillerArray.h>
 
-// This will use a lot of elements from the FillerArray origional class
-class FillerArray2 {
-public:
-
-
-
-	FillerArray::HashTable* ht;
-	FillerArray::DynamicArray* da;
-
-private:
-};
-
 float test_ = 0.0;
 
 void update() {
@@ -59,7 +47,8 @@ void draw() {
 		posBuff = std::chrono::steady_clock::now();
 
 		// load in the buffer of all data
-		glBindBuffer(GL_ARRAY_BUFFER, Render::allBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, o.insts->buffer);
+		std::cout << "Buffer Number: " << o.insts->buffer << "\n";
 		// we are changing GL_STATIC_DRAW to GL_DYNAMIC_DRAW due to the high refresh rate
 		//glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element) * elements, o.insts->da->arr, GL_DYNAMIC_DRAW);
 
@@ -133,6 +122,7 @@ int main() {
 	
 
 	Render::addModel("assets/cube2.obj", "Cube");
+	//Render::addModel("assets/sphere.obj", "Cube");
 	//Render::addModel("assets/monkey.obj", "Monkey");
 
 
@@ -148,8 +138,8 @@ int main() {
 	//	);
 	//}
 
-	Render::addInstance("Cube",1,
-		{ 0,0,0 },
+	long key = Render::addInstance("Cube",1,
+		{ 110,0,0 },
 		{ 0,0,0 },
 		{ 1,1,1 },
 		{ .75,.75,.01 }
@@ -284,8 +274,26 @@ int main() {
 	// load in the buffer of all data
 	glBindBuffer(GL_ARRAY_BUFFER, Render::allBuffer);
 	// we are changing GL_STATIC_DRAW to GL_DYNAMIC_DRAW due to the high refresh rate
-	glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element)* o.insts->da->size, o.insts->da->arr, GL_DYNAMIC_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element)* o.insts->da->size, o.insts->da->arr, GL_DYNAMIC_DRAW);
 	std::cout << o.insts->da->elements << "\n";
+
+
+	FillerArray::Element temp = o.insts->get(key);
+	std::cout << temp.key << " " << temp.translations.x << "\n";
+
+
+	//exit(1);
+
+	for (int i = 0; i < 1000000; i++) {
+		Render::addInstance("Cube", index_,
+			//{ index_ / 10.0,0,0 },
+			{ (rand() - RAND_MAX / 2) * dist,(rand() - RAND_MAX / 2) * dist ,(rand() - RAND_MAX / 2) * dist },
+			{ 0,0,0 },
+			{ 1,1,1 },
+			{ rand() / (float)RAND_MAX,rand() / (float)RAND_MAX,rand() / (float)RAND_MAX }
+		);
+	}
+
 
 	index_ = 0;
 	while (Render::keepWindow) {
@@ -302,20 +310,12 @@ int main() {
 		//	index_++;
 		//}
 
-		update();
-
-		for(int i = 0; i < 100;i++) {
-			Render::addInstance("Cube", index_,
-						//{ index_ / 10.0,0,0 },
-						{(rand()-RAND_MAX/2)*dist,(rand() - RAND_MAX / 2)*dist ,(rand() - RAND_MAX / 2)*dist },
-						{ 0,0,0 },
-						{ 1,1,1 },
-						{ rand()/(float)RAND_MAX,rand() / (float)RAND_MAX,rand() / (float)RAND_MAX }
-					);
-		}
+		//update();
 
 		
-		index_++;
+
+		
+		//index_++;
 
 
 	std::chrono::steady_clock::time_point add = std::chrono::steady_clock::now();
@@ -336,51 +336,51 @@ int main() {
 	// this is the start time 
 	//std::chrono::steady_clock::time_point begin_ = std::chrono::steady_clock::now();
 
-	Render::keepWindow = !glfwWindowShouldClose(Render::window);
-	float currentFrame = glfwGetTime();
-	Render::dt = currentFrame - Render::lastFrame;
-	Render::lastFrame = currentFrame;
-	Render::camera.speed = Render::camera.baseSpeed * Render::dt;
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//Render::keepWindow = !glfwWindowShouldClose(Render::window);
+	//float currentFrame = glfwGetTime();
+	//Render::dt = currentFrame - Render::lastFrame;
+	//Render::lastFrame = currentFrame;
+	//Render::camera.speed = Render::camera.baseSpeed * Render::dt;
+	//glClearColor(0, 0, 0, 1);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glUniformMatrix4fv(glGetUniformLocation(Render::program1, "model"), 1, GL_FALSE, glm::value_ptr(Render::model));
-	glUniformMatrix4fv(glGetUniformLocation(Render::program1, "view"), 1, GL_FALSE, glm::value_ptr(Render::view));
-	glUniformMatrix4fv(glGetUniformLocation(Render::program1, "projection"), 1, GL_FALSE, glm::value_ptr(Render::projection));
-	glUniform3fv(glGetUniformLocation(Render::program1, "camPos"), 1, glm::value_ptr(Render::camera.cameraPos));
-	glUniform3fv(glGetUniformLocation(Render::program1, "camFront"), 1, glm::value_ptr(Render::camera.cameraFront));
+	//glUniformMatrix4fv(glGetUniformLocation(Render::program1, "model"), 1, GL_FALSE, glm::value_ptr(Render::model));
+	//glUniformMatrix4fv(glGetUniformLocation(Render::program1, "view"), 1, GL_FALSE, glm::value_ptr(Render::view));
+	//glUniformMatrix4fv(glGetUniformLocation(Render::program1, "projection"), 1, GL_FALSE, glm::value_ptr(Render::projection));
+	//glUniform3fv(glGetUniformLocation(Render::program1, "camPos"), 1, glm::value_ptr(Render::camera.cameraPos));
+	//glUniform3fv(glGetUniformLocation(Render::program1, "camFront"), 1, glm::value_ptr(Render::camera.cameraFront));
 
-	Render::camera.translate(Render::left, Render::right, Render::up, Render::down, Render::forward, Render::backward);
-	Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
-	Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
+	//Render::camera.translate(Render::left, Render::right, Render::up, Render::down, Render::forward, Render::backward);
+	//Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
+	//Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
 
-	std::chrono::steady_clock::time_point uniforms = std::chrono::steady_clock::now();
-	milis = (uniforms - add).count() / 1000000.0;
-	std::cout << "   Uniforms: " << milis << "[ms]\n";
-	uniforms = std::chrono::steady_clock::now();
+	//std::chrono::steady_clock::time_point uniforms = std::chrono::steady_clock::now();
+	//milis = (uniforms - add).count() / 1000000.0;
+	//std::cout << "   Uniforms: " << milis << "[ms]\n";
+	//uniforms = std::chrono::steady_clock::now();
 
-	// Now call the draw function
-	draw();
-	//std::cout << "here\n";
+	//// Now call the draw function
+	//draw();
+	////std::cout << "here\n";
 
-	std::chrono::steady_clock::time_point draw = std::chrono::steady_clock::now();
-	milis = (draw - uniforms).count() / 1000000.0;
-	std::cout << "   Draw: " << milis << "[ms]\n";
-	draw = std::chrono::steady_clock::now();
+	//std::chrono::steady_clock::time_point draw = std::chrono::steady_clock::now();
+	//milis = (draw - uniforms).count() / 1000000.0;
+	//std::cout << "   Draw: " << milis << "[ms]\n";
+	//draw = std::chrono::steady_clock::now();
 
-	glfwSwapBuffers(Render::window);
+	//glfwSwapBuffers(Render::window);
 
-	std::chrono::steady_clock::time_point swap = std::chrono::steady_clock::now();
-	milis = (swap - draw).count() / 1000000.0;
-	std::cout << "   Swap Buffers: " << milis << "[ms]\n";
-	swap = std::chrono::steady_clock::now();
+	//std::chrono::steady_clock::time_point swap = std::chrono::steady_clock::now();
+	//milis = (swap - draw).count() / 1000000.0;
+	//std::cout << "   Swap Buffers: " << milis << "[ms]\n";
+	//swap = std::chrono::steady_clock::now();
 
-	glfwPollEvents();
+	//glfwPollEvents();
 
-	std::chrono::steady_clock::time_point poll = std::chrono::steady_clock::now();
-	milis = (poll - swap).count() / 1000000.0;
-	std::cout << "   Poll Events: " << milis << "[ms]\n";
-	poll = std::chrono::steady_clock::now();
+	//std::chrono::steady_clock::time_point poll = std::chrono::steady_clock::now();
+	//milis = (poll - swap).count() / 1000000.0;
+	//std::cout << "   Poll Events: " << milis << "[ms]\n";
+	//poll = std::chrono::steady_clock::now();
 
 
 
@@ -392,7 +392,7 @@ int main() {
 	* 
 	*/
 
-		//Render::renderAll();
+		Render::renderAll();
 
 		std::chrono::steady_clock::time_point rend = std::chrono::steady_clock::now();
 		milis = (rend - add).count() / 1000000.0;

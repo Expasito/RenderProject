@@ -14,6 +14,7 @@ public:
 		std::vector<unsigned int> indices;
 		Model(std::vector<glm::vec3> verts, std::vector<unsigned int> inds);
 		Model();
+		unsigned int buffer,ebo;
 	private:
 
 	};
@@ -41,7 +42,7 @@ public:
 	static void init();
 	static void exit();
 	static void addModel(const char* path, std::string name);
-	static void addInstance(std::string name, int key, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal,glm::vec3 colors);
+	static long addInstance(std::string name, int key, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal,glm::vec3 colors);
 	static void editInstance(std::string name, unsigned long long id, glm::vec3 pos, glm::bvec3 rot, glm::vec3 scal, glm::vec3 color);
 	static void removeInstances(std::string name);
 	static void removeAllInstances();
