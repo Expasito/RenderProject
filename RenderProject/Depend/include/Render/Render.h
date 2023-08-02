@@ -8,23 +8,45 @@
 class Render
 {
 public:
+
+	// Model is a temporary holder between loading the model data and giving it to the 
+	// Object class
 	class Model {
 	public:
 		std::vector<glm::vec3> vertices;
 		std::vector<unsigned int> indices;
 		Model(std::vector<glm::vec3> verts, std::vector<unsigned int> inds);
-		Model();
-		unsigned int buffer,ebo;
+		unsigned int positions, ebo;
 	private:
 
 	};
-	struct object {
-		Model m;
+
+	class Object {
+	public:
 		std::string name;
 		FillerArray* insts;
-		
+		unsigned int positions, ebo;
+		int eboSize;
+		// The Render::Model class should handle putting the vertex and ebo data on the gpu
+		// and just pass the buffer objects across
+		Object(std::string name_, unsigned int positions_, unsigned int ebo_, int eboSize_, FillerArray* insts_) {
+			name = name_;
+			insts = insts_;
+			positions = positions_;
+			ebo = ebo_;
+			eboSize = eboSize_;
+			
+		}
+		~Object() {
+			std::cout << "here\n";
+			exit();
+			glDeleteBuffers(1, &positions);
+			glDeleteBuffers(1, &ebo);
+		}
+
+	private:
 	};
-	static std::vector<object> objects;
+	static std::vector<Render::Object*> objects;
 	static GLFWwindow* window;
 
 	static unsigned int program1, program2;
@@ -41,8 +63,8 @@ public:
 	static unsigned long long instanceCounter;
 	static void init();
 	static void exit();
-	static void addModel(const char* path, std::string name);
-	static long addInstance(std::string name, int key, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal,glm::vec3 colors);
+	static void addModel(const char* path, std::string name, int hashtablesize, int dynamicarraysize);
+	static long addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal,glm::vec3 colors);
 	static void editInstance(std::string name, unsigned long long id, glm::vec3 pos, glm::bvec3 rot, glm::vec3 scal, glm::vec3 color);
 	static void removeInstances(std::string name);
 	static void removeAllInstances();
@@ -50,8 +72,7 @@ public:
 	static void renderAll();
 	
 	
-	static unsigned int VAO, positionBuffer, translationBuffer, rotationBuffer, scalationBuffer, colorBuffer, EBO;
-	static unsigned int allBuffer;
+	static unsigned int VAO;
 private:
 	static char* loadShader(const char* filepath);
 	static void shaderBuildStatus(unsigned int shader, int result);

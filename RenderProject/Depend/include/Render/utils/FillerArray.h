@@ -379,7 +379,7 @@ public:
 
 	void edit(long key, glm::vec3 trans, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
 		int index = ht->get(key)->index;
-		da->edit(index, { 1,trans,rot,scal,color });
+		da->edit(index, { key,trans,rot,scal,color });
 	}
 
 	// pay close attention to this method and make sure it works well

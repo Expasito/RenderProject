@@ -5,7 +5,7 @@
 GLFWwindow* Render::window = NULL;
 unsigned int Render::program1 = -1;
 unsigned int Render::program2 = -1;
-std::vector<Render::object> Render::objects;
+std::vector<Render::Object*> Render::objects;
 glm::mat4 Render::model = glm::mat4(1.0f);
 glm::mat4 Render::view = glm::mat4(1.0f);
 glm::mat4 Render::projection = glm::mat4(1.0f);
@@ -15,8 +15,7 @@ unsigned long long Render::instanceCounter = 0;
 float Render::dt;
 float Render::lastFrame = 0;
 bool Render::keepWindow = true;
-unsigned int Render::VAO=-1, Render::positionBuffer = -1, Render::translationBuffer = -1, Render::rotationBuffer = -1, Render::scalationBuffer = -1, Render::colorBuffer = -1,Render::EBO = -1;
-unsigned int Render::allBuffer = -1;
+unsigned int Render::VAO = -1;
 Camera Render::camera(0, 0, -10);
 
 bool Render::left = false, Render::right = false, Render::down = false, Render::up = false, Render::forward = false, Render::backward = false;
@@ -27,8 +26,8 @@ bool Render::leftMouseButton = false, Render::rightMouseButton = false, Render::
 Render::Model::Model(std::vector<glm::vec3> verts, std::vector<unsigned int> inds) {
 	vertices = verts;
 	indices = inds;
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glGenBuffers(1, &positions);
+	glBindBuffer(GL_ARRAY_BUFFER, positions);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
 
 	glGenBuffers(1, &ebo);
@@ -36,20 +35,20 @@ Render::Model::Model(std::vector<glm::vec3> verts, std::vector<unsigned int> ind
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
 }
 
-Render::Model::Model() {
 
-}
 
-void Render::addModel(const char* filepath, std::string name) {
+void Render::addModel(const char* filepath, std::string name, int hashtablesize, int dynamicarraysize) {
 	Render::Model m = loadModel(filepath);
-	objects.push_back({ m,name, new FillerArray(500,500)});
+	objects.push_back(new Render::Object(name, m.positions, m.ebo, m.indices.size()-3, new FillerArray(hashtablesize, dynamicarraysize)));
 }
+
+
 
 // the returned value is the unique id for the number
-long Render::addInstance(std::string name, int key, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
-	for (object o : Render::objects) {
-		if (o.name.compare(name)==0) {
-			return o.insts->add(pos, rot, scal, color);
+long Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
+	for (Render::Object* o : Render::objects) {
+		if (o->name.compare(name)==0) {
+			return o->insts->add(pos, rot, scal, color);
 
 		}
 		
@@ -85,12 +84,6 @@ void Render::prepBuffers() {
 	glGenVertexArrays(1, &Render::VAO);
 	glBindVertexArray(Render::VAO);
 
-	glGenBuffers(1, &Render::positionBuffer);
-
-	glGenBuffers(1, &Render::allBuffer);
-
-	glGenBuffers(1, &Render::EBO);
-
 
 	// set the divisors for each vertex attribute
 	glVertexAttribDivisor(1, 1);
@@ -108,48 +101,47 @@ void Render::prepBuffers() {
 
 }
 
-// this will be used to keep the buffer shorter since we do not need the key or the keep value
-struct Instance_ {
-	glm::vec3 trans;
-	glm::vec3 rot;
-	glm::vec3 scal;
-	glm::vec3 color;
-};
 
 //TODO: rewrite so we set the buffer data and vertex attributes at hte same time for speed to not bind buffers as often
 void Render::draw() {
 
 	float milis;
-	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-	for (Render::object o : Render::objects) {
-		int elements = o.insts->da->elements;
-		std::cout << "Elements: " << elements << "\n";
+	for (Render::Object* o : Render::objects) {
+		int elements = o->insts->da->elements;
+#ifdef DEBUG
+		std::cout << "Rendering: " << o->name << "\n";
+		std::cout << "  Elements: " << elements << "\n";
+#endif
 		//int elements = o.insts->table->elements;
 		//std::cout << "Elements: " << elements <<" Size: " << o.insts->table->size  << " load: " << o.insts->table->load << "\n";
 		if (elements <= 0) {
 			continue;
 		}
 
+		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		
 
-		// fill the position buffer and send the data to the gpu
-		glBindBuffer(GL_ARRAY_BUFFER, o.m.buffer);
-		//glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * o.m.vertices.size(), &o.m.vertices[0], GL_STATIC_DRAW);
+		// bind the position buffer and send the vertices to gpu
+		glBindBuffer(GL_ARRAY_BUFFER, o->positions);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 
+#ifdef DEBUG
 		std::chrono::steady_clock::time_point posBuff = std::chrono::steady_clock::now();
 		milis = (posBuff - begin).count() / 1000000.0;
 		std::cout << "       Position Buffer: " << milis << "[ms]\n";
+		posBuff = std::chrono::steady_clock::now();
+#endif
 
-		// load in the buffer of all data
-		glBindBuffer(GL_ARRAY_BUFFER, o.insts->buffer);
-		// we are changing GL_STATIC_DRAW to GL_DYNAMIC_DRAW due to the high refresh rate
-		//glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element)*elements, o.insts->da->arr, GL_DYNAMIC_DRAW);
+		// load in the buffer of all instances
+		glBindBuffer(GL_ARRAY_BUFFER, o->insts->buffer);
 
+#ifdef DEBUG
 		std::chrono::steady_clock::time_point instBuff = std::chrono::steady_clock::now();
 		milis = (instBuff - posBuff).count() / 1000000.0;
 		std::cout << "       Instance Buffer: " << milis << "[ms]\n";
+		instBuff = std::chrono::steady_clock::now();
+#endif
 
 		
 		// this is translation
@@ -164,26 +156,33 @@ void Render::draw() {
 		 // this is for color
 		 glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
 		 
+#ifdef DEBUG
 		 std::chrono::steady_clock::time_point vertexattr = std::chrono::steady_clock::now();
 		 milis = (vertexattr - instBuff).count() / 1000000.0;
 		 std::cout << "         Vertex Attrib: " << milis << "[ms]\n";
+		 vertexattr = std::chrono::steady_clock::now();
+#endif
 
 
-		 // give the index buffer to the gpu
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o.m.ebo);
-		//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * o.m.indices.size(), &o.m.indices[0], GL_STATIC_DRAW);
-
+		 // give the ebo to the gpu
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
+		
+#ifdef DEBUG
 		std::chrono::steady_clock::time_point ebo = std::chrono::steady_clock::now();
 		milis = (ebo - vertexattr).count() / 1000000.0;
 		std::cout << "              EBO bind: " << milis << "[ms]\n";
+		ebo = std::chrono::steady_clock::now();
+#endif
 
+		// finally, send the draw command to the gpu
+		glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elements);
 
-
-		glDrawElementsInstanced(GL_TRIANGLES, o.m.indices.size() - 3, GL_UNSIGNED_INT, 0, elements);
-
+#ifdef DEBUG
 		std::chrono::steady_clock::time_point drawelements = std::chrono::steady_clock::now();
 		milis = (drawelements - ebo).count() / 1000000.0;
 		std::cout << "         Draw Elements: " << milis << "[ms]\n";
+		std::cout << "         Draw Elements: " << milis << "[ms]\n";
+#endif
 
 
 	}
@@ -211,27 +210,35 @@ void Render::renderAll() {
 	Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
 	Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
 
+# ifdef DEBUG
 	std::chrono::steady_clock::time_point uniforms = std::chrono::steady_clock::now();
 	milis = (uniforms - begin).count() / 1000000.0;
 	std::cout << "   Uniforms: " << milis << "[ms]\n";
+#endif
 
 	Render::draw();
 
+#ifdef DEBUG
 	std::chrono::steady_clock::time_point draw = std::chrono::steady_clock::now();
 	milis = (draw - uniforms).count() / 1000000.0;
 	std::cout << "   Draw: " << milis << "[ms]\n";
+#endif
 
 	glfwSwapBuffers(Render::window);
 
+#ifdef DEBUG
 	std::chrono::steady_clock::time_point swap = std::chrono::steady_clock::now();
 	milis = (swap - draw).count() / 1000000.0;
 	std::cout << "   Swap Buffers: " << milis << "[ms]\n";
+#endif
 	
 	glfwPollEvents();
 
+#ifdef DEBUG
 	std::chrono::steady_clock::time_point poll = std::chrono::steady_clock::now();
 	milis = (poll - swap).count() / 1000000.0;
 	std::cout << "   Poll Events: " << milis << "[ms]\n";
+#endif
 }
 
 
@@ -365,9 +372,9 @@ void Render::init() {
 
 void Render::exit() {
 	glfwTerminate();
-	for (object o : Render::objects) {
-		//free(o.insts->table);
-	}
+	//for (object o : Render::objects) {
+	//	//free(o.insts->table);
+	//}
 
 	glfwDestroyWindow(Render::window);
 }
