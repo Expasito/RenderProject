@@ -1348,6 +1348,7 @@
     <None Include="shaders\vertexCircle.shader" />
     <None Include="Depend\lib\glfw3.dll" />
     <None Include="shaders\geometry.shader" />
+    <None Include="saves\input.rpo" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Depend\lib\glfw3.lib" />

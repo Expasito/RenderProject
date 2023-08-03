@@ -70,6 +70,8 @@ public:
 	static void removeAllInstances();
 	static void draw();
 	static void renderAll();
+
+	static void loadSave(const char* path);
 	
 	
 	static unsigned int VAO;

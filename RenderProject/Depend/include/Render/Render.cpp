@@ -1,4 +1,5 @@
 #include "Render.h"
+#include <fstream>
 
 
 
@@ -46,8 +47,10 @@ void Render::addModel(const char* filepath, std::string name, int hashtablesize,
 
 // the returned value is the unique id for the number
 long Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
+	std::cout << "here\n";
 	for (Render::Object* o : Render::objects) {
 		if (o->name.compare(name)==0) {
+			std::cout << "here2\n";
 			return o->insts->add(pos, rot, scal, color);
 
 		}
@@ -491,4 +494,51 @@ Render::Model Render::loadModel(const char* path) {
 	fclose(file);
 	Render::Model ret(vertices, indices);
 	return ret;
+}
+
+void Render::loadSave(const char* path) {
+	std::ifstream file(path);
+	std::string res;
+	if (file.is_open()) {
+		std::string name;
+		std::string path_;
+		while (file.good()) {
+			std::getline(file, res);
+			const char* value = res.c_str();
+			
+
+			// check if the string is detailed about a descriptor
+			if (value[0] == ':') {
+				// First, we have the name of the object
+				// Then, the filepath
+				// Finally, the hashtable and dynamic array sizes
+				name = res.substr(1, res.length());
+				std::cout << "Name is: " << name << "\n";
+				std::getline(file, res);
+				path_ = res.substr(1, res.length());
+				std::cout << "Path is: " << path_ << "\n";
+				std::getline(file, res);
+				value = res.c_str();
+				int hashSize, dynamSize;
+				sscanf(value, "%d,%d", &hashSize, &dynamSize);
+				std::cout << "Table Sizes: " << hashSize << " " << dynamSize << "\n";
+				Render::addModel(path_.c_str(), name, hashSize,dynamSize);
+				
+
+				// now prepare next line
+				std::getline(file, res);
+				value = res.c_str();
+			}
+			// these are the floats for the vertex data
+			float t0, t1, t2, r0, r1, r2, s0, s1, s2, c0, c1, c2;
+			sscanf(value, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
+				&t0, &t1, &t2, &r0, &r1, &r2, &s0, &s1, &s2, &c0, &c1, &c2);
+			Render::addInstance(name, {t0,t1,t2}, {r0,r1,r2}, {s0,s1,s2}, {c0,c1,c2});
+			std::cout << t0 << "\n";
+
+
+		}
+	}
+	file.close();
+
 }

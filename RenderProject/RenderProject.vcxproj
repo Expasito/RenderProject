@@ -579,6 +579,7 @@
     <None Include="Depend\include\glm\gtx\vector_query.inl" />
     <None Include="Depend\include\glm\gtx\wrap.inl" />
     <None Include="Depend\lib\glfw3.dll" />
+    <None Include="saves\input.rpo" />
     <None Include="shaders\fragment.shader" />
     <None Include="shaders\fragmentCircle.shader" />
     <None Include="shaders\geometry.shader" />
