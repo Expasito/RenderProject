@@ -40,7 +40,7 @@ Render::Model::Model(std::vector<glm::vec3> verts, std::vector<unsigned int> ind
 
 void Render::addModel(const char* filepath, std::string name, int hashtablesize, int dynamicarraysize) {
 	Render::Model m = loadModel(filepath);
-	objects.push_back(new Render::Object(name, m.positions, m.ebo, m.indices.size()-3, new FillerArray(hashtablesize, dynamicarraysize)));
+	objects.push_back(new Render::Object(name,filepath, m.positions, m.ebo, m.indices.size()-3, new FillerArray(hashtablesize, dynamicarraysize)));
 }
 
 
@@ -298,6 +298,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	Render::up = glfwGetKey(window, GLFW_KEY_SPACE);
 	Render::down = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
 
+
+	
+
 	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS) {
 		wireframe = !wireframe;
 		
@@ -310,6 +313,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 
 
+}
+
+int Render::getKey(int key) {
+	return glfwGetKey(window, key);
 }
 
 void mouseButtonCallBack(GLFWwindow* window, int button, int action, int mods) {
@@ -534,7 +541,6 @@ void Render::loadSave(const char* path) {
 			sscanf(value, "%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
 				&t0, &t1, &t2, &r0, &r1, &r2, &s0, &s1, &s2, &c0, &c1, &c2);
 			Render::addInstance(name, {t0,t1,t2}, {r0,r1,r2}, {s0,s1,s2}, {c0,c1,c2});
-			std::cout << t0 << "\n";
 
 
 		}
@@ -542,3 +548,32 @@ void Render::loadSave(const char* path) {
 	file.close();
 
 }
+
+void Render::createSave(const char* path) {
+	std::ofstream file(path,std::ios::out);
+	for (Render::Object* o : Render::objects) {
+		std::cout << o->path << "\n";
+		file << ":";
+		file << o->name << "\n";
+		file << ":";
+		file << std::string(o->path) << "\n";
+		file << o->insts->ht->size << "," << o->insts->da->size << "\n";
+		// now iterate through all objects in the scene
+		for (int i = 0; i < o->insts->da->elements; i++) {
+			FillerArray::Element elem = o->insts->da->get(i);
+			file << elem.translations.x << "," << elem.translations.y << "," << elem.translations.z << ","
+				<< elem.rotations.x << "," << elem.rotations.y << "," << elem.rotations.z << ","
+				<< elem.scalations.x << "," << elem.scalations.x << "," << elem.scalations.x << ","
+				<< elem.colors.x << "," << elem.colors.x << "," << elem.colors.x << "\n";
+		}
+
+	}
+	file.close();
+}
+
+//std::ostream operator<<(std::ofstream& stream_, FillerArray::Element elem) {
+//	stream_ << elem.translations.x << "," << elem.translations.y << "," << elem.translations.z << ","
+//		<< elem.rotations.x << "," << elem.rotations.y << "," << elem.rotations.z << ","
+//		<< elem.scalations.x << "," << elem.scalations.x << "," << elem.scalations.x << ","
+//		<< elem.colors.x << "," << elem.colors.x << "," << elem.colors.x << "\n";
+//}

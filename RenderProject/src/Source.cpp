@@ -242,7 +242,8 @@ int main() {
 	//	);
 	//}
 
-
+	int F = 0;
+	int T = 0;
 
 
 	index_ = 0;
@@ -264,8 +265,19 @@ int main() {
 		//std::cout << "Elements: " << Render::objects[0]->insts->da->elements << "\n";
 
 		#endif
-		
 
+		// F will save the data
+		std::cout << Render::getKey(GLFW_KEY_F) << "\n";
+		if (Render::getKey(GLFW_KEY_F)) {
+			Render::createSave("saves/input.rpo");
+		}
+
+		// B goes into wireframe mode
+
+		// T will add an instance at the current position
+		if (Render::getKey(GLFW_KEY_T)) {
+			Render::addInstance("Cube", { -Render::camera.cameraPos.x,Render::camera.cameraPos.y,Render::camera.cameraPos.z }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
+		}
 
 
 	/*

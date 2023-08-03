@@ -580,6 +580,7 @@
     <None Include="Depend\include\glm\gtx\wrap.inl" />
     <None Include="Depend\lib\glfw3.dll" />
     <None Include="saves\input.rpo" />
+    <None Include="saves\input2.rpo" />
     <None Include="shaders\fragment.shader" />
     <None Include="shaders\fragmentCircle.shader" />
     <None Include="shaders\geometry.shader" />

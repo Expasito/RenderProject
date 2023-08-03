@@ -24,17 +24,19 @@ public:
 	class Object {
 	public:
 		std::string name;
+		std::string path;
 		FillerArray* insts;
 		unsigned int positions, ebo;
 		int eboSize;
 		// The Render::Model class should handle putting the vertex and ebo data on the gpu
 		// and just pass the buffer objects across
-		Object(std::string name_, unsigned int positions_, unsigned int ebo_, int eboSize_, FillerArray* insts_) {
+		Object(std::string name_, const char* path_, unsigned int positions_, unsigned int ebo_, int eboSize_, FillerArray* insts_) {
 			name = name_;
 			insts = insts_;
 			positions = positions_;
 			ebo = ebo_;
 			eboSize = eboSize_;
+			path = std::string(path_);
 			
 		}
 		~Object() {
@@ -46,6 +48,8 @@ public:
 
 	private:
 	};
+	
+	// This will hold the value if they key is pressed
 	static std::vector<Render::Object*> objects;
 	static GLFWwindow* window;
 
@@ -72,6 +76,8 @@ public:
 	static void renderAll();
 
 	static void loadSave(const char* path);
+	static void createSave(const char* path);
+	static int getKey(int key);
 	
 	
 	static unsigned int VAO;
