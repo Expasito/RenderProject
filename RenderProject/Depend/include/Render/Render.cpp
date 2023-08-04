@@ -47,10 +47,8 @@ void Render::addModel(const char* filepath, std::string name, int hashtablesize,
 
 // the returned value is the unique id for the number
 long Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
-	std::cout << "here\n";
 	for (Render::Object* o : Render::objects) {
 		if (o->name.compare(name)==0) {
-			std::cout << "here2\n";
 			return o->insts->add(pos, rot, scal, color);
 
 		}
@@ -341,14 +339,21 @@ void scrollCallBack(GLFWwindow* window, double xoffset, double yoffset) {
 
 }
 
-void Render::init() {
+void Render::init(int width, int height, bool fullScreen) {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	//glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
-	Render::window = glfwCreateWindow(800, 800, "Game", NULL, NULL);
+	if (fullScreen) {
+		Render::window = glfwCreateWindow(width, height, "Game", glfwGetPrimaryMonitor(), NULL);
+		glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+
+	}
+	else {
+		Render::window = glfwCreateWindow(width, height, "Game", NULL, NULL);
+
+	}
 	if (Render::window == NULL) {
 		printf("Failed to create window\n");
 		glfwTerminate();
@@ -361,7 +366,7 @@ void Render::init() {
 		return;
 	}
 
-	glViewport(0, 0, 800, 800);
+	glViewport(0, 0, width, height);
 
 	glfwSetFramebufferSizeCallback(Render::window, framebuffer_size_callback);
 
@@ -371,7 +376,9 @@ void Render::init() {
 	glfwSetScrollCallback(Render::window, scrollCallBack);
 
 	compileShader("shaders/fragment.shader", "shaders/vertex.shader", &Render::program1);
-	glUseProgram(Render::program1);
+	compileShader("shaders/debugFragment.shader", "shaders/debugVertex.shader", &Render::program2);
+	//glUseProgram(Render::program1);
+	glUseProgram(Render::program2);
 	
 	Render::prepBuffers();
 

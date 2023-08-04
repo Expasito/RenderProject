@@ -582,10 +582,10 @@
     <None Include="saves\input.rpo" />
     <None Include="saves\input2.rpo" />
     <None Include="shaders\fragment.shader" />
-    <None Include="shaders\fragmentCircle.shader" />
+    <None Include="shaders\debugFragment.shader" />
     <None Include="shaders\geometry.shader" />
     <None Include="shaders\vertex.shader" />
-    <None Include="shaders\vertexCircle.shader" />
+    <None Include="shaders\debugVertex.shader" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Depend\lib\glfw3.lib" />

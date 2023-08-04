@@ -18,7 +18,7 @@ float magnitude(vec3 vec) {
 }
 
 vec3 normalize(vec3 vec) {
-	float mag = magnitude(vec);
+	double mag = magnitude(vec);
 	return vec3(vec.x/mag,vec.y/mag,vec.z/mag);
 }
 
@@ -29,12 +29,12 @@ float dot(vec3 a, vec3 b) {
 void main() {
 	// this is for an ambient light
 	//Light l = { camPos_,30 };
-	//Light l = { {0,0,0},100 };
-	//vec3 new_pos = transformed_.xyz;
+	Light l = { {0,50,0},2000 };
+	vec3 new_pos = transformed_.xyz;
 
-	//float mag = magnitude(l.position - new_pos);
-	//float dist = 1.0 / (mag*mag) * l.intensity;
-	//FragColor = vec4(colors_.x * dist, colors_.y * dist, colors_.z * dist, 1);
+	float mag = magnitude(l.position - new_pos);
+	float dist = 1.0 / (mag*mag) * l.intensity;
+	FragColor = vec4(colors_.x * dist, colors_.y * dist, colors_.z * dist, 1);
 
 	// this is for a directional light
 
@@ -62,7 +62,7 @@ void main() {
 		//FragColor = vec4(colors_.x * dist, colors_.y * dist, colors_.z * dist, 1);
 	//}
 
-	FragColor = vec4(colors_,1);
+	//FragColor = vec4(colors_,1);
 	//FragColor = vec4(position, 1);
 
 }

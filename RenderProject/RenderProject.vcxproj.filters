@@ -1343,9 +1343,9 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="shaders\fragment.shader" />
-    <None Include="shaders\fragmentCircle.shader" />
+    <None Include="shaders\debugFragment.shader" />
     <None Include="shaders\vertex.shader" />
-    <None Include="shaders\vertexCircle.shader" />
+    <None Include="shaders\debugVertex.shader" />
     <None Include="Depend\lib\glfw3.dll" />
     <None Include="shaders\geometry.shader" />
     <None Include="saves\input.rpo" />

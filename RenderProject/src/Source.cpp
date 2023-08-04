@@ -88,8 +88,8 @@ int main() {
 	*/
 
 	srand(time(0));
-	Render::init();	
-	Render::camera.baseSpeed = 100;
+	Render::init(800,800,false);
+	Render::camera.baseSpeed = 10;
 
 	Render::loadSave("saves/input.rpo");
 
@@ -103,6 +103,10 @@ int main() {
 	//Render::addModel("assets/sphere.obj", "Cube",100,100);
 	//Render::addModel("assets/sphere.obj", "Cube");
 	//Render::addModel("assets/monkey.obj", "Monkey");
+
+	Render::addModel("assets/room.obj", "Room", 100, 100);
+
+	Render::addInstance("Room", { 20,0,0 }, { 0,0,0 }, { 1,1,1 }, { .5,.5,.5 });
 
 
 	//float max_dist = 200;
@@ -123,85 +127,6 @@ int main() {
 
 	//Render::addInstance("Cube",	{ 20,0,0 }, { 0,0,0 }, { 1,1,1 }, { .75,0,0 });
 
-	//Render::addInstance("Cube",
-	//	{ -10,0,0 },
-	//	{ 0,0,0 },
-	//	{ 1,1,1 },
-	//	{ .75,.75,0 }
-
-	//);
-
-	//Render::addInstance("Cube",
-	//	{ -20,0,0 },
-	//	{ 0,0,0 },
-	//	{ 1,1,1 },
-	//	{ 0,.75,0 }
-
-	//);
-
-	//Render::addInstance("Cube",
-	//	{ 0,10,0 },
-	//	{ 0,0,0 },
-	//	{ 1,1,1 },
-	//	{ .75,0,0 }
-
-	//);
-
-	//Render::addInstance("Cube",
-	//	{ 0,20,0 },
-	//	{ 0,0,0 },
-	//	{ 1,1,1 },
-	//	{ .75,.75,0 }
-
-	//);
-
-	//Render::addInstance("Cube",
-	//	{ 0,-10,0 },
-	//	{ 0,0,0 },
-	//	{ 1,1,1 },
-	//	{ 0,.75,0 }
-
-	//);
-
-	//Render::addInstance("Cube",
-	//	{ 0,-20,0 },
-	//	{ 0,0,0 },
-	//	{ 1,1,1 },
-	//	{ .75,0,0 }
-
-	//);
-
-	//Render::addInstance("Cube",
-	//	{ 0,0,10 },
-	//	{ 0,0,0 },
-	//	{ 1,1,1 },
-	//	{ .75,0,0 }
-
-	//);
-
-	//Render::addInstance("Cube",
-	//	{ 0,0,20 },
-	//	{ 0,0,0 },
-	//	{ 1,1,1 },
-	//	{ .75,.75,0 }
-
-	//);
-
-	//Render::addInstance("Cube",
-	//	{ 0,0,-10 },
-	//	{ 0,0,0 },
-	//	{ 1,1,1 },
-	//	{ 0,.75,0 }
-
-	//);
-
-	//Render::addInstance("Cube",
-	//	{ 0,0,-20 },
-	//	{ 0,0,0 },
-	//	{ 1,1,1 },
-	//	{ .75,0,0 }
-
-	//);
 
 	//Render::removeInstances("Cube");
 	//Render::removeInstances("Cube");
@@ -212,7 +137,7 @@ int main() {
 
 	int index_ = 14;
 
-	float milis;
+	float milis=0;
 	float dist = .01;
 
 	//for (int i = 0; i < 1000000; i++) {
@@ -245,6 +170,73 @@ int main() {
 	int F = 0;
 	int T = 0;
 
+	unsigned int debug;
+	glGenBuffers(1, &debug);
+	glBindBuffer(GL_ARRAY_BUFFER, debug);
+	float height = -1;
+	float data[] = {
+		-.95,-1,0,
+		-.95,height,0,
+		-.9,-1,0,
+		-.95,height,0,
+		-.9,height,0,
+		-.9,-1,0
+
+	};
+		
+	while (Render::keepWindow) {
+		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+		glClearColor(0, 0, 0, 1);
+
+		data[4] = height;
+		data[10] = height;
+		data[13] = height;
+		height = (float)milis / 100;
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glUseProgram(Render::program2);
+		glBindBuffer(GL_ARRAY_BUFFER, debug);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+		glUseProgram(Render::program1);
+		float currentFrame = glfwGetTime();
+		Render::dt = currentFrame - Render::lastFrame;
+		Render::lastFrame = currentFrame;
+		Render::camera.speed = Render::camera.baseSpeed * Render::dt;
+		glUniformMatrix4fv(glGetUniformLocation(Render::program1, "model"), 1, GL_FALSE, glm::value_ptr(Render::model));
+		glUniformMatrix4fv(glGetUniformLocation(Render::program1, "view"), 1, GL_FALSE, glm::value_ptr(Render::view));
+		glUniformMatrix4fv(glGetUniformLocation(Render::program1, "projection"), 1, GL_FALSE, glm::value_ptr(Render::projection));
+		glUniform3fv(glGetUniformLocation(Render::program1, "camPos"), 1, glm::value_ptr(Render::camera.cameraPos));
+		glUniform3fv(glGetUniformLocation(Render::program1, "camFront"), 1, glm::value_ptr(Render::camera.cameraFront));
+
+		Render::camera.translate(Render::left, Render::right, Render::up, Render::down, Render::forward, Render::backward);
+		Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
+		Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
+
+		Render::draw();
+		for(int i=0;i<100;i++)
+			Render::addInstance("Room", { 0,0,0 }, { 1,1,1 }, { 1,1,1 }, { 1,0,1 });
+
+
+		glfwSwapBuffers(Render::window);
+		glfwPollEvents();
+		std::cout << "hello\n";
+		Render::keepWindow = !glfwWindowShouldClose(Render::window);
+
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+		milis = (end - begin).count() / 1000000.0;
+		//time.push_back(milis);
+		std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
+
+	}
+
+	
+
+	//exit(1);
+
 
 	index_ = 0;
 	while (Render::keepWindow) {
@@ -267,17 +259,28 @@ int main() {
 		#endif
 
 		// F will save the data
-		std::cout << Render::getKey(GLFW_KEY_F) << "\n";
-		if (Render::getKey(GLFW_KEY_F)) {
+		if (F != Render::getKey(GLFW_KEY_F) && F == 0) {
 			Render::createSave("saves/input.rpo");
 		}
+		F = Render::getKey(GLFW_KEY_F);
 
 		// B goes into wireframe mode
 
 		// T will add an instance at the current position
-		if (Render::getKey(GLFW_KEY_T)) {
+		if (T != Render::getKey(GLFW_KEY_T) && T == 0) {
+			
 			Render::addInstance("Cube", { -Render::camera.cameraPos.x,Render::camera.cameraPos.y,Render::camera.cameraPos.z }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
 		}
+		T = Render::getKey(GLFW_KEY_T);
+
+		if (Render::getKey(GLFW_KEY_LEFT_CONTROL)) {
+			Render::camera.baseSpeed = 50;
+		}
+		else {
+			Render::camera.baseSpeed = 10;
+		}
+
+
 
 
 	/*
@@ -287,7 +290,9 @@ int main() {
 	* 
 	*/
 
-		Render::renderAll();
+		//Render::renderAll();
+
+
 
 		#ifdef DEBUG
 
@@ -303,7 +308,7 @@ int main() {
 		//time.push_back(milis);
 		std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0/milis << "\n";
 		
-		std::cout << "\n";
+		//std::cout << "\n";
 
 	}
 

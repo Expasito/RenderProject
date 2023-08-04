@@ -65,7 +65,7 @@ public:
 	static bool keepWindow;
 	// this counts which entity index we are on for hashing. This will increment and return as the hash key
 	static unsigned long long instanceCounter;
-	static void init();
+	static void init(int width, int height, bool fullScreen);
 	static void exit();
 	static void addModel(const char* path, std::string name, int hashtablesize, int dynamicarraysize);
 	static long addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal,glm::vec3 colors);
