@@ -95,9 +95,9 @@ int main() {
 
 	//exit(1);
 
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_BACK);
-	//glFrontFace(GL_CCW);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
 	
 
 	//Render::addModel("assets/sphere.obj", "Cube",100,100);
@@ -173,34 +173,68 @@ int main() {
 	unsigned int debug;
 	glGenBuffers(1, &debug);
 	glBindBuffer(GL_ARRAY_BUFFER, debug);
-	float height = -1;
+	float width = .0125;
 	float data[] = {
-		-.95,-1,0,
-		-.95,height,0,
-		-.9,-1,0,
-		-.95,height,0,
-		-.9,height,0,
-		-.9,-1,0
+		-width/2,-1,0,
+		-width/2,1,0,
+		width/2,-1,0,
+		-width/2,1,0,
+		width/2,1,0,
+		width/2,-1,0
 
 	};
+
+	const int bars = 100;
+	unsigned int index;
+	glGenBuffers(1, &index);
+	float indexes[bars];
+	for (int i = 0; i < bars; i++) {
+		indexes[i] = -1 + width / 2 * (i + 1);
+	}
+
+	//float indexes[] = { -1+width/2,-1+width, -1+width*3/2};
+
+	unsigned int height;
+	glGenBuffers(1, &height);
+	float heights[bars];
+	for (int i = 0; i < bars; i++) {
+		heights[i] = 0;
+	}
+	//float heights[] = {-.5,-1,-.5};
 		
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		glClearColor(0, 0, 0, 1);
 
-		data[4] = height;
-		data[10] = height;
-		data[13] = height;
-		height = (float)milis / 100;
+		for (int i = 0; i < bars - 1; i++) {
+			heights[i] = heights[i + 1];
+		}
+		heights[bars-1] = -milis / 10;
+		//std::cout << heights[bars - 1];
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glDisable(GL_CULL_FACE);
 		glUseProgram(Render::program2);
 		glBindBuffer(GL_ARRAY_BUFFER, debug);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		// load in indexes
+		
+		glBindBuffer(GL_ARRAY_BUFFER, index);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(indexes), indexes, GL_STATIC_DRAW);
+		glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
+		glVertexAttribDivisor(1, 1);
 
+		glBindBuffer(GL_ARRAY_BUFFER, height);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(heights), heights, GL_STATIC_DRAW);
+		glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
+		glVertexAttribDivisor(2, 1);
+
+		//glDrawArraysI(GL_TRIANGLES, 0, 6);
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, bars);
+
+		glEnable(GL_CULL_FACE);
 		glUseProgram(Render::program1);
 		float currentFrame = glfwGetTime();
 		Render::dt = currentFrame - Render::lastFrame;
@@ -217,19 +251,19 @@ int main() {
 		Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
 
 		Render::draw();
-		for(int i=0;i<100;i++)
+		for(int i=0;i<1;i++)
 			Render::addInstance("Room", { 0,0,0 }, { 1,1,1 }, { 1,1,1 }, { 1,0,1 });
 
 
 		glfwSwapBuffers(Render::window);
 		glfwPollEvents();
-		std::cout << "hello\n";
+		//std::cout << "hello\n";
 		Render::keepWindow = !glfwWindowShouldClose(Render::window);
 
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		milis = (end - begin).count() / 1000000.0;
 		//time.push_back(milis);
-		std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
+		//std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
 
 	}
 

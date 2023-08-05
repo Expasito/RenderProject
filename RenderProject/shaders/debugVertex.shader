@@ -1,9 +1,12 @@
 #version 450 core
-layout(location = 0) in vec3 aPos; 
-out vec3 position;
-out float radius;
+layout(location = 0) in vec3 position;
+layout(location = 1) in float index;
+layout(location = 2) in float height;
+out vec3 position_;
+out float height_;
 
 void main() {
-	position = vec3(aPos);
-	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+	position_ = vec3(position);
+	height_ = height;
+	gl_Position = vec4(position.x+index, position.y+height-1, position.z, 1);
 }
