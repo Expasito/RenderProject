@@ -8,5 +8,5 @@ out float height_;
 void main() {
 	position_ = vec3(position);
 	height_ = height;
-	gl_Position = vec4(position.x+index, position.y+height-1, position.z, 1);
+	gl_Position = vec4(position.x+index, position.y+height, position.z, 1);
 }

@@ -8,7 +8,7 @@ void main() {
 
 	//FragColor = vec4(position.y,1,1,0);
 	//FragColor = vec4(position+1, 1);
-	FragColor = vec4(1, 1, 1, 1);
+	FragColor = vec4(1, 1, 1, .5);
 	//float diff = radius - ((position.x) * (position.x) + (position.y) * (position.y));
 	//if (diff>=0) {
 	//	FragColor = vec4(1, 0, 0, 1);

@@ -99,6 +99,7 @@ void Render::prepBuffers() {
 	glEnableVertexAttribArray(2);
 	glEnableVertexAttribArray(3);
 	glEnableVertexAttribArray(4);
+	glEnableVertexAttribArray(5);
 
 }
 
@@ -125,7 +126,8 @@ void Render::draw() {
 
 		// bind the position buffer and send the vertices to gpu
 		glBindBuffer(GL_ARRAY_BUFFER, o->positions);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
+		glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(sizeof(float) * 3));
 
 #ifdef DEBUG
 		std::chrono::steady_clock::time_point posBuff = std::chrono::steady_clock::now();
@@ -484,7 +486,21 @@ Render::Model Render::loadModel(const char* path) {
 			float f1 = stof(sub[0]);
 			float f2 = stof(sub[1]);
 			float f3 = stof(sub[2]);
+			float f4, f5, f6;
+			// has color data
+			if (sub.size() == 6) {
+				f4 = stof(sub[3]);
+				f5 = stof(sub[4]);
+				f6 = stof(sub[5]);
+			}
+			else {
+				f4 = 1;
+				f5 = 1;
+				f6 = 1;
+			}
+			
 			vertices.push_back({f1,f2,f3});
+			vertices.push_back({ f4,f5,f6});
 		}
 		// is indice data
 		if (buff[0] == 'f' && buff[1] == ' ') {

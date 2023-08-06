@@ -215,6 +215,7 @@ public:
 			elements++;
 
 			if (elements == size) {
+				std::cout << "Resize Dynamic Array\n";
 				resize(size * 2);
 			}
 
@@ -348,6 +349,7 @@ public:
 		
 
 		if (ht->load > .75) {
+			std::cout << "Resize HashTable\n";
 			// now we need to resize and rehash each key
 			HashTable* temp = new HashTable(ht->size * 2);
 			for (int i = 0; i < ht->size; i++) {

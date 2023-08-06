@@ -4,9 +4,11 @@ layout(location = 1) in vec3 translations;
 layout(location = 2) in vec3 rotations;
 layout(location = 3) in vec3 scalations;
 layout(location = 4) in vec3 colors;
+layout(location = 5) in vec3 colours;
 
 
 out vec3 colors_;
+out vec3 colours_;
 out vec3 position;
 out vec4 transformed_;
 
@@ -67,6 +69,7 @@ out vec3 camFront_;
 void main(){
 	position = vec3(aPos);
     colors_ = vec3(colors);
+    colours_ = vec3(colours);
     camPos_ = camPos;
     camFront_ = camFront;
 

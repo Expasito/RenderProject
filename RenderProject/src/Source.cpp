@@ -98,15 +98,21 @@ int main() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
+
+	glEnable(GL_BLEND);
 	
 
 	//Render::addModel("assets/sphere.obj", "Cube",100,100);
 	//Render::addModel("assets/sphere.obj", "Cube");
 	//Render::addModel("assets/monkey.obj", "Monkey");
 
-	Render::addModel("assets/room.obj", "Room", 100, 100);
+	Render::addModel("assets/room.obj", "Room", 10000, 10000);
 
 	Render::addInstance("Room", { 20,0,0 }, { 0,0,0 }, { 1,1,1 }, { .5,.5,.5 });
+
+	Render::addModel("assets/colored_cube.obj", "CUBE", 100, 100);
+
+	Render::addInstance("CUBE", { -20,-20,-20 }, { 0,0,0 }, { 1,1,1 }, {1,1,1});
 
 
 	//float max_dist = 200;
@@ -184,14 +190,18 @@ int main() {
 
 	};
 
-	const int bars = 100;
+	glBindBuffer(GL_ARRAY_BUFFER, debug);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
+
+	const int bars = 10;
 	unsigned int index;
 	glGenBuffers(1, &index);
 	float indexes[bars];
 	for (int i = 0; i < bars; i++) {
 		indexes[i] = -1 + width / 2 * (i + 1);
 	}
-
+	glBindBuffer(GL_ARRAY_BUFFER, index);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(indexes), indexes, GL_STATIC_DRAW);
 	//float indexes[] = { -1+width/2,-1+width, -1+width*3/2};
 
 	unsigned int height;
@@ -200,39 +210,42 @@ int main() {
 	for (int i = 0; i < bars; i++) {
 		heights[i] = 0;
 	}
+	glBindBuffer(GL_ARRAY_BUFFER, height);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(heights), heights, GL_STATIC_DRAW);
 	//float heights[] = {-.5,-1,-.5};
 		
+	
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-		glClearColor(0, 0, 0, 1);
 
+		glBindBuffer(GL_ARRAY_BUFFER, height);
 		for (int i = 0; i < bars - 1; i++) {
 			heights[i] = heights[i + 1];
+			
 		}
 		heights[bars-1] = -milis / 10;
-		//std::cout << heights[bars - 1];
+
+		glBufferSubData(GL_ARRAY_BUFFER, sizeof(float)*0, sizeof(float)*(bars), &heights);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glDisable(GL_CULL_FACE);
 		glUseProgram(Render::program2);
+		
 		glBindBuffer(GL_ARRAY_BUFFER, debug);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
 
 		// load in indexes
 		
 		glBindBuffer(GL_ARRAY_BUFFER, index);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(indexes), indexes, GL_STATIC_DRAW);
 		glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
 		glVertexAttribDivisor(1, 1);
 
 		glBindBuffer(GL_ARRAY_BUFFER, height);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(heights), heights, GL_STATIC_DRAW);
 		glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
 		glVertexAttribDivisor(2, 1);
 
-		//glDrawArraysI(GL_TRIANGLES, 0, 6);
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, bars);
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
 		glEnable(GL_CULL_FACE);
 		glUseProgram(Render::program1);
@@ -254,16 +267,13 @@ int main() {
 		for(int i=0;i<1;i++)
 			Render::addInstance("Room", { 0,0,0 }, { 1,1,1 }, { 1,1,1 }, { 1,0,1 });
 
-
+		
 		glfwSwapBuffers(Render::window);
 		glfwPollEvents();
-		//std::cout << "hello\n";
 		Render::keepWindow = !glfwWindowShouldClose(Render::window);
 
-		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		milis = (end - begin).count() / 1000000.0;
-		//time.push_back(milis);
-		//std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
+		std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
 
 	}
 

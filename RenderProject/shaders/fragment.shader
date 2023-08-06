@@ -6,6 +6,7 @@ in vec3 colors_;
 in vec4 transformed_;
 in vec3 camPos_;
 in vec3 camFront_;
+in vec3 colours_;
 
 struct Light {
 	vec3 position;
@@ -34,7 +35,10 @@ void main() {
 
 	float mag = magnitude(l.position - new_pos);
 	float dist = 1.0 / (mag*mag) * l.intensity;
-	FragColor = vec4(colors_.x * dist, colors_.y * dist, colors_.z * dist, 1);
+
+	vec3 colors2_ = (colors_ + colours_) / 2;
+	FragColor = vec4(colors2_.x * dist, colors2_.y * dist, colors2_.z * dist, 1);
+	//FragColor = vec4(colours_, 1);
 
 	// this is for a directional light
 
