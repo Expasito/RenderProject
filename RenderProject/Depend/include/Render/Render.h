@@ -9,13 +9,20 @@ class Render
 {
 public:
 
+	struct vertex {
+		glm::vec3 position;
+		glm::vec3 color;
+		glm::vec3 normal;
+		glm::vec2 texturecoord;
+	};
+
 	// Model is a temporary holder between loading the model data and giving it to the 
 	// Object class
 	class Model {
 	public:
-		std::vector<glm::vec3> vertices;
+		std::vector<vertex> vertices;
 		std::vector<unsigned int> indices;
-		Model(std::vector<glm::vec3> verts, std::vector<unsigned int> inds);
+		Model(std::vector<vertex> verts, std::vector<unsigned int> inds);
 		unsigned int positions, ebo;
 	private:
 

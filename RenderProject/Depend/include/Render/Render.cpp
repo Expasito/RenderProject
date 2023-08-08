@@ -24,12 +24,12 @@ bool Render::leftMouseButton = false, Render::rightMouseButton = false, Render::
 
 
 
-Render::Model::Model(std::vector<glm::vec3> verts, std::vector<unsigned int> inds) {
+Render::Model::Model(std::vector<vertex> verts, std::vector<unsigned int> inds) {
 	vertices = verts;
 	indices = inds;
 	glGenBuffers(1, &positions);
 	glBindBuffer(GL_ARRAY_BUFFER, positions);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
 
 	glGenBuffers(1, &ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ebo);
@@ -100,6 +100,9 @@ void Render::prepBuffers() {
 	glEnableVertexAttribArray(3);
 	glEnableVertexAttribArray(4);
 	glEnableVertexAttribArray(5);
+	glEnableVertexAttribArray(6);
+	glEnableVertexAttribArray(7);
+
 
 }
 
@@ -126,8 +129,10 @@ void Render::draw() {
 
 		// bind the position buffer and send the vertices to gpu
 		glBindBuffer(GL_ARRAY_BUFFER, o->positions);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
-		glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(sizeof(float) * 3));
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), 0);
+		glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(glm::vec3) * 1));
+		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(glm::vec3) * 2));
+		glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(glm::vec3)*3));
 
 #ifdef DEBUG
 		std::chrono::steady_clock::time_point posBuff = std::chrono::steady_clock::now();
@@ -468,9 +473,19 @@ std::vector<std::string> Render::strsplit(std::string str, char dem) {
 
 
 
+
 Render::Model Render::loadModel(const char* path) {
 	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec3> colors;
+	std::vector<glm::vec3> normals;
+	std::vector<glm::vec2> textures;
 	std::vector<unsigned int> indices;
+
+	std::vector<vertex> outputData;
+
+	// this keeps track of which index we are on
+	int i = 0;
+
 	FILE* file = fopen(path, "r");
 	if (file == NULL) {
 		printf("Failed to open\n");
@@ -480,6 +495,7 @@ Render::Model Render::loadModel(const char* path) {
 		char stuff[1000];
 		fgets(stuff, 1000, file);
 		std::string buff = stuff;
+		//std::cout << buff << "\n";
 		// is vertex data
 		if (buff[0] == 'v' && buff[1] == ' ') {
 			std::vector<std::string> sub = strsplit(buff.substr(2, buff.size() - 1), ' ');
@@ -500,21 +516,83 @@ Render::Model Render::loadModel(const char* path) {
 			}
 			
 			vertices.push_back({f1,f2,f3});
-			vertices.push_back({ f4,f5,f6});
+			colors.push_back({f4,f5,f6});
 		}
+
+		// These are vertex normals
+		if (buff[0] == 'v' && buff[1] == 'n') {
+			std::vector<std::string> sub = strsplit(buff.substr(3, buff.size() - 1), ' ');
+			float f1 = stof(sub[0]);
+			float f2 = stof(sub[1]);
+			float f3 = stof(sub[2]);
+
+			normals.push_back({ f1,f2,f3 });
+		}
+
+		// These are vertex texture coordinates
+		if (buff[0] == 'v' && buff[1] == 't') {
+			std::vector<std::string> sub = strsplit(buff.substr(3, buff.size() - 1), ' ');
+			float f1 = stof(sub[0]);
+			float f2 = stof(sub[1]);
+
+			textures.push_back({ f1,f2});
+
+		}
+
 		// is indice data
 		if (buff[0] == 'f' && buff[1] == ' ') {
+			// 2 steps to this
+			// 1: get the index data
+			// 2: put the vertex data in the correct order in the output buffer
 			std::vector<std::string> sub = strsplit(buff.substr(2, buff.size() - 1), ' ');
+
+			// process first vertex
+			
 			float i1, i2, i3;
 			std::vector<std::string> subi1 = strsplit(sub[0], '/');
-			i1 = stoi(subi1[0]);
+			vertex v = {
+				// position data first
+				vertices.at(stoi(subi1[0])-1),
+				// color
+				colors.at(stoi(subi1[0])-1),
+				// normal
+				normals.at(stoi(subi1[2]) - 1),
+				//texture coord
+				textures.at(stoi(subi1[1]) - 1)
+				
+			};
+			outputData.push_back(v);
+
 			std::vector<std::string> subi2 = strsplit(sub[1], '/');
-			i2 = stoi(subi2[0]);
+			vertex v2 = {
+				// position data first
+				vertices.at(stoi(subi2[0]) - 1),
+				// color
+				colors.at(stoi(subi2[0]) - 1),
+				// normal
+				normals.at(stoi(subi2[2]) - 1),
+				//texture coord
+				textures.at(stoi(subi2[1]) - 1)
+
+			};
+			outputData.push_back(v2);
+
 			std::vector<std::string> subi3 = strsplit(sub[2], '/');
-			i3 = stoi(subi3[0]);
-			indices.push_back(i1 - 1);
-			indices.push_back(i2 - 1);
-			indices.push_back(i3 - 1);
+			vertex v3 = {
+				// position data first
+				vertices.at(stoi(subi3[0]) - 1),
+				// color
+				colors.at(stoi(subi3[0]) - 1),
+				// normal
+				normals.at(stoi(subi3[2]) - 1),
+				//texture coord
+				textures.at(stoi(subi3[1]) - 1)
+
+			};
+			outputData.push_back(v3);
+			indices.push_back(i++);
+			indices.push_back(i++);
+			indices.push_back(i++);
 
 		}
 
@@ -522,7 +600,7 @@ Render::Model Render::loadModel(const char* path) {
 
 	}
 	fclose(file);
-	Render::Model ret(vertices, indices);
+	Render::Model ret(outputData, indices);
 	return ret;
 }
 

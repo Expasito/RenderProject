@@ -586,6 +586,7 @@
     <None Include="shaders\geometry.shader" />
     <None Include="shaders\vertex.shader" />
     <None Include="shaders\debugVertex.shader" />
+    <None Include="textures\letter.image0" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Depend\lib\glfw3.lib" />

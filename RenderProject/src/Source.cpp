@@ -91,7 +91,7 @@ int main() {
 	Render::init(800,800,false);
 	Render::camera.baseSpeed = 10;
 
-	Render::loadSave("saves/input.rpo");
+	//Render::loadSave("saves/input.rpo");
 
 	//exit(1);
 
@@ -106,14 +106,64 @@ int main() {
 	//Render::addModel("assets/sphere.obj", "Cube");
 	//Render::addModel("assets/monkey.obj", "Monkey");
 
-	Render::addModel("assets/room.obj", "Room", 10000, 10000);
+	//Render::addModel("assets/room.obj", "Room", 10000, 10000);
 
-	Render::addInstance("Room", { 20,0,0 }, { 0,0,0 }, { 1,1,1 }, { .5,.5,.5 });
+	//Render::addInstance("Room", { 20,0,0 }, { 0,0,0 }, { 1,1,1 }, { .5,.5,.5 });
 
-	Render::addModel("assets/colored_cube.obj", "CUBE", 100, 100);
+	Render::addModel("assets/room.obj", "CUBE", 100, 100);
+	Render::addModel("assets/sphere.obj", "Sphere", 100, 100);
 
-	Render::addInstance("CUBE", { -20,-20,-20 }, { 0,0,0 }, { 1,1,1 }, {1,1,1});
+	Render::addInstance("CUBE", { 0,-10,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
 
+	//long key = Render::addInstance("Sphere", {0,1,0}, {0,0,0}, {1,1,1}, {1,1,1});
+
+
+	// this will be 5 by 5
+
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	unsigned char data_[20 * 20 * 3];
+
+	int i = 0;
+	FILE* img = fopen("textures/letter.image0", "r");
+	while (!feof(img)) {
+		int x;
+		fscanf(img, "%d,",&x);
+		data_[i++] = 0;
+		data_[i++] = 0;
+		data_[i++] = 1;
+		std::cout << x << "";
+	}
+	fclose(img);
+	exit(1);
+
+
+	int width__ = 5;
+	int height__ = 5;
+
+	//unsigned char* data_ = (unsigned char*)malloc(sizeof(unsigned char) * width__ * height__ * 3);
+	//for (int i = 0; i < width__*height__*3;) {
+	//	data_[i++] = 255;
+	//	data_[i++] = 255;
+	//	data_[i++] = 0;
+	//}
+	
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width__, height__, 0, GL_RGB, GL_UNSIGNED_BYTE, data_);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+
+
+	
 
 	//float max_dist = 200;
 	//for (int i = 0; i < 50000; i++) {
@@ -179,21 +229,23 @@ int main() {
 	unsigned int debug;
 	glGenBuffers(1, &debug);
 	glBindBuffer(GL_ARRAY_BUFFER, debug);
-	float width = .0125;
+	float width = .5;
 	float data[] = {
-		-width/2,-1,0,
-		-width/2,1,0,
-		width/2,-1,0,
-		-width/2,1,0,
-		width/2,1,0,
-		width/2,-1,0
+		// x , y , z , u , v 
+		-width/2,-1,0, 0,0,
+		-width/2,1,0,  0,1,
+		width/2,-1,0,  1,0,
+
+		-width/2,1,0, 0,1,
+		width/2,1,0,  1,1,
+		width/2,-1,0,  1,0
 
 	};
 
 	glBindBuffer(GL_ARRAY_BUFFER, debug);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
 
-	const int bars = 10;
+	const int bars = 1;
 	unsigned int index;
 	glGenBuffers(1, &index);
 	float indexes[bars];
@@ -214,6 +266,7 @@ int main() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(heights), heights, GL_STATIC_DRAW);
 	//float heights[] = {-.5,-1,-.5};
 		
+	float lightLocx = 0;
 	
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -232,7 +285,8 @@ int main() {
 		glUseProgram(Render::program2);
 		
 		glBindBuffer(GL_ARRAY_BUFFER, debug);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float)*3));
 
 		// load in indexes
 		
@@ -245,7 +299,9 @@ int main() {
 		glVertexAttribDivisor(2, 1);
 
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, bars);
-		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+
+
 
 		glEnable(GL_CULL_FACE);
 		glUseProgram(Render::program1);
@@ -259,19 +315,27 @@ int main() {
 		glUniform3fv(glGetUniformLocation(Render::program1, "camPos"), 1, glm::value_ptr(Render::camera.cameraPos));
 		glUniform3fv(glGetUniformLocation(Render::program1, "camFront"), 1, glm::value_ptr(Render::camera.cameraFront));
 
+		glUniform3f(glGetUniformLocation(Render::program1, "light"), sin(lightLocx),0,cos(lightLocx));
+
+		// update the values of the sphere
+		//Render::objects[1]->insts->edit(key, { sin(lightLocx),0,cos(lightLocx)}, {0,0,0}, {1,1,1}, {1,1,1});
+
+		lightLocx += .00;
+
 		Render::camera.translate(Render::left, Render::right, Render::up, Render::down, Render::forward, Render::backward);
 		Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
 		Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
 
 		Render::draw();
-		for(int i=0;i<1;i++)
-			Render::addInstance("Room", { 0,0,0 }, { 1,1,1 }, { 1,1,1 }, { 1,0,1 });
+		//for(int i=0;i<1;i++)
+			//Render::addInstance("Room", { 0,0,0 }, { 1,1,1 }, { 1,1,1 }, { 1,0,1 });
 
 		
 		glfwSwapBuffers(Render::window);
 		glfwPollEvents();
 		Render::keepWindow = !glfwWindowShouldClose(Render::window);
 
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		milis = (end - begin).count() / 1000000.0;
 		std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
 

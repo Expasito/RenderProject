@@ -7,6 +7,9 @@ in vec4 transformed_;
 in vec3 camPos_;
 in vec3 camFront_;
 in vec3 colours_;
+in vec3 normals_;
+in vec2 texturecoords_;
+
 
 struct Light {
 	vec3 position;
@@ -27,17 +30,56 @@ float dot(vec3 a, vec3 b) {
 	return (a.x*b.x + a.y*b.y + a.z*b.z);
 }
 
+
+uniform vec3 light;
+
 void main() {
 	// this is for an ambient light
 	//Light l = { camPos_,30 };
-	Light l = { {0,50,0},2000 };
-	vec3 new_pos = transformed_.xyz;
+	//Light l = { {0,50,0},2000 };
+	//vec3 new_pos = transformed_.xyz;
 
-	float mag = magnitude(l.position - new_pos);
-	float dist = 1.0 / (mag*mag) * l.intensity;
+	//float mag = magnitude(l.position - new_pos);
+	//float dist = 1.0 / (mag*mag) * l.intensity;
 
-	vec3 colors2_ = (colors_ + colours_) / 2;
-	FragColor = vec4(colors2_.x * dist, colors2_.y * dist, colors2_.z * dist, 1);
+	//vec3 colors2_ = (colors_ + colours_) / 2;
+	//FragColor = vec4(colors2_.x * dist, colors2_.y * dist, colors2_.z * dist, 1);
+	// 
+	
+	vec3 fragPos = transformed_.xyz;
+
+	// light data
+	vec3 lightPos = light;
+	vec3 lightColor = { .5,.5,.5 };
+	float strength = 0.1;
+
+	// calculate ambient light
+	vec3 ambient = strength * lightColor;
+
+	// calculate diffuse
+	vec3 norm = normalize(normals_);
+	vec3 lightDir = normalize(lightPos - fragPos);
+	float diff = max(dot(norm, lightDir), 0);
+	vec3 diffuse = diff * lightColor;
+
+	// specular too
+	float specStrength = .5;
+	vec3 viewDir = normalize(camPos_ - fragPos);
+	vec3 reflectDir = reflect(-lightDir, norm);
+
+	float spec = pow(max(dot(viewDir, reflectDir), 0), 2);
+	vec3 specular = specStrength * spec * lightColor;
+
+	// sum it up
+
+	//FragColor = vec4((diffuse+ambient + specular)*colors_, 1);
+	// 
+	//FragColor = vec4(normals_, 1);
+	//FragColor = vec4(abs(normals_), 1);
+	FragColor = vec4((diffuse + ambient + specular) * abs(normals_), 1);
+	
+	//FragColor = texture(text, texturecoords_);
+
 	//FragColor = vec4(colours_, 1);
 
 	// this is for a directional light

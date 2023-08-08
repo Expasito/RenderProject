@@ -5,12 +5,16 @@ layout(location = 2) in vec3 rotations;
 layout(location = 3) in vec3 scalations;
 layout(location = 4) in vec3 colors;
 layout(location = 5) in vec3 colours;
+layout(location = 6) in vec3 normals;
+layout(location = 7) in vec2 texturecoords;
 
 
 out vec3 colors_;
 out vec3 colours_;
 out vec3 position;
 out vec4 transformed_;
+out vec3 normals_;
+out vec2 texturecoords_;
 
 
 mat4 translate(float x, float y, float z) {
@@ -62,6 +66,8 @@ uniform mat4 projection;
 uniform vec3 camPos;
 uniform vec3 camFront;
 
+
+
 out vec3 camPos_;
 out vec3 camFront_;
 
@@ -70,6 +76,8 @@ void main(){
 	position = vec3(aPos);
     colors_ = vec3(colors);
     colours_ = vec3(colours);
+    normals_ = normals;
+    texturecoords_ = texturecoords;
     camPos_ = camPos;
     camFront_ = camFront;
 

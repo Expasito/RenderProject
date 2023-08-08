@@ -1350,6 +1350,7 @@
     <None Include="shaders\geometry.shader" />
     <None Include="saves\input.rpo" />
     <None Include="saves\input2.rpo" />
+    <None Include="textures\letter.image0" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Depend\lib\glfw3.lib" />
