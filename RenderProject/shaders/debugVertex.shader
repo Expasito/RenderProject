@@ -11,5 +11,15 @@ void main() {
 	position_ = vec3(position);
 	height_ = height;
 	text_ = text;
-	gl_Position = vec4(position.x+index, position.y+height, position.z, 1);
+
+	vec3 newpos = position;
+
+	if (position.y + height < -1) {
+		newpos.y = -1;
+	}
+	else {
+		newpos.y += height;
+	}
+
+	gl_Position = vec4(position.x+index, newpos.y, position.z, 1);
 }

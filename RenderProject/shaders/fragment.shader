@@ -17,16 +17,16 @@ struct Light {
 };
 
 // gives the magnitude of a vector
-float magnitude(vec3 vec) {
+double magnitude(dvec3 vec) {
 	return (sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z));
 }
 
-vec3 normalize(vec3 vec) {
+dvec3 normalize(dvec3 vec) {
 	double mag = magnitude(vec);
 	return vec3(vec.x/mag,vec.y/mag,vec.z/mag);
 }
 
-float dot(vec3 a, vec3 b) {
+double dot(dvec3 a, dvec3 b) {
 	return (a.x*b.x + a.y*b.y + a.z*b.z);
 }
 
@@ -46,29 +46,29 @@ void main() {
 	//FragColor = vec4(colors2_.x * dist, colors2_.y * dist, colors2_.z * dist, 1);
 	// 
 	
-	vec3 fragPos = transformed_.xyz;
+	dvec3 fragPos = transformed_.xyz;
 
 	// light data
-	vec3 lightPos = light;
-	vec3 lightColor = { .5,.5,.5 };
+	dvec3 lightPos = light;
+	dvec3 lightColor = { .5,.5,.5 };
 	float strength = 0.1;
 
 	// calculate ambient light
-	vec3 ambient = strength * lightColor;
+	dvec3 ambient = strength * lightColor;
 
 	// calculate diffuse
-	vec3 norm = normalize(normals_);
-	vec3 lightDir = normalize(lightPos - fragPos);
-	float diff = max(dot(norm, lightDir), 0);
-	vec3 diffuse = diff * lightColor;
+	dvec3 norm = normalize(normals_);
+	dvec3 lightDir = normalize(lightPos - fragPos);
+	double diff = max(dot(norm, lightDir), 0);
+	dvec3 diffuse = diff * lightColor;
 
 	// specular too
 	float specStrength = .5;
-	vec3 viewDir = normalize(camPos_ - fragPos);
-	vec3 reflectDir = reflect(-lightDir, norm);
+	dvec3 viewDir = normalize(camPos_ - fragPos);
+	dvec3 reflectDir = reflect(-lightDir, norm);
 
-	float spec = pow(max(dot(viewDir, reflectDir), 0), 2);
-	vec3 specular = specStrength * spec * lightColor;
+	float spec = pow(float(max(dot(viewDir, reflectDir), 0)), 128);
+	dvec3 specular = specStrength * spec * lightColor;
 
 	// sum it up
 

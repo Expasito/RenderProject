@@ -1,6 +1,7 @@
 
 #include <Render/Render.h>
 #include <chrono>
+#include <Soil/SOIL.h>
 
 
 /*
@@ -62,6 +63,74 @@ int hash(int val, int size) {
 
 int main() {
 
+	printf("%c", 178);
+
+	int width__, height__, channels__;
+
+	//unsigned char* data_ = SOIL_load_image("textures/Test.png", &width__, &height__, &channels__, 0);
+
+	//std::cout << channels__ << "\n";
+
+	width__ = 10;
+	height__ = 5;
+	channels__ = 4;
+
+	// this will be a temporary array. If the value is 0, then it will be black and transparent. If 1, then white and not
+	unsigned char data__[] = {
+		0,1,1,0,0,1,1,1,0,0,
+		1,0,0,1,0,1,0,0,1,0,
+		1,1,1,1,0,1,1,1,0,0,
+		1,0,0,1,0,1,0,0,1,0,
+		1,0,0,1,0,1,1,1,0,0
+	};
+
+	unsigned char* data_ = (unsigned char*)malloc(sizeof(unsigned char) * channels__ * width__ * height__);
+	int c = 0;
+	for (int i = 0; i < width__*height__; i++) {
+		if (data__[i] == 1) {
+			data_[c++] = 255;
+			data_[c++] = 255;
+			data_[c++] = 255;
+			data_[c++] = 255;
+		}
+		else {
+			data_[c++] = 0;
+			data_[c++] = 0;
+			data_[c++] = 0;
+			data_[c++] = 0;
+		}
+	}
+
+	//exit(1);
+
+
+	//exit(1);
+
+
+	//stbi_image_free(data_);
+
+
+
+	//FILE* file = fopen("textures/Test.png", "rb");
+	//unsigned char x;
+	//fscanf(file, "%c", &x);
+	//char buff[8];
+	//fgets(buff, 8, file);
+	//if(buff==0x89504e470d0a1a0a)
+	//if (x == 0x89) {
+	//	std::cout << "testing\n";
+	//}
+	//while (!feof(file)) {
+	//	unsigned char x;
+	//	fscanf(file, "%c", &x);
+	//	printf("%02x", x);
+	//}
+
+	//exit(1);
+
+
+	// we are going to open a png file and make a way to import them
+
 	//HashTable<int> ht(7, &hash);
 
 	//ht.add(1);
@@ -100,6 +169,7 @@ int main() {
 	glFrontFace(GL_CCW);
 
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 
 	//Render::addModel("assets/sphere.obj", "Cube",100,100);
@@ -124,31 +194,23 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	unsigned int texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	unsigned char data_[20 * 20 * 3];
-
-	int i = 0;
-	FILE* img = fopen("textures/letter.image0", "r");
-	while (!feof(img)) {
-		int x;
-		fscanf(img, "%d,",&x);
-		data_[i++] = 0;
-		data_[i++] = 0;
-		data_[i++] = 1;
-		std::cout << x << "";
-	}
-	fclose(img);
-	exit(1);
+	//unsigned char data_[2000 * 2000 * 3];
+	//unsigned char* data_ = new unsigned char[width__ * height__ * 3];
 
 
-	int width__ = 5;
-	int height__ = 5;
+	//exit(1);
+
+
+	
 
 	//unsigned char* data_ = (unsigned char*)malloc(sizeof(unsigned char) * width__ * height__ * 3);
 	//for (int i = 0; i < width__*height__*3;) {
@@ -158,7 +220,7 @@ int main() {
 	//}
 	
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width__, height__, 0, GL_RGB, GL_UNSIGNED_BYTE, data_);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width__, height__, 0, GL_RGBA, GL_UNSIGNED_BYTE, data_);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 
@@ -229,7 +291,7 @@ int main() {
 	unsigned int debug;
 	glGenBuffers(1, &debug);
 	glBindBuffer(GL_ARRAY_BUFFER, debug);
-	float width = .5;
+	float width = .25;
 	float data[] = {
 		// x , y , z , u , v 
 		-width/2,-1,0, 0,0,
@@ -241,6 +303,8 @@ int main() {
 		width/2,-1,0,  1,0
 
 	};
+
+
 
 	glBindBuffer(GL_ARRAY_BUFFER, debug);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
@@ -270,36 +334,11 @@ int main() {
 	
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-
-		glBindBuffer(GL_ARRAY_BUFFER, height);
-		for (int i = 0; i < bars - 1; i++) {
-			heights[i] = heights[i + 1];
-			
-		}
-		heights[bars-1] = -milis / 10;
-
-		glBufferSubData(GL_ARRAY_BUFFER, sizeof(float)*0, sizeof(float)*(bars), &heights);
-
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glDisable(GL_CULL_FACE);
-		glUseProgram(Render::program2);
+
 		
-		glBindBuffer(GL_ARRAY_BUFFER, debug);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
-		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float)*3));
 
-		// load in indexes
-		
-		glBindBuffer(GL_ARRAY_BUFFER, index);
-		glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
-		glVertexAttribDivisor(1, 1);
-
-		glBindBuffer(GL_ARRAY_BUFFER, height);
-		glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
-		glVertexAttribDivisor(2, 1);
-
-		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, bars);
-
+		glVertexAttribDivisor(3, 1);
 
 
 
@@ -330,6 +369,43 @@ int main() {
 		//for(int i=0;i<1;i++)
 			//Render::addInstance("Room", { 0,0,0 }, { 1,1,1 }, { 1,1,1 }, { 1,0,1 });
 
+
+
+		glBindBuffer(GL_ARRAY_BUFFER, height);
+		for (int i = 0; i < bars - 1; i++) {
+			heights[i] = heights[i + 1];
+
+		}
+		//heights[bars - 1] = -milis / 10;
+		heights[bars - 1] = -1.75;
+
+		glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * 0, sizeof(float) * (bars), &heights);
+
+		
+		glDisable(GL_CULL_FACE);
+		glUseProgram(Render::program2);
+
+		glBindBuffer(GL_ARRAY_BUFFER, debug);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float) * 3));
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(3);
+		glVertexAttribDivisor(3, 0);
+
+		// load in indexes
+
+		glBindBuffer(GL_ARRAY_BUFFER, index);
+		glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
+		glVertexAttribDivisor(1, 1);
+
+		glBindBuffer(GL_ARRAY_BUFFER, height);
+		glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
+		glVertexAttribDivisor(2, 1);
+
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, bars);
+
 		
 		glfwSwapBuffers(Render::window);
 		glfwPollEvents();
@@ -337,7 +413,7 @@ int main() {
 
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		milis = (end - begin).count() / 1000000.0;
-		std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
+		//std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
 
 	}
 

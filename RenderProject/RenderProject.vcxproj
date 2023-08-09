@@ -137,6 +137,10 @@
     <ClCompile Include="Depend\include\Render\Camera.cpp" />
     <ClCompile Include="Depend\include\Render\glad.c" />
     <ClCompile Include="Depend\include\Render\Render.cpp" />
+    <ClCompile Include="Depend\include\Soil\image_DXT.c" />
+    <ClCompile Include="Depend\include\Soil\image_helper.c" />
+    <ClCompile Include="Depend\include\Soil\SOIL.c" />
+    <ClCompile Include="Depend\include\Soil\stb_image_aug.c" />
     <ClCompile Include="src\Source.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -437,6 +441,12 @@
     <ClInclude Include="Depend\include\Render\utils\Instances.h" />
     <ClInclude Include="Depend\include\Render\Render.h" />
     <ClInclude Include="Depend\include\Render\utils\MinHeap.h" />
+    <ClInclude Include="Depend\include\Soil\image_DXT.h" />
+    <ClInclude Include="Depend\include\Soil\image_helper.h" />
+    <ClInclude Include="Depend\include\Soil\SOIL.h" />
+    <ClInclude Include="Depend\include\Soil\stbi_DDS_aug.h" />
+    <ClInclude Include="Depend\include\Soil\stbi_DDS_aug_c.h" />
+    <ClInclude Include="Depend\include\Soil\stb_image_aug.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Depend\include\glm\detail\func_common.inl" />
@@ -590,6 +600,9 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="Depend\lib\glfw3.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="textures\Test.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
