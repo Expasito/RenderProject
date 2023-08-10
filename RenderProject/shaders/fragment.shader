@@ -10,6 +10,8 @@ in vec3 colours_;
 in vec3 normals_;
 in vec2 texturecoords_;
 
+uniform sampler2D texture_;
+
 
 struct Light {
 	vec3 position;
@@ -17,16 +19,16 @@ struct Light {
 };
 
 // gives the magnitude of a vector
-double magnitude(dvec3 vec) {
+float magnitude(vec3 vec) {
 	return (sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z));
 }
 
-dvec3 normalize(dvec3 vec) {
-	double mag = magnitude(vec);
+vec3 normalize(vec3 vec) {
+	float mag = magnitude(vec);
 	return vec3(vec.x/mag,vec.y/mag,vec.z/mag);
 }
 
-double dot(dvec3 a, dvec3 b) {
+float dot(vec3 a, vec3 b) {
 	return (a.x*b.x + a.y*b.y + a.z*b.z);
 }
 
@@ -46,29 +48,29 @@ void main() {
 	//FragColor = vec4(colors2_.x * dist, colors2_.y * dist, colors2_.z * dist, 1);
 	// 
 	
-	dvec3 fragPos = transformed_.xyz;
+	vec3 fragPos = transformed_.xyz;
 
 	// light data
-	dvec3 lightPos = light;
-	dvec3 lightColor = { .5,.5,.5 };
+	vec3 lightPos = light;
+	vec3 lightColor = { .5,.5,.5 };
 	float strength = 0.1;
 
 	// calculate ambient light
-	dvec3 ambient = strength * lightColor;
+	vec3 ambient = strength * lightColor;
 
 	// calculate diffuse
-	dvec3 norm = normalize(normals_);
-	dvec3 lightDir = normalize(lightPos - fragPos);
-	double diff = max(dot(norm, lightDir), 0);
-	dvec3 diffuse = diff * lightColor;
+	vec3 norm = normalize(normals_);
+	vec3 lightDir = normalize(lightPos - fragPos);
+	float diff = max(dot(norm, lightDir), 0);
+	vec3 diffuse = diff * lightColor;
 
 	// specular too
 	float specStrength = .5;
-	dvec3 viewDir = normalize(camPos_ - fragPos);
-	dvec3 reflectDir = reflect(-lightDir, norm);
+	vec3 viewDir = normalize(camPos_ - fragPos);
+	vec3 reflectDir = reflect(-lightDir, norm);
 
 	float spec = pow(float(max(dot(viewDir, reflectDir), 0)), 128);
-	dvec3 specular = specStrength * spec * lightColor;
+	vec3 specular = specStrength * spec * lightColor;
 
 	// sum it up
 
@@ -76,8 +78,14 @@ void main() {
 	// 
 	//FragColor = vec4(normals_, 1);
 	//FragColor = vec4(abs(normals_), 1);
-	FragColor = vec4((diffuse + ambient + specular) * abs(normals_), 1);
-	
+	//FragColor = vec4((diffuse + ambient + specular) * abs(normals_), 1);
+	//FragColor = vec4(1, 1, 1, 1);
+	//FragColor = vec4(vec3(gl_FragCoord.z), 1);
+	//FragColor = vec4(vec3(gl_FragCoord.z/10.0), 1.0);
+	//FragColor = texture(texture_, texturecoords_);
+
+	FragColor = vec4((diffuse + ambient + specular) * vec3(texture(texture_, texturecoords_)),1);
+	FragColor = vec4(1, 1, 1, 1);
 	//FragColor = texture(text, texturecoords_);
 
 	//FragColor = vec4(colours_, 1);

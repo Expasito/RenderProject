@@ -602,7 +602,10 @@
     <Library Include="Depend\lib\glfw3.lib" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="textures\Image.bmp" />
+    <Image Include="textures\test (2).png" />
     <Image Include="textures\Test.png" />
+    <Image Include="textures\Texture.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

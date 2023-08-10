@@ -1389,5 +1389,14 @@
     <Image Include="textures\Test.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="textures\test (2).png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\Image.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\Texture.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

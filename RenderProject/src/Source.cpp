@@ -67,39 +67,48 @@ int main() {
 
 	int width__, height__, channels__;
 
-	//unsigned char* data_ = SOIL_load_image("textures/Test.png", &width__, &height__, &channels__, 0);
+	unsigned char* data_ = SOIL_load_image("textures/Texture.png", &width__, &height__, &channels__, 0);
 
-	//std::cout << channels__ << "\n";
+	printf("%p\n", data_);
 
-	width__ = 10;
-	height__ = 5;
-	channels__ = 4;
+	std::cout << channels__ << "\n";
+	std::cout << width__ << " " << height__ << "\n";
 
-	// this will be a temporary array. If the value is 0, then it will be black and transparent. If 1, then white and not
-	unsigned char data__[] = {
-		0,1,1,0,0,1,1,1,0,0,
-		1,0,0,1,0,1,0,0,1,0,
-		1,1,1,1,0,1,1,1,0,0,
-		1,0,0,1,0,1,0,0,1,0,
-		1,0,0,1,0,1,1,1,0,0
-	};
 
-	unsigned char* data_ = (unsigned char*)malloc(sizeof(unsigned char) * channels__ * width__ * height__);
-	int c = 0;
-	for (int i = 0; i < width__*height__; i++) {
-		if (data__[i] == 1) {
-			data_[c++] = 255;
-			data_[c++] = 255;
-			data_[c++] = 255;
-			data_[c++] = 255;
-		}
-		else {
-			data_[c++] = 0;
-			data_[c++] = 0;
-			data_[c++] = 0;
-			data_[c++] = 0;
-		}
-	}
+
+
+	//width__ = 10;
+	//height__ = 5;
+	//channels__ = 4;
+
+	//// this will be a temporary array. If the value is 0, then it will be black and transparent. If 1, then white and not
+	//unsigned char data__[] = {
+	//	0,1,1,0,0,1,1,1,0,0,
+	//	1,0,0,1,0,1,0,0,1,0,
+	//	1,1,1,1,0,1,1,1,0,0,
+	//	1,0,0,1,0,1,0,0,1,0,
+	//	1,0,0,1,0,1,1,1,0,0
+	//};
+
+	//unsigned char* data_ = (unsigned char*)malloc(sizeof(unsigned char) * channels__ * width__ * height__);
+	//int c = 0;
+	//for (int i = 0; i < width__*height__; i++) {
+	//	if (data__[i] == 1) {
+	//		data_[c++] = 255;
+	//		data_[c++] = 255;
+	//		data_[c++] = 255;
+	//		data_[c++] = 255;
+	//	}
+	//	else {
+	//		data_[c++] = 0;
+	//		data_[c++] = 0;
+	//		data_[c++] = 0;
+	//		data_[c++] = 0;
+	//	}
+	//}
+
+
+	
 
 	//exit(1);
 
@@ -170,7 +179,49 @@ int main() {
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
+
+
+
+	// We will create a fake model here to test stuff on without dealing with blender's interesting texture coordinates
+	Render::vertex positions_[] = {
+		// order is x, y, z, r, g, b, a, b, c, u , v
+		{glm::vec3(-1,-1,-1),glm::vec3(1,1,1),glm::vec3(-1,-1,-1),glm::vec2(0,0)}, //bottom left
+		{glm::vec3(-1,1,-1),glm::vec3(1,1,1),glm::vec3(-1,1,-1),glm::vec2(0,0)}, // top left
+		{glm::vec3(1,-1,-1),glm::vec3(1,1,1),glm::vec3(1,-1,-1),glm::vec2(0,0)}, // bottom rigth
+		{glm::vec3(1,1,-1),glm::vec3(1,1,1),glm::vec3(1,1,-1),glm::vec2(0,0)}, // top right
+
+
+
+
+	};
+
+	unsigned int ebo_[] = {
+		0,2,1
+
+	};
+
+	std::vector<Render::vertex> positions;
+	for (int i = 0; i < sizeof(positions_)/sizeof(Render::vertex); i++) {
+		positions.push_back(positions_[i]);
+	}
+
+	std::vector<unsigned int> ebo;
+	for (int i = 0; i < sizeof(ebo_)/sizeof(unsigned int); i++) {
+		std::cout << i << "\n";
+		ebo.push_back(ebo_[i]);
+	}
+
+	unsigned int test_, test2_;
+	glGenBuffers(1, &test_);
+	glBindBuffer(GL_ARRAY_BUFFER, test_);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Render::vertex)*positions.size(), &positions[0], GL_STATIC_DRAW);
+
+	glGenBuffers(1, &test2_);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, test2_);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * ebo.size(), &ebo[0], GL_STATIC_DRAW);
+
+
+	Render::objects.push_back(new Render::Object("Test", "..", test_, test2_, ebo.size(), new FillerArray(100, 100)));
 
 	//Render::addModel("assets/sphere.obj", "Cube",100,100);
 	//Render::addModel("assets/sphere.obj", "Cube");
@@ -180,10 +231,12 @@ int main() {
 
 	//Render::addInstance("Room", { 20,0,0 }, { 0,0,0 }, { 1,1,1 }, { .5,.5,.5 });
 
-	Render::addModel("assets/room.obj", "CUBE", 100, 100);
+	Render::addModel("assets/Cube3.obj", "CUBE", 100, 100);
 	Render::addModel("assets/sphere.obj", "Sphere", 100, 100);
 
-	Render::addInstance("CUBE", { 0,-10,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
+	//Render::addInstance("CUBE", { 0,-10,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
+	Render::addInstance("Test", { 0,-5,0 }, { 0,0,0 }, { 1,1,1 }, {1,1,1});
+	//Render::addInstance("CUBE", { -10,-10,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
 
 	//long key = Render::addInstance("Sphere", {0,1,0}, {0,0,0}, {1,1,1}, {1,1,1});
 
@@ -220,7 +273,10 @@ int main() {
 	//}
 	
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width__, height__, 0, GL_RGBA, GL_UNSIGNED_BYTE, data_);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width__, height__, 0, GL_RGB, GL_UNSIGNED_BYTE, data_);
+
+
+
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 
@@ -343,6 +399,7 @@ int main() {
 
 
 		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH);
 		glUseProgram(Render::program1);
 		float currentFrame = glfwGetTime();
 		Render::dt = currentFrame - Render::lastFrame;
@@ -383,6 +440,7 @@ int main() {
 
 		
 		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH);
 		glUseProgram(Render::program2);
 
 		glBindBuffer(GL_ARRAY_BUFFER, debug);

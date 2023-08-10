@@ -1,5 +1,6 @@
 #include "Render.h"
 #include <fstream>
+#include <stdlib.h>
 
 
 
@@ -40,6 +41,9 @@ Render::Model::Model(std::vector<vertex> verts, std::vector<unsigned int> inds) 
 
 void Render::addModel(const char* filepath, std::string name, int hashtablesize, int dynamicarraysize) {
 	Render::Model m = loadModel(filepath);
+	for (int i = 0; i < m.indices.size(); i++) {
+		//std::cout << m.indices.at(i) << "\n";
+	}
 	objects.push_back(new Render::Object(name,filepath, m.positions, m.ebo, m.indices.size()-3, new FillerArray(hashtablesize, dynamicarraysize)));
 }
 
@@ -60,25 +64,6 @@ void Render::editInstance(std::string name, unsigned long long id, glm::vec3 pos
 
 }
 
-//void Render::removeInstances(std::string name) {
-//	for (object o : Render::objects) {
-//		if (o.name.compare(name) == 0) {
-//			o.translations->clear();
-//			o.rotations->clear();
-//			o.scalations->clear();
-//			o.colors->clear();
-//		}
-//	}
-//}
-//
-//void Render::removeAllInstances() {
-//	for (object o : Render::objects) {
-//		o.translations->clear();
-//		o.rotations->clear();
-//		o.scalations->clear();
-//		o.colors->clear();
-//	}
-//}
 
 void Render::prepBuffers() {
 	// create and bind the vao
@@ -114,12 +99,7 @@ void Render::draw() {
 
 	for (Render::Object* o : Render::objects) {
 		int elements = o->insts->da->elements;
-#ifdef DEBUG
-		std::cout << "Rendering: " << o->name << "\n";
-		std::cout << "  Elements: " << elements << "\n";
-#endif
-		//int elements = o.insts->table->elements;
-		//std::cout << "Elements: " << elements <<" Size: " << o.insts->table->size  << " load: " << o.insts->table->load << "\n";
+		std::cout << elements << "\n";
 		if (elements <= 0) {
 			continue;
 		}
@@ -134,22 +114,9 @@ void Render::draw() {
 		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(glm::vec3) * 2));
 		glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(sizeof(glm::vec3)*3));
 
-#ifdef DEBUG
-		std::chrono::steady_clock::time_point posBuff = std::chrono::steady_clock::now();
-		milis = (posBuff - begin).count() / 1000000.0;
-		std::cout << "       Position Buffer: " << milis << "[ms]\n";
-		posBuff = std::chrono::steady_clock::now();
-#endif
 
 		// load in the buffer of all instances
 		glBindBuffer(GL_ARRAY_BUFFER, o->insts->buffer);
-
-#ifdef DEBUG
-		std::chrono::steady_clock::time_point instBuff = std::chrono::steady_clock::now();
-		milis = (instBuff - posBuff).count() / 1000000.0;
-		std::cout << "       Instance Buffer: " << milis << "[ms]\n";
-		instBuff = std::chrono::steady_clock::now();
-#endif
 
 		
 		// this is translation
@@ -164,33 +131,18 @@ void Render::draw() {
 		 // this is for color
 		 glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
 		 
-#ifdef DEBUG
-		 std::chrono::steady_clock::time_point vertexattr = std::chrono::steady_clock::now();
-		 milis = (vertexattr - instBuff).count() / 1000000.0;
-		 std::cout << "         Vertex Attrib: " << milis << "[ms]\n";
-		 vertexattr = std::chrono::steady_clock::now();
-#endif
+
 
 
 		 // give the ebo to the gpu
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
 		
-#ifdef DEBUG
-		std::chrono::steady_clock::time_point ebo = std::chrono::steady_clock::now();
-		milis = (ebo - vertexattr).count() / 1000000.0;
-		std::cout << "              EBO bind: " << milis << "[ms]\n";
-		ebo = std::chrono::steady_clock::now();
-#endif
+
 
 		// finally, send the draw command to the gpu
 		glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elements);
 
-#ifdef DEBUG
-		std::chrono::steady_clock::time_point drawelements = std::chrono::steady_clock::now();
-		milis = (drawelements - ebo).count() / 1000000.0;
-		std::cout << "         Draw Elements: " << milis << "[ms]\n";
-		std::cout << "         Draw Elements: " << milis << "[ms]\n";
-#endif
+
 
 
 	}
@@ -218,35 +170,19 @@ void Render::renderAll() {
 	Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
 	Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
 
-# ifdef DEBUG
-	std::chrono::steady_clock::time_point uniforms = std::chrono::steady_clock::now();
-	milis = (uniforms - begin).count() / 1000000.0;
-	std::cout << "   Uniforms: " << milis << "[ms]\n";
-#endif
+
 
 	Render::draw();
 
-#ifdef DEBUG
-	std::chrono::steady_clock::time_point draw = std::chrono::steady_clock::now();
-	milis = (draw - uniforms).count() / 1000000.0;
-	std::cout << "   Draw: " << milis << "[ms]\n";
-#endif
+
 
 	glfwSwapBuffers(Render::window);
 
-#ifdef DEBUG
-	std::chrono::steady_clock::time_point swap = std::chrono::steady_clock::now();
-	milis = (swap - draw).count() / 1000000.0;
-	std::cout << "   Swap Buffers: " << milis << "[ms]\n";
-#endif
+
 	
 	glfwPollEvents();
 
-#ifdef DEBUG
-	std::chrono::steady_clock::time_point poll = std::chrono::steady_clock::now();
-	milis = (poll - swap).count() / 1000000.0;
-	std::cout << "   Poll Events: " << milis << "[ms]\n";
-#endif
+
 }
 
 
@@ -283,6 +219,7 @@ void Render::shaderBuildStatus(unsigned int shader, int result) {
 		std::cout << "Failed to compile shader--\n";
 		std::cout << message << "\n";
 		glDeleteShader(shader);
+		std::exit(1);
 		return;
 
 	}
@@ -385,7 +322,7 @@ void Render::init(int width, int height, bool fullScreen) {
 	compileShader("shaders/fragment.shader", "shaders/vertex.shader", &Render::program1);
 	compileShader("shaders/debugFragment.shader", "shaders/debugVertex.shader", &Render::program2);
 	//glUseProgram(Render::program1);
-	glUseProgram(Render::program2);
+	//glUseProgram(Render::program2);
 	
 	Render::prepBuffers();
 
