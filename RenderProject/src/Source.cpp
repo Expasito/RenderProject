@@ -9,6 +9,57 @@
 */
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// For when choosing if we want to use diffuse/specular maps or use vec3s, have either option and then calculate yes or no in the vertex shader
+// so the fragment has less work to do. So when creating an object, have it pas in which textures to use/ which values for specular and diffuse.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #include <Render/utils/FillerArray.h>
 
 float test_ = 0.0;
@@ -253,7 +304,7 @@ int main() {
 	Render::addModel("assets/sphere.obj", "Sphere", 100, 100);
 
 	//Render::addInstance("CUBE", { 0,-10,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
-	Render::addInstance("Test", { 0,-5,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
+	Render::addInstance("Test", { 0,-15,0 }, { 0,0,0 }, { 10,10,10 }, {1,1,1});
 	//Render::addInstance("CUBE", { -10,-10,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
 
 	//long key = Render::addInstance("Sphere", {0,1,0}, {0,0,0}, {1,1,1}, {1,1,1});
@@ -370,6 +421,7 @@ int main() {
 
 
 
+
 	//exit(1);
 
 	//for (int i = 0; i < 100; i++) {
@@ -428,12 +480,141 @@ int main() {
 	//float heights[] = {-.5,-1,-.5};
 		
 	float lightLocx = 0;
+
+	glm::vec3 light_position(0, 0, 0);
+	glm::vec3 light_ambient(0, 0, 0);
+	glm::vec3 light_diffuse(0, 0, 0);
+	glm::vec3 light_specular(0,0,0);
+
+	glm::vec3 material_ambient(.329, .223, .027);
+	glm::vec3 material_diffuse(.780, .568, .113);
+	glm::vec3 material_specular(.99, .94, .80);
+	float material_shininess = 27.8;
+
+
+	struct Light {
+		alignas(16) glm::vec3 position;
+		alignas(16) glm::vec3 ambient;
+		alignas(16) glm::vec3 diffuse;
+		alignas(16) glm::vec3 specular;
+	};
+
+	Light lights[] = {
+		{{.5,.5,.5},{1,0,0},{0,1,0},{0,0,1}},
+		{{10,0,0},{1,1,1},{.2,.25,.25},{.5,.5,.5}}
+	};
+
+	int numLights = 2;
+	std::cout << sizeof(glm::vec3) << " size here <-" << "\n";
+	std::cout << sizeof(int) << " " << sizeof(short) << " " << sizeof(float) << "\n";
+
+
+	// we will test shader storage buffer objects here
+	unsigned int ssbo;
+	glGenBuffers(1, &ssbo);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(lights)+sizeof(int), NULL, GL_STATIC_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(int), &numLights);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(int), sizeof(Light)* numLights, lights);
 	
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		
+		// update light information
+		glUniform3f(glGetUniformLocation(Render::program1, "light.position"), light_position.x,light_position.y,light_position.z);
+		glUniform3f(glGetUniformLocation(Render::program1, "light.ambient"), light_ambient.x, light_ambient.y, light_ambient.z);
+		glUniform3f(glGetUniformLocation(Render::program1, "light.diffuse"), light_diffuse.x, light_diffuse.y, light_diffuse.z);
+		glUniform3f(glGetUniformLocation(Render::program1, "light.specular"), light_specular.x, light_specular.y, light_specular.z);
+
+		// update material information
+		glUniform3f(glGetUniformLocation(Render::program1, "material.ambient"), material_ambient.x, material_ambient.y, material_ambient.z);
+		glUniform3f(glGetUniformLocation(Render::program1, "material.diffuse"), material_diffuse.x, material_diffuse.y, material_diffuse.z);
+		glUniform3f(glGetUniformLocation(Render::program1, "material.specular"), material_specular.x, material_specular.y, material_specular.z);
+		glUniform1f(glGetUniformLocation(Render::program1, "material.shininess"), material_shininess);
+
+
+		if (Render::getKey(GLFW_KEY_UP)) {
+			light_position.z += .01;
+		}
+
+		if (Render::getKey(GLFW_KEY_DOWN)) {
+			light_position.z -= .01;
+		}
+
+		if (Render::getKey(GLFW_KEY_LEFT)) {
+			light_position.x += .01;
+		}
+
+		if (Render::getKey(GLFW_KEY_RIGHT)) {
+			light_position.x -= .01;
+		}
+
+		if (Render::getKey(GLFW_KEY_ENTER)) {
+			light_position.y += .01;
+		}
+
+		if (Render::getKey(GLFW_KEY_RIGHT_SHIFT)) {
+			light_position.y -= .01;
+		}
+
+		if (Render::getKey(GLFW_KEY_R)) {
+			light_ambient += .001;
+		}
+
+		if (Render::getKey(GLFW_KEY_F)) {
+			light_ambient -= .001;
+		}
+
+		if (Render::getKey(GLFW_KEY_T)) {
+			light_diffuse += .001;
+		}
+
+		if (Render::getKey(GLFW_KEY_G)) {
+			light_diffuse -= .001;
+		}
+
+		if (Render::getKey(GLFW_KEY_Y)) {
+			light_specular += .001;
+		}
+
+		if (Render::getKey(GLFW_KEY_H)) {
+			light_specular -= .001;
+		}
+
+		if (Render::getKey(GLFW_KEY_U)) {
+			material_ambient += .001;
+		}
+
+		if (Render::getKey(GLFW_KEY_J)) {
+			material_ambient -= .001;
+		}
+
+		if (Render::getKey(GLFW_KEY_I)) {
+			material_diffuse += .001;
+		}
+
+		if (Render::getKey(GLFW_KEY_K)) {
+			material_diffuse -= .001;
+		}
+
+		if (Render::getKey(GLFW_KEY_O)) {
+			material_specular += .001;
+		}
+
+		if (Render::getKey(GLFW_KEY_L)) {
+			material_specular -= .001;
+		}
+
+		if (Render::getKey(GLFW_KEY_P)) {
+			material_shininess += .1;
+		}
+
+		if (Render::getKey(GLFW_KEY_SEMICOLON)) {
+			material_shininess -= .1;
+		}
+
 		
 
 		glVertexAttribDivisor(3, 1);
