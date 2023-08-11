@@ -182,28 +182,46 @@ int main() {
 
 
 
-	// We will create a fake model here to test stuff on without dealing with blender's interesting texture coordinates
-	Render::vertex positions_[] = {
-		// order is x, y, z, r, g, b, a, b, c, u , v
-		{glm::vec3(-1,-1,-1),glm::vec3(1,1,1),glm::vec3(-1,-1,-1),glm::vec2(0,0)}, //bottom left
-		{glm::vec3(-1,1,-1),glm::vec3(1,1,1),glm::vec3(-1,1,-1),glm::vec2(0,0)}, // top left
-		{glm::vec3(1,-1,-1),glm::vec3(1,1,1),glm::vec3(1,-1,-1),glm::vec2(0,0)}, // bottom rigth
-		{glm::vec3(1,1,-1),glm::vec3(1,1,1),glm::vec3(1,1,-1),glm::vec2(0,0)}, // top right
-
-
-
-
-	};
 
 	unsigned int ebo_[] = {
-		0,2,1
+		// front face
+		0,2,1,
+		2,3,1,
+
+		// back face
+		4,5,6,
+		6,5,7,
+
+		// left face
+		2,6,7,
+		7,3,2,
+
+		// right face
+		0,5,4,
+		5,0,1,
+
+		//// top face
+		1,3,5,
+		5,3,7,
+
+		//// bottom face
+		0,4,2,
+		4,6,2,
+		
+
 
 	};
 
 	std::vector<Render::vertex> positions;
-	for (int i = 0; i < sizeof(positions_)/sizeof(Render::vertex); i++) {
-		positions.push_back(positions_[i]);
-	}
+	positions.push_back({ glm::vec3(-1,-1,1),glm::vec3(1,1,1),glm::vec3(-1,-1,1),glm::vec2(0,0) }); // 0 front bottom left
+	positions.push_back({ glm::vec3(-1,1,1),glm::vec3(1,1,1),glm::vec3(-1,1,1),glm::vec2(0,0) });   // 1 front top left
+	positions.push_back({ glm::vec3(1,-1,1),glm::vec3(1,1,1),glm::vec3(1,-1,1),glm::vec2(1,0) });   // 2 front bottom right
+	positions.push_back({ glm::vec3(1,1,1),glm::vec3(1,1,1),glm::vec3(1,1,1),glm::vec2(1,0) });     // 3 front top right
+	positions.push_back({ glm::vec3(-1,-1,-1),glm::vec3(1,1,1),glm::vec3(-1,-1,-1),glm::vec2(0,0) }); // 4 back bottom left
+	positions.push_back({ glm::vec3(-1,1,-1),glm::vec3(1,1,1),glm::vec3(-1,1,-1),glm::vec2(0,1) });   // 5 back top left
+	positions.push_back({ glm::vec3(1,-1,-1),glm::vec3(1,1,1),glm::vec3(1,-1,-1),glm::vec2(1,0) });   // 6 back bottom right
+	positions.push_back({ glm::vec3(1,1,-1),glm::vec3(1,1,1),glm::vec3(1,1,-1),glm::vec2(1,1) });     // 7 back top right
+
 
 	std::vector<unsigned int> ebo;
 	for (int i = 0; i < sizeof(ebo_)/sizeof(unsigned int); i++) {
@@ -235,7 +253,7 @@ int main() {
 	Render::addModel("assets/sphere.obj", "Sphere", 100, 100);
 
 	//Render::addInstance("CUBE", { 0,-10,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
-	Render::addInstance("Test", { 0,-5,0 }, { 0,0,0 }, { 1,1,1 }, {1,1,1});
+	Render::addInstance("Test", { 0,-5,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
 	//Render::addInstance("CUBE", { -10,-10,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
 
 	//long key = Render::addInstance("Sphere", {0,1,0}, {0,0,0}, {1,1,1}, {1,1,1});
@@ -243,35 +261,21 @@ int main() {
 
 	// this will be 5 by 5
 
+	glUseProgram(Render::program1);
+	
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
+	unsigned int texture1;
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	//unsigned char data_[2000 * 2000 * 3];
-	//unsigned char* data_ = new unsigned char[width__ * height__ * 3];
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 
-	//exit(1);
 
-
-	
-
-	//unsigned char* data_ = (unsigned char*)malloc(sizeof(unsigned char) * width__ * height__ * 3);
-	//for (int i = 0; i < width__*height__*3;) {
-	//	data_[i++] = 255;
-	//	data_[i++] = 255;
-	//	data_[i++] = 0;
-	//}
-	
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width__, height__, 0, GL_RGB, GL_UNSIGNED_BYTE, data_);
 
@@ -279,9 +283,46 @@ int main() {
 
 	glGenerateMipmap(GL_TEXTURE_2D);
 
+	unsigned int texture2;
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+	char data2_[] = {
+		255,255,255,255,255,255,255,255,
+		255,255,255,255,000,000,000,000,
+		255,255,255,255,000,000,000,000,
+		255,255,255,255,000,000,000,000,
+		000,000,000,000,000,000,000,000,
+		000,000,000,000,000,000,000,000,
+		000,000,000,000,000,000,000,000,
+		000,000,000,000,000,000,000,000
+	};
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 8, 8, 0, GL_RED, GL_UNSIGNED_BYTE, data2_);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture1);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texture2);
 
 
-	
+
+	auto t = glGetUniformLocation(Render::program1, "t1");
+	auto t2 =glGetUniformLocation(Render::program1, "t2");
+
+	std::cout << "loc1: " << t << "  Loc2: " << t2 << "\n";
+
+	glUniform1i(t, 0);
+	glUniform1i(t2, 1);
+	//glUniform1i(glGetUniformLocation(Render::program1, "texture1_"), 0);
+	//glUniform1i(glGetUniformLocation(Render::program1, "texture2_"), 1);
+	//glUniform1i(glGetUniformLocation(Render::program1, "texture1"), 0);
+	//glUniform1i(glGetUniformLocation(Render::program1, "texture2"), 1);
 
 	//float max_dist = 200;
 	//for (int i = 0; i < 50000; i++) {
@@ -393,8 +434,10 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		
+		
 
 		glVertexAttribDivisor(3, 1);
+
 
 
 
@@ -422,47 +465,49 @@ int main() {
 		Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
 		Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
 
+		//glBindTextureUnit(0, texture1);
+		//glBindTextureUnit(1, texture2);
 		Render::draw();
 		//for(int i=0;i<1;i++)
 			//Render::addInstance("Room", { 0,0,0 }, { 1,1,1 }, { 1,1,1 }, { 1,0,1 });
 
 
 
-		glBindBuffer(GL_ARRAY_BUFFER, height);
-		for (int i = 0; i < bars - 1; i++) {
-			heights[i] = heights[i + 1];
+		//glBindBuffer(GL_ARRAY_BUFFER, height);
+		//for (int i = 0; i < bars - 1; i++) {
+		//	heights[i] = heights[i + 1];
 
-		}
-		//heights[bars - 1] = -milis / 10;
-		heights[bars - 1] = -1.75;
+		//}
+		////heights[bars - 1] = -milis / 10;
+		//heights[bars - 1] = -1.75;
 
-		glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * 0, sizeof(float) * (bars), &heights);
+		//glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * 0, sizeof(float) * (bars), &heights);
 
-		
-		glDisable(GL_CULL_FACE);
-		glDisable(GL_DEPTH);
-		glUseProgram(Render::program2);
+		//
+		//glDisable(GL_CULL_FACE);
+		//glDisable(GL_DEPTH);
+		//glUseProgram(Render::program2);
 
-		glBindBuffer(GL_ARRAY_BUFFER, debug);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
-		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float) * 3));
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(3);
-		glVertexAttribDivisor(3, 0);
+		//glBindBuffer(GL_ARRAY_BUFFER, debug);
+		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+		//glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float) * 3));
+		//glEnableVertexAttribArray(0);
+		//glEnableVertexAttribArray(3);
+		//glVertexAttribDivisor(3, 0);
 
-		// load in indexes
+		//// load in indexes
 
-		glBindBuffer(GL_ARRAY_BUFFER, index);
-		glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
-		glVertexAttribDivisor(1, 1);
+		//glBindBuffer(GL_ARRAY_BUFFER, index);
+		//glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
+		//glVertexAttribDivisor(1, 1);
 
-		glBindBuffer(GL_ARRAY_BUFFER, height);
-		glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
-		glVertexAttribDivisor(2, 1);
+		//glBindBuffer(GL_ARRAY_BUFFER, height);
+		//glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
+		//glVertexAttribDivisor(2, 1);
 
-		glBindTexture(GL_TEXTURE_2D, texture);
+		//glBindTexture(GL_TEXTURE_2D, texture);
 
-		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, bars);
+		//glDrawArraysInstanced(GL_TRIANGLES, 0, 6, bars);
 
 		
 		glfwSwapBuffers(Render::window);
