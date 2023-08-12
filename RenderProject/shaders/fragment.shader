@@ -28,6 +28,7 @@ layout(std430, binding = 3) buffer name
 
 uniform sampler2D t1;
 uniform sampler2D t2;
+uniform sampler2D depth;
 
 
 // gives the magnitude of a vector
@@ -134,26 +135,29 @@ vec3 base(Light light) {
 
 void main() {
 
-	DirectionalLight l = {{ 0,-1,0 }, { 1,1,1 }, { .5,.5,.5 }, { .5,.5,.5 }
+	DirectionalLight l = {{ 0,-1,0 }, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 }
 	};
 
 	vec3 result = directional(l);
-	result = vec3(0);
+	//result = vec3(0);
 
-	Light l2 = { {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
-	result += base(l2);
+	//Light l2 = { {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
+	//result += base(l2);
 	for (int i = 0; i < size; i++) {
 		result += base(data[i]);
 	}
-	result = vec3(0, 0, 0);
+	//result = vec3(0, 0, 0);
 
 
-	result += data[0].position;
+	//result += data[1].position;
 	
 
 
-	
+	//float depth = gl_FragCoord.z * (1 / 1000.0 - 1 / .01) + 1/.01;
 	FragColor = vec4(result,1);
+	//FragColor = vec4(vec3(depth), 1);
+
+	//FragColor = texture(depth, texturecoords_);
 
 	//FragColor = vec4(data[0].position, 1);
 

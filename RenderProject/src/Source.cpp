@@ -489,7 +489,7 @@ int main() {
 	glm::vec3 material_ambient(.329, .223, .027);
 	glm::vec3 material_diffuse(.780, .568, .113);
 	glm::vec3 material_specular(.99, .94, .80);
-	float material_shininess = 27.8;
+	float material_shininess = 27.8*4;
 
 
 	struct Light {
@@ -500,11 +500,12 @@ int main() {
 	};
 
 	Light lights[] = {
-		{{.5,.5,.5},{1,0,0},{0,1,0},{0,0,1}},
-		{{10,0,0},{1,1,1},{.2,.25,.25},{.5,.5,.5}}
+		{{5,5,0},{1,1,1},{1,1,1},{1,1,1}},
+		{{-20,10,0},{1,1,1},{.2,.25,.25},{1,1,1}},
+		{{0,10,20},{0,0,1},{.5,0,.25},{.5,.5,1}}
 	};
 
-	int numLights = 2;
+	int numLights = sizeof(lights) / sizeof(Light);
 	std::cout << sizeof(glm::vec3) << " size here <-" << "\n";
 	std::cout << sizeof(int) << " " << sizeof(short) << " " << sizeof(float) << "\n";
 
@@ -513,10 +514,12 @@ int main() {
 	unsigned int ssbo;
 	glGenBuffers(1, &ssbo);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(lights)+sizeof(int), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(lights)+sizeof(int)*4, NULL, GL_STATIC_DRAW);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(int), &numLights);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, sizeof(int), sizeof(Light)* numLights, lights);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 16, sizeof(Light)*numLights, lights);
+	//glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(int), &numLights);
+	//glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Light), lights);
 	
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
