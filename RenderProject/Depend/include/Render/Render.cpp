@@ -5,8 +5,9 @@
 
 
 GLFWwindow* Render::window = NULL;
-unsigned int Render::program1 = -1;
-unsigned int Render::program2 = -1;
+unsigned int Render::renderShader = -1;
+unsigned int Render::screenShader = -1;
+unsigned int Render::debugShader = -1;
 std::vector<Render::Object*> Render::objects;
 glm::mat4 Render::model = glm::mat4(1.0f);
 glm::mat4 Render::view = glm::mat4(1.0f);
@@ -23,6 +24,96 @@ Camera Render::camera(0, 0, -10);
 bool Render::left = false, Render::right = false, Render::down = false, Render::up = false, Render::forward = false, Render::backward = false;
 bool Render::leftMouseButton = false, Render::rightMouseButton = false, Render::middleMouseButton = false;
 
+// This holds information about our 
+Render::Debug Render::debug = { -1,-1,-1,10,.05,NULL };
+
+void Render::initDebugScreen() {
+
+
+
+	glGenBuffers(1, &Render::debug.vertices);
+	glBindBuffer(GL_ARRAY_BUFFER, Render::debug.vertices);
+	float width = Render::debug.width;
+	float data[] = {
+		// x , y , z , u , v 
+		-width / 2,-1,0, 0,0,
+		-width / 2,1,0,  0,1,
+		width / 2,-1,0,  1,0,
+
+		-width / 2,1,0, 0,1,
+		width / 2,1,0,  1,1,
+		width / 2,-1,0,  1,0
+
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, Render::debug.vertices);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
+
+
+	glGenBuffers(1, &Render::debug.indices);
+	float* indexes = new float[Render::debug.bars];
+	for (int i = 0; i < Render::debug.bars; i++) {
+		indexes[i] = -1 + width / 2 * (i + 1);
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, Render::debug.indices);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*Render::debug.bars, indexes, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &Render::debug.heights);
+	Render::debug.heightsData = new float[Render::debug.bars];
+	for (int i = 0; i < Render::debug.bars; i++) {
+		Render::debug.heightsData[i] = 0;
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, Render::debug.heights);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*Render::debug.bars, Render::debug.heightsData, GL_STATIC_DRAW);
+
+	delete[] indexes;
+}
+
+
+// milis is the most recent time taken to draw the frame
+void Render::drawDebug(float milis) {
+
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH);
+	glUseProgram(Render::debugShader);
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, Render::debug.heights);
+	for (int i = 0; i < Render::debug.bars - 1; i++) {
+		Render::debug.heightsData[i] = Render::debug.heightsData[i + 1];
+
+	}
+	// these are the ranges of the milis taken for a frame
+	float max = 50;
+	float min = 0;
+	float scaled = (milis - max) / max;
+	Render::debug.heightsData[Render::debug.bars - 1] = scaled - 1;
+	//Render::debug.heightsData[Render::debug.bars - 1] = 0;
+
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * 0, sizeof(float) * (Render::debug.bars), Render::debug.heightsData);
+
+	
+
+	glBindBuffer(GL_ARRAY_BUFFER, Render::debug.vertices);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float) * 3));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(3);
+	glVertexAttribDivisor(3, 0);
+
+	// load in indexes
+
+	glBindBuffer(GL_ARRAY_BUFFER, Render::debug.indices);
+	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
+	glVertexAttribDivisor(1, 1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, Render::debug.heights);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
+	glVertexAttribDivisor(2, 1);
+
+
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, Render::debug.bars);
+}
 
 
 Render::Model::Model(std::vector<vertex> verts, std::vector<unsigned int> inds) {
@@ -160,11 +251,11 @@ void Render::renderAll() {
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glUniformMatrix4fv(glGetUniformLocation(Render::program1, "model"), 1, GL_FALSE, glm::value_ptr(Render::model));
-	glUniformMatrix4fv(glGetUniformLocation(Render::program1, "view"), 1, GL_FALSE, glm::value_ptr(Render::view));
-	glUniformMatrix4fv(glGetUniformLocation(Render::program1, "projection"), 1, GL_FALSE, glm::value_ptr(Render::projection));
-	glUniform3fv(glGetUniformLocation(Render::program1, "camPos"), 1, glm::value_ptr(Render::camera.cameraPos));
-	glUniform3fv(glGetUniformLocation(Render::program1, "camFront"), 1, glm::value_ptr(Render::camera.cameraFront));
+	glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "model"), 1, GL_FALSE, glm::value_ptr(Render::model));
+	glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "view"), 1, GL_FALSE, glm::value_ptr(Render::view));
+	glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "projection"), 1, GL_FALSE, glm::value_ptr(Render::projection));
+	glUniform3fv(glGetUniformLocation(Render::renderShader, "camPos"), 1, glm::value_ptr(Render::camera.cameraPos));
+	glUniform3fv(glGetUniformLocation(Render::renderShader, "camFront"), 1, glm::value_ptr(Render::camera.cameraFront));
 
 	Render::camera.translate(Render::left, Render::right, Render::up, Render::down, Render::forward, Render::backward);
 	Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
@@ -319,10 +410,11 @@ void Render::init(int width, int height, bool fullScreen) {
 	glfwSetMouseButtonCallback(Render::window, mouseButtonCallBack);
 	glfwSetScrollCallback(Render::window, scrollCallBack);
 
-	compileShader("shaders/fragment.shader", "shaders/vertex.shader", &Render::program1);
-	compileShader("shaders/debugFragment.shader", "shaders/debugVertex.shader", &Render::program2);
-	//glUseProgram(Render::program1);
-	//glUseProgram(Render::program2);
+	compileShader("shaders/fragment.shader", "shaders/vertex.shader", &Render::renderShader);
+	compileShader("shaders/debugFragment.shader", "shaders/debugVertex.shader", &Render::debugShader);
+	compileShader("shaders/screenFragment.shader", "shaders/screenVertex.shader", &Render::screenShader);
+	
+	//glUseProgram(Render::screenShader);
 	
 	Render::prepBuffers();
 

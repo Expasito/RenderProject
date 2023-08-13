@@ -65,7 +65,7 @@
 float test_ = 0.0;
 
 
-//#define DEBUG 0
+
 
 // I want to test passing function pointers for a generic hashtable hashing algorithm
 
@@ -220,6 +220,67 @@ int main() {
 	Render::init(800,800,false);
 	Render::camera.baseSpeed = 10;
 
+
+
+
+
+
+
+
+	glUseProgram(Render::renderShader);
+
+	std::cout << Render::screenShader << "\n";
+	//exit(1);
+
+	// draw rectangle to the screen
+	float vertices[] = {
+	-0.5f, -0.5f, 0.0f,
+	 0.5f, -0.5f, 0.0f,
+	 0.0f,  0.5f, 0.0f
+	};
+
+	
+	//unsigned int screenEbo;
+	//glGenBuffers(1, &screenEbo);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, screenEbo);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexes2), indexes2, GL_STATIC_DRAW);
+
+
+
+	/*
+	unsigned int screen;
+	glGenBuffers(1, &screen);
+	glBindBuffer(GL_ARRAY_BUFFER, screen);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	std::cout << screen << "\n";
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribDivisor(0, 0);
+	glVertexAttribDivisor(1, 0);
+	*/
+	
+
+	
+
+	//while (!glfwWindowShouldClose(Render::window)) {
+	//	glClearColor(0, 0, 0, 1);
+	//	glDisable(GL_CULL_FACE);
+	//	glDisable(GL_BLEND);
+	//	glBindBuffer(GL_ARRAY_BUFFER, screen);
+	//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+	//	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float) * 3));
+
+	//	//glDrawElements(GL_TRIANGLES, 2, GL_UNSIGNED_INT, 0);
+	//	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	//	glfwSwapBuffers(Render::window);
+	//	glfwPollEvents();
+	//}
+
+	//exit(1);
+
 	//Render::loadSave("saves/input.rpo");
 
 	//exit(1);
@@ -312,7 +373,7 @@ int main() {
 
 	// this will be 5 by 5
 
-	glUseProgram(Render::program1);
+	glUseProgram(Render::renderShader);
 	
 	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -363,120 +424,34 @@ int main() {
 
 
 
-	auto t = glGetUniformLocation(Render::program1, "t1");
-	auto t2 =glGetUniformLocation(Render::program1, "t2");
+	auto t = glGetUniformLocation(Render::renderShader, "t1");
+	auto t2 =glGetUniformLocation(Render::renderShader, "t2");
 
 	std::cout << "loc1: " << t << "  Loc2: " << t2 << "\n";
 
 	glUniform1i(t, 0);
 	glUniform1i(t2, 1);
-	//glUniform1i(glGetUniformLocation(Render::program1, "texture1_"), 0);
-	//glUniform1i(glGetUniformLocation(Render::program1, "texture2_"), 1);
-	//glUniform1i(glGetUniformLocation(Render::program1, "texture1"), 0);
-	//glUniform1i(glGetUniformLocation(Render::program1, "texture2"), 1);
 
-	//float max_dist = 200;
-	//for (int i = 0; i < 50000; i++) {
-	//	Render::addInstance("Cube",
-	//		{ (float)rand() / (float)RAND_MAX * max_dist - max_dist/2.0 ,(float)rand() / (float)RAND_MAX * max_dist - max_dist / 2.0,(float)rand() / (float)RAND_MAX * max_dist - max_dist / 2.0 },
-	//		//{0,0,0},
-	//		{ (float)rand() / (float)RAND_MAX * 5 , (float)rand() / (float)RAND_MAX * 5 , (float)rand() / (float)RAND_MAX * 5 },
-	//		{ (float)rand() / (float)RAND_MAX * 5 - 2.5 , (float)rand() / (float)RAND_MAX * 5 - 2.5 , (float)rand() / (float)RAND_MAX * 5 - 2.5 },
-	//		{.5,.5,.5}
-	//		//{(float)rand()/(float)RAND_MAX,(float)rand() / (float)RAND_MAX,(float)rand() / (float)RAND_MAX }
-	//	);
-	//}
-
-	//long key = Render::addInstance("Cube", { 110,0,0 }, { 0,0,0 }, { 1,1,1 }, { .75,.75,.01 });
-
-	//Render::addInstance("Cube", { 10,0,0 }, { 0,0,0 }, { 1,1,1 }, { 0,.75,0 });
-
-	//Render::addInstance("Cube",	{ 20,0,0 }, { 0,0,0 }, { 1,1,1 }, { .75,0,0 });
-
-
-	//Render::removeInstances("Cube");
-	//Render::removeInstances("Cube");
-	//Render::addInstance("Monkey", {1,1,1}, {90,1,1}, {2,1,4});
-	//Render::removeAllInstances();
-
-	//std::vector<float> time(10000);
 
 	int index_ = 14;
 
 	float milis=0;
 	float dist = .01;
 
-	//for (int i = 0; i < 1000000; i++) {
-	//	Render::addInstance("Cube", index_,
-	//		//{ index_ / 10.0,0,0 },
-	//		{(rand()-RAND_MAX/2)/dist,(rand() - RAND_MAX / 2)/dist ,(rand() - RAND_MAX / 2)/dist },
-	//		{ 0,0,0 },
-	//		{ 1,1,1 },
-	//		{ rand()/(float)RAND_MAX,rand() / (float)RAND_MAX,rand() / (float)RAND_MAX }
-	//	);
-	//	index_++;
-	//}
 
 
 
-
-
-
-	//exit(1);
-
-	//for (int i = 0; i < 100; i++) {
-	//	Render::addInstance("Cube",
-	//		//{ index_ / 10.0,0,0 },
-	//		{ (rand() - RAND_MAX / 2) * dist,(rand() - RAND_MAX / 2) * dist ,(rand() - RAND_MAX / 2) * dist },
-	//		{ 0,0,0 },
-	//		{ 1,1,1 },
-	//		{ rand() / (float)RAND_MAX,rand() / (float)RAND_MAX,rand() / (float)RAND_MAX }
-	//	);
-	//}
 
 	int F = 0;
 	int T = 0;
 
-	unsigned int debug;
-	glGenBuffers(1, &debug);
-	glBindBuffer(GL_ARRAY_BUFFER, debug);
-	float width = .25;
-	float data[] = {
-		// x , y , z , u , v 
-		-width/2,-1,0, 0,0,
-		-width/2,1,0,  0,1,
-		width/2,-1,0,  1,0,
 
-		-width/2,1,0, 0,1,
-		width/2,1,0,  1,1,
-		width/2,-1,0,  1,0
-
-	};
+	// start of debug code
 
 
+	
 
-	glBindBuffer(GL_ARRAY_BUFFER, debug);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
 
-	const int bars = 1;
-	unsigned int index;
-	glGenBuffers(1, &index);
-	float indexes[bars];
-	for (int i = 0; i < bars; i++) {
-		indexes[i] = -1 + width / 2 * (i + 1);
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, index);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(indexes), indexes, GL_STATIC_DRAW);
-	//float indexes[] = { -1+width/2,-1+width, -1+width*3/2};
-
-	unsigned int height;
-	glGenBuffers(1, &height);
-	float heights[bars];
-	for (int i = 0; i < bars; i++) {
-		heights[i] = 0;
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, height);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(heights), heights, GL_STATIC_DRAW);
 	//float heights[] = {-.5,-1,-.5};
 		
 	float lightLocx = 0;
@@ -486,10 +461,10 @@ int main() {
 	glm::vec3 light_diffuse(0, 0, 0);
 	glm::vec3 light_specular(0,0,0);
 
-	glm::vec3 material_ambient(.329, .223, .027);
-	glm::vec3 material_diffuse(.780, .568, .113);
-	glm::vec3 material_specular(.99, .94, .80);
-	float material_shininess = 27.8*4;
+	glm::vec3 material_ambient(.25, .114, .06);
+	glm::vec3 material_diffuse(.4, .23, .103);
+	glm::vec3 material_specular(.77, .45, .2);
+	float material_shininess = 76.8;
 
 
 	struct Light {
@@ -518,24 +493,25 @@ int main() {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(int), &numLights);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 16, sizeof(Light)*numLights, lights);
-	//glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(int), &numLights);
-	//glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Light), lights);
+
+
+	Render::initDebugScreen();
 	
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// update light information
-		glUniform3f(glGetUniformLocation(Render::program1, "light.position"), light_position.x,light_position.y,light_position.z);
-		glUniform3f(glGetUniformLocation(Render::program1, "light.ambient"), light_ambient.x, light_ambient.y, light_ambient.z);
-		glUniform3f(glGetUniformLocation(Render::program1, "light.diffuse"), light_diffuse.x, light_diffuse.y, light_diffuse.z);
-		glUniform3f(glGetUniformLocation(Render::program1, "light.specular"), light_specular.x, light_specular.y, light_specular.z);
+		glUniform3f(glGetUniformLocation(Render::renderShader, "light.position"), light_position.x, light_position.y, light_position.z);
+		glUniform3f(glGetUniformLocation(Render::renderShader, "light.ambient"), light_ambient.x, light_ambient.y, light_ambient.z);
+		glUniform3f(glGetUniformLocation(Render::renderShader, "light.diffuse"), light_diffuse.x, light_diffuse.y, light_diffuse.z);
+		glUniform3f(glGetUniformLocation(Render::renderShader, "light.specular"), light_specular.x, light_specular.y, light_specular.z);
 
 		// update material information
-		glUniform3f(glGetUniformLocation(Render::program1, "material.ambient"), material_ambient.x, material_ambient.y, material_ambient.z);
-		glUniform3f(glGetUniformLocation(Render::program1, "material.diffuse"), material_diffuse.x, material_diffuse.y, material_diffuse.z);
-		glUniform3f(glGetUniformLocation(Render::program1, "material.specular"), material_specular.x, material_specular.y, material_specular.z);
-		glUniform1f(glGetUniformLocation(Render::program1, "material.shininess"), material_shininess);
+		glUniform3f(glGetUniformLocation(Render::renderShader, "material.ambient"), material_ambient.x, material_ambient.y, material_ambient.z);
+		glUniform3f(glGetUniformLocation(Render::renderShader, "material.diffuse"), material_diffuse.x, material_diffuse.y, material_diffuse.z);
+		glUniform3f(glGetUniformLocation(Render::renderShader, "material.specular"), material_specular.x, material_specular.y, material_specular.z);
+		glUniform1f(glGetUniformLocation(Render::renderShader, "material.shininess"), material_shininess);
 
 
 		if (Render::getKey(GLFW_KEY_UP)) {
@@ -627,18 +603,18 @@ int main() {
 
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH);
-		glUseProgram(Render::program1);
+		glUseProgram(Render::renderShader);
 		float currentFrame = glfwGetTime();
 		Render::dt = currentFrame - Render::lastFrame;
 		Render::lastFrame = currentFrame;
 		Render::camera.speed = Render::camera.baseSpeed * Render::dt;
-		glUniformMatrix4fv(glGetUniformLocation(Render::program1, "model"), 1, GL_FALSE, glm::value_ptr(Render::model));
-		glUniformMatrix4fv(glGetUniformLocation(Render::program1, "view"), 1, GL_FALSE, glm::value_ptr(Render::view));
-		glUniformMatrix4fv(glGetUniformLocation(Render::program1, "projection"), 1, GL_FALSE, glm::value_ptr(Render::projection));
-		glUniform3fv(glGetUniformLocation(Render::program1, "camPos"), 1, glm::value_ptr(Render::camera.cameraPos));
-		glUniform3fv(glGetUniformLocation(Render::program1, "camFront"), 1, glm::value_ptr(Render::camera.cameraFront));
+		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "model"), 1, GL_FALSE, glm::value_ptr(Render::model));
+		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "view"), 1, GL_FALSE, glm::value_ptr(Render::view));
+		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "projection"), 1, GL_FALSE, glm::value_ptr(Render::projection));
+		glUniform3fv(glGetUniformLocation(Render::renderShader, "camPos"), 1, glm::value_ptr(Render::camera.cameraPos));
+		glUniform3fv(glGetUniformLocation(Render::renderShader, "camFront"), 1, glm::value_ptr(Render::camera.cameraFront));
 
-		glUniform3f(glGetUniformLocation(Render::program1, "light"), sin(lightLocx),0,cos(lightLocx));
+		glUniform3f(glGetUniformLocation(Render::renderShader, "light"), sin(lightLocx),0,cos(lightLocx));
 
 		// update the values of the sphere
 		//Render::objects[1]->insts->edit(key, { sin(lightLocx),0,cos(lightLocx)}, {0,0,0}, {1,1,1}, {1,1,1});
@@ -649,49 +625,17 @@ int main() {
 		Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
 		Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
 
-		//glBindTextureUnit(0, texture1);
-		//glBindTextureUnit(1, texture2);
+
 		Render::draw();
-		//for(int i=0;i<1;i++)
-			//Render::addInstance("Room", { 0,0,0 }, { 1,1,1 }, { 1,1,1 }, { 1,0,1 });
 
 
 
-		//glBindBuffer(GL_ARRAY_BUFFER, height);
-		//for (int i = 0; i < bars - 1; i++) {
-		//	heights[i] = heights[i + 1];
+		Render::drawDebug(milis);
 
-		//}
-		////heights[bars - 1] = -milis / 10;
-		//heights[bars - 1] = -1.75;
+		
 
-		//glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * 0, sizeof(float) * (bars), &heights);
 
-		//
-		//glDisable(GL_CULL_FACE);
-		//glDisable(GL_DEPTH);
-		//glUseProgram(Render::program2);
 
-		//glBindBuffer(GL_ARRAY_BUFFER, debug);
-		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
-		//glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float) * 3));
-		//glEnableVertexAttribArray(0);
-		//glEnableVertexAttribArray(3);
-		//glVertexAttribDivisor(3, 0);
-
-		//// load in indexes
-
-		//glBindBuffer(GL_ARRAY_BUFFER, index);
-		//glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
-		//glVertexAttribDivisor(1, 1);
-
-		//glBindBuffer(GL_ARRAY_BUFFER, height);
-		//glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float), 0);
-		//glVertexAttribDivisor(2, 1);
-
-		//glBindTexture(GL_TEXTURE_2D, texture);
-
-		//glDrawArraysInstanced(GL_TRIANGLES, 0, 6, bars);
 
 		
 		glfwSwapBuffers(Render::window);

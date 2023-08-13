@@ -1381,6 +1381,8 @@
     <None Include="saves\input.rpo" />
     <None Include="saves\input2.rpo" />
     <None Include="textures\letter.image0" />
+    <None Include="shaders\screenFragment.shader" />
+    <None Include="shaders\screenVertex.shader" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Depend\lib\glfw3.lib" />

@@ -9,6 +9,15 @@ class Render
 {
 public:
 
+	struct Debug {
+		unsigned int vertices, indices, heights;
+		int bars;
+		float width;
+		float* heightsData;
+	};
+
+	static Debug debug;
+
 	struct vertex {
 		glm::vec3 position;
 		glm::vec3 color;
@@ -60,7 +69,9 @@ public:
 	static std::vector<Render::Object*> objects;
 	static GLFWwindow* window;
 
-	static unsigned int program1, program2;
+	// these are shader programs
+	static unsigned int renderShader, screenShader, debugShader;
+
 	static bool left, right, down, up, forward, backward;
 	static bool leftMouseButton, rightMouseButton, middleMouseButton;
 	static Camera camera;
@@ -85,6 +96,9 @@ public:
 	static void loadSave(const char* path);
 	static void createSave(const char* path);
 	static int getKey(int key);
+
+	static void drawDebug(float milis);
+	static void initDebugScreen();
 	
 	
 	static unsigned int VAO;

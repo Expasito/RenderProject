@@ -89,7 +89,7 @@ uniform Light light;
 uniform Material material;
 
 
-vec3 directional(DirectionalLight light) {
+vec3 directional(DirectionalLight light, vec3 specular_) {
 	vec3 FragPos = transformed_.xyz;
 
 	// calculate ambient light
@@ -105,14 +105,14 @@ vec3 directional(DirectionalLight light) {
 	vec3 viewDir = normalize(camPos_ - FragPos);
 	vec3 reflectDir = reflect(-lightDir, norm);
 	float spec = pow(float(max(dot(viewDir, reflectDir), 0)), material.shininess);
-	vec3 specular = light.specular * (spec * material.specular);
+	vec3 specular = light.specular * (spec * specular_);
 
 
 	vec3 result = ambient + diffuse + specular;
 	return result;
 }
 
-vec3 base(Light light) {
+vec3 base(Light light,vec3 specular_) {
 	vec3 FragPos = transformed_.xyz;
 
 	// calculate ambient light
@@ -128,23 +128,26 @@ vec3 base(Light light) {
 	vec3 viewDir = normalize(camPos_ - FragPos);
 	vec3 reflectDir = reflect(-lightDir, norm);
 	float spec = pow(float(max(dot(viewDir, reflectDir), 0)), material.shininess);
-	vec3 specular = light.specular * (spec * material.specular);
+	vec3 specular = light.specular * (spec * specular_);
 	vec3 result = ambient + diffuse + specular;
 	return result;
 }
 
 void main() {
 
+
+	vec3 specular = vec3(texture(t2, texturecoords_).x);
+
 	DirectionalLight l = {{ 0,-1,0 }, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 }
 	};
 
-	vec3 result = directional(l);
+	vec3 result = directional(l,specular);
 	//result = vec3(0);
 
 	//Light l2 = { {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
 	//result += base(l2);
-	for (int i = 0; i < size; i++) {
-		result += base(data[i]);
+	for (int i = 0; i < size-size; i++) {
+		result += base(data[i],specular);
 	}
 	//result = vec3(0, 0, 0);
 
@@ -157,7 +160,7 @@ void main() {
 	FragColor = vec4(result,1);
 	//FragColor = vec4(vec3(depth), 1);
 
-	//FragColor = texture(depth, texturecoords_);
+	//FragColor = texture(t2, texturecoords_);
 
 	//FragColor = vec4(data[0].position, 1);
 
