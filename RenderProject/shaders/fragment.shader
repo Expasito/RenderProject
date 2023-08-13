@@ -160,7 +160,7 @@ void main() {
 	FragColor = vec4(result,1);
 	//FragColor = vec4(vec3(depth), 1);
 
-	//FragColor = texture(t2, texturecoords_);
+	//FragColor = texture(t1, texturecoords_);
 
 	//FragColor = vec4(data[0].position, 1);
 

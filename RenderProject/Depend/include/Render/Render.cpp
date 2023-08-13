@@ -116,6 +116,9 @@ void Render::drawDebug(float milis) {
 }
 
 
+
+
+
 Render::Model::Model(std::vector<vertex> verts, std::vector<unsigned int> inds) {
 	vertices = verts;
 	indices = inds;

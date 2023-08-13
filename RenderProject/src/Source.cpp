@@ -171,51 +171,6 @@ int main() {
 
 
 
-	//FILE* file = fopen("textures/Test.png", "rb");
-	//unsigned char x;
-	//fscanf(file, "%c", &x);
-	//char buff[8];
-	//fgets(buff, 8, file);
-	//if(buff==0x89504e470d0a1a0a)
-	//if (x == 0x89) {
-	//	std::cout << "testing\n";
-	//}
-	//while (!feof(file)) {
-	//	unsigned char x;
-	//	fscanf(file, "%c", &x);
-	//	printf("%02x", x);
-	//}
-
-	//exit(1);
-
-
-	// we are going to open a png file and make a way to import them
-
-	//HashTable<int> ht(7, &hash);
-
-	//ht.add(1);
-
-	//ht.see();
-
-
-
-	//exit(1);
-
-
-
-	/*
-	* Look into SSBOs for variable length buffers for lights, triangles, etc.
-	* Can be used for shadows and ray casting
-	*/
-	/*
-	* Also, look at making a hash table for adding instances or removing them for models
-	* Currently, addInstance and RemoveInstance are O(n) but easily could be O(1) with
-	* a hash table
-	* 
-	* 
-	* 
-	*/
-
 	srand(time(0));
 	Render::init(800,800,false);
 	Render::camera.baseSpeed = 10;
@@ -227,63 +182,8 @@ int main() {
 
 
 
-	glUseProgram(Render::renderShader);
-
-	std::cout << Render::screenShader << "\n";
-	//exit(1);
-
-	// draw rectangle to the screen
-	float vertices[] = {
-	-0.5f, -0.5f, 0.0f,
-	 0.5f, -0.5f, 0.0f,
-	 0.0f,  0.5f, 0.0f
-	};
-
-	
-	//unsigned int screenEbo;
-	//glGenBuffers(1, &screenEbo);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, screenEbo);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexes2), indexes2, GL_STATIC_DRAW);
 
 
-
-	/*
-	unsigned int screen;
-	glGenBuffers(1, &screen);
-	glBindBuffer(GL_ARRAY_BUFFER, screen);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	std::cout << screen << "\n";
-
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-
-	glVertexAttribDivisor(0, 0);
-	glVertexAttribDivisor(1, 0);
-	*/
-	
-
-	
-
-	//while (!glfwWindowShouldClose(Render::window)) {
-	//	glClearColor(0, 0, 0, 1);
-	//	glDisable(GL_CULL_FACE);
-	//	glDisable(GL_BLEND);
-	//	glBindBuffer(GL_ARRAY_BUFFER, screen);
-	//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-	//	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float) * 3));
-
-	//	//glDrawElements(GL_TRIANGLES, 2, GL_UNSIGNED_INT, 0);
-	//	glDrawArrays(GL_TRIANGLES, 0, 3);
-
-	//	glfwSwapBuffers(Render::window);
-	//	glfwPollEvents();
-	//}
-
-	//exit(1);
-
-	//Render::loadSave("saves/input.rpo");
-
-	//exit(1);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -436,23 +336,7 @@ int main() {
 	int index_ = 14;
 
 	float milis=0;
-	float dist = .01;
-
-
-
-
-
-	int F = 0;
-	int T = 0;
-
-
-	// start of debug code
-
-
-	
-
-
-	//float heights[] = {-.5,-1,-.5};
+	float dist = 0;
 		
 	float lightLocx = 0;
 
@@ -495,12 +379,76 @@ int main() {
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 16, sizeof(Light)*numLights, lights);
 
 
+
+	// test drawing other stuff
+	float vertices[] = {
+		// x, y ,z, u, v
+			1,1,0,1,1,
+			1,-1,0,1,0,
+			-1,1,0,0,1
+	};
+	unsigned int screen;
+	glGenBuffers(1, &screen);
+	glBindBuffer(GL_ARRAY_BUFFER, screen);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	unsigned int fbo;
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 800,0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+	//glActiveTexture(GL_TEXTURE3);
+	//glBindTexture(GL_TEXTURE_2D, texture);
+
+
+	glUseProgram(Render::screenShader);
+
+	auto t3 = glGetUniformLocation(Render::screenShader, "framebuffer");
+
+	std::cout << "loc3: " << t3 << "\n";
+
+	glUniform1i(t3, 2);
+
 	Render::initDebugScreen();
 	
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH);
+		glUseProgram(Render::screenShader);
+
+		glBindBuffer(GL_ARRAY_BUFFER, screen);
+		glVertexAttribDivisor(1, 0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float)*3));
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		glUseProgram(Render::renderShader);
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// update light information
 		glUniform3f(glGetUniformLocation(Render::renderShader, "light.position"), light_position.x, light_position.y, light_position.z);
 		glUniform3f(glGetUniformLocation(Render::renderShader, "light.ambient"), light_ambient.x, light_ambient.y, light_ambient.z);
@@ -596,14 +544,15 @@ int main() {
 
 		
 
+
+
+
+		glUseProgram(Render::renderShader);
 		glVertexAttribDivisor(3, 1);
-
-
-
+		glVertexAttribDivisor(1, 1);
 
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH);
-		glUseProgram(Render::renderShader);
 		float currentFrame = glfwGetTime();
 		Render::dt = currentFrame - Render::lastFrame;
 		Render::lastFrame = currentFrame;
@@ -628,6 +577,8 @@ int main() {
 
 		Render::draw();
 
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
 
 		Render::drawDebug(milis);
@@ -651,81 +602,6 @@ int main() {
 	
 
 	//exit(1);
-
-
-	index_ = 0;
-	while (Render::keepWindow) {
-		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-
-
-		// adding objects goes here
-
-
-		std::chrono::steady_clock::time_point add = std::chrono::steady_clock::now();
-
-		#ifdef DEBUG 
-		
-		milis = (add - begin).count() / 1000000.0;
-		std::cout << "Add time: " << milis << "[ms]\n";
-		add = std::chrono::steady_clock::now();
-
-		//std::cout << "Elements: " << Render::objects[0]->insts->da->elements << "\n";
-
-		#endif
-
-		// F will save the data
-		if (F != Render::getKey(GLFW_KEY_F) && F == 0) {
-			Render::createSave("saves/input.rpo");
-		}
-		F = Render::getKey(GLFW_KEY_F);
-
-		// B goes into wireframe mode
-
-		// T will add an instance at the current position
-		if (T != Render::getKey(GLFW_KEY_T) && T == 0) {
-			
-			Render::addInstance("Cube", { -Render::camera.cameraPos.x,Render::camera.cameraPos.y,Render::camera.cameraPos.z }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
-		}
-		T = Render::getKey(GLFW_KEY_T);
-
-		if (Render::getKey(GLFW_KEY_LEFT_CONTROL)) {
-			Render::camera.baseSpeed = 50;
-		}
-		else {
-			Render::camera.baseSpeed = 10;
-		}
-
-
-
-
-	/*
-	* 
-	* 
-	*  This is where the rendering code ends
-	* 
-	*/
-
-		//Render::renderAll();
-
-
-
-		#ifdef DEBUG
-
-		std::chrono::steady_clock::time_point rend = std::chrono::steady_clock::now();
-		milis = (rend - add).count() / 1000000.0;
-		std::cout << "Render*: " << milis << "[ms]\n";
-
-		#endif
-
-
-		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-		milis = (end - begin).count() / 1000000.0;
-		//time.push_back(milis);
-		std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0/milis << "\n";
-		
-		//std::cout << "\n";
-
-	}
 
 	Render::exit();
 
