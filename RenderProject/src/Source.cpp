@@ -383,9 +383,24 @@ int main() {
 	// test drawing other stuff
 	float vertices[] = {
 		// x, y ,z, u, v
+		// do the top left triangle
+			0,0,0,1,1,
+			0,-1,0,1,0,
+			-1,0,0,0,1,
+			
+
+			0,-1,0,1,0,
+			-1,0,0,0,1,
+			-1,-1,0,0,0,
+
+			0,0,0,0,0,
+			0,1,0,0,1,
+			1,0,0,1,0,
+
+
+			0,1,0,0,1,
+			1,0,0,1,0,
 			1,1,0,1,1,
-			1,-1,0,1,0,
-			-1,1,0,0,1
 	};
 	unsigned int screen;
 	glGenBuffers(1, &screen);
@@ -396,8 +411,9 @@ int main() {
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-	unsigned int texture;
+	unsigned int texture,depth;
 	glGenTextures(1, &texture);
+	glGenTextures(1, &depth);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 800,0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -407,6 +423,24 @@ int main() {
 
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+
+	glBindTexture(GL_TEXTURE_2D, depth);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 800, 800, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
+
+
+
+
+	// stencil and depth texture too
+	unsigned int rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 800);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
 	//glActiveTexture(GL_TEXTURE3);
 	//glBindTexture(GL_TEXTURE_2D, texture);
@@ -421,9 +455,45 @@ int main() {
 	glUniform1i(t3, 2);
 
 	Render::initDebugScreen();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture1);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+
 	
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+		unsigned int* buff = new unsigned int [800 * 800 * 4];
+		glBindTexture(GL_TEXTURE_2D, depth);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH,GL_UNSIGNED_INT,buff);
+
+	/*	int c = 0;
+		for (int i = 0; i < 50; i++) {
+			for (int j = 0; j < 50; j++) {
+				std::cout << (int)buff[c++] << " ";
+
+			}
+			std::cout << "\n";
+		}*/
+
+		std::cout << (int)buff[0] << "\n";
+
+		//std::cout << "\n\n";
+
+		//std::cout << (int)buff[4 * 100 * 50] << "\n";
+
+		delete[] buff;
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH);
+		glUseProgram(Render::screenShader);
+
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
@@ -432,18 +502,22 @@ int main() {
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glDisable(GL_CULL_FACE);
-		glDisable(GL_DEPTH);
-		glUseProgram(Render::screenShader);
 
 		glBindBuffer(GL_ARRAY_BUFFER, screen);
 		glVertexAttribDivisor(1, 0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float)*3));
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, depth);
+
+		glDrawArrays(GL_TRIANGLES, 6, 12);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, texture);
 
 		glUseProgram(Render::renderShader);
 		

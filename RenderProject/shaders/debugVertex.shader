@@ -21,5 +21,5 @@ void main() {
 		newpos.y += height;
 	}
 
-	gl_Position = vec4(position.x+index, newpos.y, position.z, 1);
+	gl_Position = vec4(position.x+index, newpos.y, position.z-.01, 1);
 }
