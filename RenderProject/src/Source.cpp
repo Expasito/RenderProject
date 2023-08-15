@@ -411,26 +411,32 @@ int main() {
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-	unsigned int texture,depth;
-	glGenTextures(1, &texture);
+	unsigned int depth,color, stencil;
 	glGenTextures(1, &depth);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glGenTextures(1, &color);
+	glGenTextures(1, &stencil);
 
+	glBindTexture(GL_TEXTURE_2D, color);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 800,0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color, 0);
 
 
 	glBindTexture(GL_TEXTURE_2D, depth);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 800, 800, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
+
+
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 
 
 
@@ -461,16 +467,18 @@ int main() {
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, texture2);
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindTexture(GL_TEXTURE_2D, depth);
 
+
+	auto d = glGetUniformLocation(Render::screenShader, "isDepth");
 
 	
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-		unsigned int* buff = new unsigned int [800 * 800 * 4];
+		float* buff = new float[800 * 800 * 4];
 		glBindTexture(GL_TEXTURE_2D, depth);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH,GL_UNSIGNED_INT,buff);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,GL_FLOAT,buff);
 
 	/*	int c = 0;
 		for (int i = 0; i < 50; i++) {
@@ -481,7 +489,11 @@ int main() {
 			std::cout << "\n";
 		}*/
 
-		std::cout << (int)buff[0] << "\n";
+		//float out = ((1.0 / buff[0]) - (1.0 / .01)) / (1 / 1000.0 - 1 / .01);
+
+		float out = (buff[0]) * (1 / 1000.0 - 1 / .01) + 1 / .01;
+
+		std::cout << 1/out << "\n";
 
 		//std::cout << "\n\n";
 
@@ -500,7 +512,7 @@ int main() {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindTexture(GL_TEXTURE_2D, color);
 
 
 
@@ -509,20 +521,24 @@ int main() {
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float)*3));
 
+		glUniform1i(d, 0);
+
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, depth);
 
+		glUniform1i(d, 1);
+
 		glDrawArrays(GL_TRIANGLES, 6, 12);
 
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindTexture(GL_TEXTURE_2D, texture1);
 
 		glUseProgram(Render::renderShader);
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		// update light information
 		glUniform3f(glGetUniformLocation(Render::renderShader, "light.position"), light_position.x, light_position.y, light_position.z);
 		glUniform3f(glGetUniformLocation(Render::renderShader, "light.ambient"), light_ambient.x, light_ambient.y, light_ambient.z);
