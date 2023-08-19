@@ -596,6 +596,8 @@
     <None Include="shaders\geometry.shader" />
     <None Include="shaders\screenFragment.shader" />
     <None Include="shaders\screenVertex.shader" />
+    <None Include="shaders\shadowFragment.shader" />
+    <None Include="shaders\shadowVertex.shader" />
     <None Include="shaders\vertex.shader" />
     <None Include="shaders\debugVertex.shader" />
     <None Include="textures\letter.image0" />

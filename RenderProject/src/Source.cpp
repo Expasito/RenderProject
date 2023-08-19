@@ -265,7 +265,9 @@ int main() {
 	Render::addModel("assets/sphere.obj", "Sphere", 100, 100);
 
 	//Render::addInstance("CUBE", { 0,-10,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
-	Render::addInstance("Test", { 0,-15,0 }, { 0,0,0 }, { 10,10,10 }, {1,1,1});
+	Render::addInstance("Test", { 0,-2,0 }, { 0,0,0 }, { 1,1,1 }, {1,1,1});
+	Render::addInstance("Test", { -4,-4,-4 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
+
 	//Render::addInstance("CUBE", { -10,-10,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
 
 	//long key = Render::addInstance("Sphere", {0,1,0}, {0,0,0}, {1,1,1}, {1,1,1});
@@ -383,7 +385,7 @@ int main() {
 	// test drawing other stuff
 	float vertices[] = {
 		// x, y ,z, u, v
-		// do the top left triangle
+		// do the bottom left triangle
 			0,0,0,1,1,
 			0,-1,0,1,0,
 			-1,0,0,0,1,
@@ -393,6 +395,7 @@ int main() {
 			-1,0,0,0,1,
 			-1,-1,0,0,0,
 
+			// top right triangle
 			0,0,0,0,0,
 			0,1,0,0,1,
 			1,0,0,1,0,
@@ -401,6 +404,25 @@ int main() {
 			0,1,0,0,1,
 			1,0,0,1,0,
 			1,1,0,1,1,
+
+			// bottom right triangle
+			0,0,0,0,1,
+			0,-1,0,0,0,
+			1,0,0,1,1,
+
+			0,-1,0,0,0,
+			1,0,0,1,1,
+			1,-1,0,1,0,
+
+			//// bottom right triangle
+			//-1,-1,0,0,0,
+			//-1,1,0,0,1,
+			//1,-1,0,1,0,
+
+			//-1,1,0,0,1,
+			//1,1,0,1,1,
+			//1,-1,0,1,0,
+
 	};
 	unsigned int screen;
 	glGenBuffers(1, &screen);
@@ -411,10 +433,9 @@ int main() {
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-	unsigned int depth,color, stencil;
+	unsigned int depth,color;
 	glGenTextures(1, &depth);
 	glGenTextures(1, &color);
-	glGenTextures(1, &stencil);
 
 	glBindTexture(GL_TEXTURE_2D, color);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 800,0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -431,6 +452,26 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
 
+
+	unsigned int depthFbo;
+	glGenFramebuffers(1, &depthFbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
+
+	unsigned int depthMap;
+	unsigned int swidth = 1024, sheight = 1024;
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, swidth, sheight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
 
@@ -455,10 +496,19 @@ int main() {
 	glUseProgram(Render::screenShader);
 
 	auto t3 = glGetUniformLocation(Render::screenShader, "framebuffer");
+	auto t4 = glGetUniformLocation(Render::shadowShader, "framebuffer");
+
 
 	std::cout << "loc3: " << t3 << "\n";
+	std::cout << "loc4: " << t4 << "\n";
+
 
 	glUniform1i(t3, 2);
+
+	glUseProgram(Render::shadowShader);
+	glUniform1i(t4, 2);
+
+	glUseProgram(Render::screenShader);
 
 	Render::initDebugScreen();
 
@@ -471,6 +521,8 @@ int main() {
 
 
 	auto d = glGetUniformLocation(Render::screenShader, "isDepth");
+
+	auto d2 = glGetUniformLocation(Render::shadowShader, "isDepth");
 
 	
 	while (Render::keepWindow) {
@@ -493,7 +545,7 @@ int main() {
 
 		float out = (buff[0]) * (1 / 1000.0 - 1 / .01) + 1 / .01;
 
-		std::cout << 1/out << "\n";
+		//std::cout << 1/out << "\n";
 
 		//std::cout << "\n\n";
 
@@ -521,16 +573,35 @@ int main() {
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float)*3));
 
+		// draw origional image
 		glUniform1i(d, 0);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		// draw depths
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, depth);
 
 		glUniform1i(d, 1);
 
-		glDrawArrays(GL_TRIANGLES, 6, 12);
+		glDrawArrays(GL_TRIANGLES, 6, 6);
+
+		// draw shadows
+		glUseProgram(Render::shadowShader);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, depth);
+
+		glUniform1i(d2, 0);
+
+		// give cam pos
+		glUniform3f(glGetUniformLocation(Render::shadowShader,"camPos"),Render::camera.cameraPos.x, Render::camera.cameraPos.y, Render::camera.cameraPos.z);
+
+
+
+		glDrawArrays(GL_TRIANGLES, 12,6);
+
+
 
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texture1);

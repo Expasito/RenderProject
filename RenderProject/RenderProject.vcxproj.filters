@@ -1383,6 +1383,8 @@
     <None Include="textures\letter.image0" />
     <None Include="shaders\screenFragment.shader" />
     <None Include="shaders\screenVertex.shader" />
+    <None Include="shaders\shadowVertex.shader" />
+    <None Include="shaders\shadowFragment.shader" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Depend\lib\glfw3.lib" />

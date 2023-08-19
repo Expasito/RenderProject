@@ -8,6 +8,8 @@ GLFWwindow* Render::window = NULL;
 unsigned int Render::renderShader = -1;
 unsigned int Render::screenShader = -1;
 unsigned int Render::debugShader = -1;
+unsigned int Render::shadowShader = -1;
+
 std::vector<Render::Object*> Render::objects;
 glm::mat4 Render::model = glm::mat4(1.0f);
 glm::mat4 Render::view = glm::mat4(1.0f);
@@ -416,7 +418,8 @@ void Render::init(int width, int height, bool fullScreen) {
 	compileShader("shaders/fragment.shader", "shaders/vertex.shader", &Render::renderShader);
 	compileShader("shaders/debugFragment.shader", "shaders/debugVertex.shader", &Render::debugShader);
 	compileShader("shaders/screenFragment.shader", "shaders/screenVertex.shader", &Render::screenShader);
-	
+	compileShader("shaders/shadowFragment.shader", "shaders/shadowVertex.shader", &Render::shadowShader);
+
 	//glUseProgram(Render::screenShader);
 	
 	Render::prepBuffers();
