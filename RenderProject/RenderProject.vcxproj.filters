@@ -1385,6 +1385,8 @@
     <None Include="shaders\screenVertex.shader" />
     <None Include="shaders\shadowVertex.shader" />
     <None Include="shaders\shadowFragment.shader" />
+    <None Include="shaders\depthVertex.shader" />
+    <None Include="shaders\depthFragment.shader" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Depend\lib\glfw3.lib" />

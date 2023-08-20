@@ -591,6 +591,8 @@
     <None Include="Depend\lib\glfw3.dll" />
     <None Include="saves\input.rpo" />
     <None Include="saves\input2.rpo" />
+    <None Include="shaders\depthFragment.shader" />
+    <None Include="shaders\depthVertex.shader" />
     <None Include="shaders\fragment.shader" />
     <None Include="shaders\debugFragment.shader" />
     <None Include="shaders\geometry.shader" />

@@ -30,6 +30,13 @@ uniform sampler2D t1;
 uniform sampler2D t2;
 uniform sampler2D depth;
 
+in VS_OUT{
+	vec3 FragPos;
+vec3 Normal;
+vec2 TexCoords;
+vec4 FragPosLightSpace;
+} fs_in;
+
 
 // gives the magnitude of a vector
 float magnitude(vec3 vec) {
@@ -84,7 +91,7 @@ struct SpotLight {
 	vec3 specular;
 };
 
-uniform Light light;
+//uniform Light light;
 
 uniform Material material;
 
@@ -133,6 +140,15 @@ vec3 base(Light light,vec3 specular_) {
 	return result;
 }
 
+float ShadowCalculation(vec4 fragPosLightSpace) {
+	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+	projCoords = projCoords * 0.5 + 0.5;
+	float closestDepth = texture(t1, projCoords.xy).r;
+	float currentDepth = projCoords.z;
+	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+	return shadow;
+}
+
 void main() {
 
 
@@ -154,13 +170,27 @@ void main() {
 
 	//result += data[1].position;
 	
+	float shadow = ShadowCalculation(fs_in.FragPosLightSpace);
+
+	//FragColor = vec4(vec3(shadow), 1);
+
+	if (shadow < .5) {
+		FragColor = vec4(1);
+	}
+	else {
+		FragColor = vec4(0);
+	}
+
+	FragColor = vec4(1);
+
+	//FragColor = texture(t1, texturecoords_);
 
 
 	//float depth = gl_FragCoord.z * (1 / 1000.0 - 1 / .01) + 1/.01;
-	FragColor = vec4(result,1);
+	//FragColor = vec4(result,1);
 	//FragColor = vec4(vec3(depth), 1);
 
-	FragColor = texture(t1, texturecoords_);
+	//FragColor = texture(t1, texturecoords_);
 
 	//FragColor = vec4(data[0].position, 1);
 

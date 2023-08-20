@@ -266,7 +266,7 @@ int main() {
 
 	//Render::addInstance("CUBE", { 0,-10,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
 	Render::addInstance("Test", { 0,-2,0 }, { 0,0,0 }, { 1,1,1 }, {1,1,1});
-	Render::addInstance("Test", { -4,-4,-4 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
+	Render::addInstance("Test", { 0,-10,0 }, { 0,0,0 }, { 20,1,20 }, { 1,1,1 });
 
 	//Render::addInstance("CUBE", { -10,-10,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
 
@@ -471,23 +471,14 @@ int main() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-
-	// stencil and depth texture too
-	unsigned int rbo;
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 800);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
 	//glActiveTexture(GL_TEXTURE3);
 	//glBindTexture(GL_TEXTURE_2D, texture);
@@ -524,12 +515,19 @@ int main() {
 
 	auto d2 = glGetUniformLocation(Render::shadowShader, "isDepth");
 
+
+	float angle = 0;
+
 	
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+		float currentFrame = glfwGetTime();
+		Render::dt = currentFrame - Render::lastFrame;
+		Render::lastFrame = currentFrame;
+		Render::camera.speed = Render::camera.baseSpeed * Render::dt;
 
 		float* buff = new float[800 * 800 * 4];
-		glBindTexture(GL_TEXTURE_2D, depth);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,GL_FLOAT,buff);
 
 	/*	int c = 0;
@@ -545,7 +543,7 @@ int main() {
 
 		float out = (buff[0]) * (1 / 1000.0 - 1 / .01) + 1 / .01;
 
-		//std::cout << 1/out << "\n";
+		std::cout << 1/out << "\n";
 
 		//std::cout << "\n\n";
 
@@ -580,7 +578,7 @@ int main() {
 
 		// draw depths
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, depth);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
 
 		glUniform1i(d, 1);
 
@@ -590,7 +588,7 @@ int main() {
 		glUseProgram(Render::shadowShader);
 
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, depth);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
 
 		glUniform1i(d2, 0);
 
@@ -603,26 +601,184 @@ int main() {
 
 
 
+		//
+		//
+		// This is getting shadow information
+		//
+		//
+
+		glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
+		glViewport(0, 0, swidth, sheight);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		glVertexAttribDivisor(3, 1);
+		glVertexAttribDivisor(1, 1);
+
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH);
+
+		glUseProgram(Render::depthShader);
+
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 
-		glUseProgram(Render::renderShader);
-		
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-		// update light information
-		glUniform3f(glGetUniformLocation(Render::renderShader, "light.position"), light_position.x, light_position.y, light_position.z);
-		glUniform3f(glGetUniformLocation(Render::renderShader, "light.ambient"), light_ambient.x, light_ambient.y, light_ambient.z);
-		glUniform3f(glGetUniformLocation(Render::renderShader, "light.diffuse"), light_diffuse.x, light_diffuse.y, light_diffuse.z);
-		glUniform3f(glGetUniformLocation(Render::renderShader, "light.specular"), light_specular.x, light_specular.y, light_specular.z);
+		glm::mat4 model(1.0f);
+		glm::mat4 view = glm::lookAt(glm::vec3(0,20,.0001), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
+		angle += .01;
+
+		float near_plane = 1.0f, far_plane = 10.5f;
+		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+		glm::mat4 lightView = glm::lookAt(glm::vec3(0.0f, 40, 0.0f),
+			glm::vec3(0.01f, 0.0f, 0.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+
+		std::cout << "Position: " << Render::camera.cameraPos.x << " " << Render::camera.cameraPos.y << " " << Render::camera.cameraPos.z << "\n";
+		std::cout << "Front: " << Render::camera.cameraFront.x << " " << Render::camera.cameraFront.y << " " << Render::camera.cameraFront.z << "\n";
+		std::cout << "Up: " << Render::camera.cameraUp.x << " " << Render::camera.cameraUp.y << " " << Render::camera.cameraUp.z << "\n";
+
+
+
+
+		glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "projection"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+
+
+
+		
+		for (Render::Object* o : Render::objects) {
+			int elements = o->insts->da->elements;
+			//std::cout << elements << "\n";
+			if (elements <= 0) {
+				continue;
+			}
+
+
+			// bind the position buffer and send the vertices to gpu
+			glBindBuffer(GL_ARRAY_BUFFER, o->positions);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), 0);
+			//glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 1));
+			//glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 2));
+			//glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 3));
+
+
+			// load in the buffer of all instances
+			glBindBuffer(GL_ARRAY_BUFFER, o->insts->buffer);
+
+
+			// this is translation
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
+
+			// this is rotation
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(glm::vec3) + sizeof(int)));
+
+			// this is for scalation
+			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 2 * sizeof(glm::vec3)));
+
+			// this is for color
+			//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
+
+
+
+
+			// give the ebo to the gpu
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
+
+
+
+			// finally, send the draw command to the gpu
+			glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elements);
+
+
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+		//
+		//
+		// This is actual rendering
+		//
+		//
+
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		glViewport(0, 0, 800, 800);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+		glUseProgram(Render::renderShader);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		//glBindTexture(GL_TEXTURE_2D, color);
+		// 
 		// update material information
 		glUniform3f(glGetUniformLocation(Render::renderShader, "material.ambient"), material_ambient.x, material_ambient.y, material_ambient.z);
 		glUniform3f(glGetUniformLocation(Render::renderShader, "material.diffuse"), material_diffuse.x, material_diffuse.y, material_diffuse.z);
 		glUniform3f(glGetUniformLocation(Render::renderShader, "material.specular"), material_specular.x, material_specular.y, material_specular.z);
 		glUniform1f(glGetUniformLocation(Render::renderShader, "material.shininess"), material_shininess);
 
+		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
 
+
+		glVertexAttribDivisor(3, 1);
+		glVertexAttribDivisor(1, 1);
+
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH);
+		
+		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "model"), 1, GL_FALSE, glm::value_ptr(Render::model));
+		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "view"), 1, GL_FALSE, glm::value_ptr(Render::view));
+		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "projection"), 1, GL_FALSE, glm::value_ptr(Render::projection));
+		glUniform3fv(glGetUniformLocation(Render::renderShader, "camPos"), 1, glm::value_ptr(Render::camera.cameraPos));
+		glUniform3fv(glGetUniformLocation(Render::renderShader, "camFront"), 1, glm::value_ptr(Render::camera.cameraFront));
+
+
+		Render::camera.translate(Render::left, Render::right, Render::up, Render::down, Render::forward, Render::backward);
+		Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
+		Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
+
+
+		Render::draw();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+
+
+		
+
+
+
+
+		
+		Render::drawDebug(milis);
+		glfwSwapBuffers(Render::window);
+		glfwPollEvents();
+		Render::keepWindow = !glfwWindowShouldClose(Render::window);
+
+		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+		milis = (end - begin).count() / 1000000.0;
+		//std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
+
+	}
+
+	
+
+	//exit(1);
+
+	Render::exit();
+
+
+
+	return 0;
+}
+
+
+/*
+* 
+* 
 		if (Render::getKey(GLFW_KEY_UP)) {
 			light_position.z += .01;
 		}
@@ -703,70 +859,4 @@ int main() {
 			material_shininess -= .1;
 		}
 
-		
-
-
-
-
-		glUseProgram(Render::renderShader);
-		glVertexAttribDivisor(3, 1);
-		glVertexAttribDivisor(1, 1);
-
-		glEnable(GL_CULL_FACE);
-		glEnable(GL_DEPTH);
-		float currentFrame = glfwGetTime();
-		Render::dt = currentFrame - Render::lastFrame;
-		Render::lastFrame = currentFrame;
-		Render::camera.speed = Render::camera.baseSpeed * Render::dt;
-		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "model"), 1, GL_FALSE, glm::value_ptr(Render::model));
-		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "view"), 1, GL_FALSE, glm::value_ptr(Render::view));
-		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "projection"), 1, GL_FALSE, glm::value_ptr(Render::projection));
-		glUniform3fv(glGetUniformLocation(Render::renderShader, "camPos"), 1, glm::value_ptr(Render::camera.cameraPos));
-		glUniform3fv(glGetUniformLocation(Render::renderShader, "camFront"), 1, glm::value_ptr(Render::camera.cameraFront));
-
-		glUniform3f(glGetUniformLocation(Render::renderShader, "light"), sin(lightLocx),0,cos(lightLocx));
-
-		// update the values of the sphere
-		//Render::objects[1]->insts->edit(key, { sin(lightLocx),0,cos(lightLocx)}, {0,0,0}, {1,1,1}, {1,1,1});
-
-		lightLocx += .00;
-
-		Render::camera.translate(Render::left, Render::right, Render::up, Render::down, Render::forward, Render::backward);
-		Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
-		Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
-
-
-		Render::draw();
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-
-		Render::drawDebug(milis);
-
-		
-
-
-
-
-		
-		glfwSwapBuffers(Render::window);
-		glfwPollEvents();
-		Render::keepWindow = !glfwWindowShouldClose(Render::window);
-
-		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-		milis = (end - begin).count() / 1000000.0;
-		//std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
-
-	}
-
-	
-
-	//exit(1);
-
-	Render::exit();
-
-
-
-	return 0;
-}
+	*/

@@ -9,6 +9,7 @@ unsigned int Render::renderShader = -1;
 unsigned int Render::screenShader = -1;
 unsigned int Render::debugShader = -1;
 unsigned int Render::shadowShader = -1;
+unsigned int Render::depthShader = -1;
 
 std::vector<Render::Object*> Render::objects;
 glm::mat4 Render::model = glm::mat4(1.0f);
@@ -419,6 +420,7 @@ void Render::init(int width, int height, bool fullScreen) {
 	compileShader("shaders/debugFragment.shader", "shaders/debugVertex.shader", &Render::debugShader);
 	compileShader("shaders/screenFragment.shader", "shaders/screenVertex.shader", &Render::screenShader);
 	compileShader("shaders/shadowFragment.shader", "shaders/shadowVertex.shader", &Render::shadowShader);
+	compileShader("shaders/depthFragment.shader", "shaders/depthVertex.shader", &Render::depthShader);
 
 	//glUseProgram(Render::screenShader);
 	

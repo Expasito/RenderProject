@@ -67,9 +67,19 @@ uniform vec3 camPos;
 uniform vec3 camFront;
 
 
+uniform mat4 lightSpaceMatrix;
+
+
 
 out vec3 camPos_;
 out vec3 camFront_;
+
+out VS_OUT{
+    vec3 FragPos;
+vec3 Normal;
+vec2 TexCoords;
+vec4 FragPosLightSpace;
+} vs_out;
 
 
 void main(){
@@ -81,13 +91,16 @@ void main(){
     camPos_ = camPos;
     camFront_ = camFront;
 
-
-    // now we can use this in the other shader
-    vec4 transformed_coordinates = translate(-translations.x, translations.y, translations.z) * RotateX(rotations.x) * RotateY(rotations.y) * RotateZ(rotations.z) * scale(scalations.x, scalations.y, scalations.z) * vec4(aPos, 1);
+    mat4 model = translate(-translations.x, translations.y, translations.z) * RotateX(rotations.x) * RotateY(rotations.y) * RotateZ(rotations.z) * scale(scalations.x, scalations.y, scalations.z);
     
-    transformed_ = transformed_coordinates;
+    transformed_ = model * vec4(aPos, 1);;
 
-    gl_Position = projection * view * transformed_coordinates;
+    vs_out.FragPos = vec3(model * vec4(aPos,1));
+    vs_out.Normal = transpose(inverse(mat3(model))) * normals;
+    vs_out.TexCoords = texturecoords;
+    vs_out.FragPosLightSpace = lightSpaceMatrix * vec4(vs_out.FragPos, 1.0);
+
+    gl_Position = projection * view * vec4(vs_out.FragPos,1.0);
 
 
 }
