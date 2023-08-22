@@ -12,7 +12,7 @@ void main() {
 
 	float far = 1000.0;
 	float near = .01;
-	int div = 10;
+	int div = 1;
 
 	if (isDepth == 1) {
 		float depth = texture(framebuffer, texturecoords_).x;
@@ -26,14 +26,14 @@ void main() {
 		FragColor = vec4(texture(framebuffer, texturecoords_));
 	}
 
-	FragColor = vec4(vec3(gl_FragCoord.xyz) + camPos, 1);
+	//FragColor = vec4(vec3(gl_FragCoord.xyz) + camPos, 1);
 
 	float start = 400;
 	float end = 800.5;
 
-	FragColor = vec4(vec3((gl_FragCoord.xy)/800.5 -.5,0), 1);
+	//FragColor = vec4(vec3((gl_FragCoord.xy)/800.5 -.5,0), 1);
 
-	//FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	//FragColor = vec4(0.0, 1.0, 0.0, 1.0);
 
 	//FragColor = vec4(vec3(0.0,1.0,0.0), 1.0);
 

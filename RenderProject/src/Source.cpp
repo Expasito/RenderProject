@@ -328,11 +328,13 @@ int main() {
 
 	auto t = glGetUniformLocation(Render::renderShader, "t1");
 	auto t2 =glGetUniformLocation(Render::renderShader, "t2");
+	
 
 	std::cout << "loc1: " << t << "  Loc2: " << t2 << "\n";
 
 	glUniform1i(t, 0);
 	glUniform1i(t2, 1);
+	glUniform1i(glGetUniformLocation(Render::renderShader, "depth"), 2);
 
 
 	int index_ = 14;
@@ -627,10 +629,11 @@ int main() {
 
 		angle += .01;
 
-		float near_plane = 1.0f, far_plane = 10.5f;
+		float near_plane = .1f, far_plane = 30.0f;
 		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-		glm::mat4 lightView = glm::lookAt(glm::vec3(0.0f, 40, 0.0f),
-			glm::vec3(0.01f, 0.0f, 0.0f),
+		//glm::vec3(-2.0f, 5, 2.0f)
+		glm::mat4 lightView = glm::lookAt(glm::vec3(0,20,10),
+			glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
@@ -709,8 +712,16 @@ int main() {
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 		glUseProgram(Render::renderShader);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+
 		//glBindTexture(GL_TEXTURE_2D, color);
 		// 
 		// update material information

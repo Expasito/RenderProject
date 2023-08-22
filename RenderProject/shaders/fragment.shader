@@ -143,7 +143,7 @@ vec3 base(Light light,vec3 specular_) {
 float ShadowCalculation(vec4 fragPosLightSpace) {
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 	projCoords = projCoords * 0.5 + 0.5;
-	float closestDepth = texture(t1, projCoords.xy).r;
+	float closestDepth = texture(depth, projCoords.xy).r;
 	float currentDepth = projCoords.z;
 	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
 	return shadow;
@@ -172,16 +172,24 @@ void main() {
 	
 	float shadow = ShadowCalculation(fs_in.FragPosLightSpace);
 
-	//FragColor = vec4(vec3(shadow), 1);
-
 	if (shadow < .5) {
-		FragColor = vec4(1);
+		FragColor = vec4(1, 1, 1, 1);
 	}
 	else {
-		FragColor = vec4(0);
+		FragColor = vec4(0, 1, 0, 1);
 	}
 
-	FragColor = vec4(1);
+	//FragColor = vec4(vec3(shadow), 1);
+
+
+
+	//FragColor = vec4(1, 1, 1, 1);
+
+	//FragColor = vec4(shadow, shadow, shadow, 1);
+
+	//FragColor = texture(depth, texturecoords_);
+
+	//FragColor = vec4(1);
 
 	//FragColor = texture(t1, texturecoords_);
 
