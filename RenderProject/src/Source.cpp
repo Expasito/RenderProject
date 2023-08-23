@@ -266,7 +266,7 @@ int main() {
 
 	//Render::addInstance("CUBE", { 0,-10,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
 	Render::addInstance("Test", { 0,-2,0 }, { 0,0,0 }, { 1,1,1 }, {1,1,1});
-	Render::addInstance("Test", { 0,-10,0 }, { 0,0,0 }, { 20,1,20 }, { 1,1,1 });
+	Render::addInstance("Test", { 0,-10,0 }, { 0,0,0 }, { 1000,1,1000 }, { 1,1,1 });
 
 	//Render::addInstance("CUBE", { -10,-10,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
 
@@ -460,7 +460,7 @@ int main() {
 	glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
 
 	unsigned int depthMap;
-	unsigned int swidth = 1024, sheight = 1024;
+	unsigned int swidth = 4096, sheight = 4096;
 	glGenTextures(1, &depthMap);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, swidth, sheight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -528,9 +528,9 @@ int main() {
 		Render::lastFrame = currentFrame;
 		Render::camera.speed = Render::camera.baseSpeed * Render::dt;
 
-		float* buff = new float[800 * 800 * 4];
-		glBindTexture(GL_TEXTURE_2D, depthMap);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,GL_FLOAT,buff);
+		//float* buff = new float[800 * 800 * 4];
+		//glBindTexture(GL_TEXTURE_2D, depthMap);
+		//glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,GL_FLOAT,buff);
 
 	/*	int c = 0;
 		for (int i = 0; i < 50; i++) {
@@ -543,15 +543,15 @@ int main() {
 
 		//float out = ((1.0 / buff[0]) - (1.0 / .01)) / (1 / 1000.0 - 1 / .01);
 
-		float out = (buff[0]) * (1 / 1000.0 - 1 / .01) + 1 / .01;
+		//float out = (buff[0]) * (1 / 1000.0 - 1 / .01) + 1 / .01;
 
-		std::cout << 1/out << "\n";
+		//std::cout << 1/out << "\n";
 
 		//std::cout << "\n\n";
 
 		//std::cout << (int)buff[4 * 100 * 50] << "\n";
 
-		delete[] buff;
+		//delete[] buff;
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glDisable(GL_CULL_FACE);
@@ -610,6 +610,7 @@ int main() {
 		//
 
 		glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
+		glCullFace(GL_FRONT);
 		glViewport(0, 0, swidth, sheight);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -630,9 +631,10 @@ int main() {
 		angle += .01;
 
 		float near_plane = .1f, far_plane = 30.0f;
-		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+		//glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+		glm::mat4 lightProjection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, -.0001f, 1000.0f);
 		//glm::vec3(-2.0f, 5, 2.0f)
-		glm::mat4 lightView = glm::lookAt(glm::vec3(0,20,10),
+		glm::mat4 lightView = glm::lookAt(glm::vec3(75,15,-75),
 			glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -708,6 +710,7 @@ int main() {
 		//
 
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		glCullFace(GL_BACK);
 		glViewport(0, 0, 800, 800);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -748,6 +751,7 @@ int main() {
 
 		Render::camera.translate(Render::left, Render::right, Render::up, Render::down, Render::forward, Render::backward);
 		Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
+		Render::projection = glm::ortho(-40.0f, 40.0f, -40.0f, 40.0f, .0001f, 1000.0f);
 		Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
 
 
