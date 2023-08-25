@@ -265,7 +265,12 @@ int main() {
 	Render::addModel("assets/sphere.obj", "Sphere", 100, 100);
 
 	//Render::addInstance("CUBE", { 0,-10,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
-	Render::addInstance("Test", { 0,-2,0 }, { 0,0,0 }, { 1,1,1 }, {1,1,1});
+	Render::addInstance("Test", { 20,-2,0 }, { 0,0,0 }, { 1,1,1 }, {1,1,1});
+	Render::addInstance("Test", { 0,-2,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
+
+	Render::addInstance("Test", { 0,-5,0 }, { 0,0,0 }, { 10,1,10 }, { 1,1,1 });
+
+
 	Render::addInstance("Test", { 0,-10,0 }, { 0,0,0 }, { 1000,1,1000 }, { 1,1,1 });
 
 	//Render::addInstance("CUBE", { -10,-10,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
@@ -368,7 +373,8 @@ int main() {
 		{{0,10,20},{0,0,1},{.5,0,.25},{.5,.5,1}}
 	};
 
-	int numLights = sizeof(lights) / sizeof(Light);
+	//int numLights = sizeof(lights) / sizeof(Light);
+	int numLights = 0;
 	std::cout << sizeof(glm::vec3) << " size here <-" << "\n";
 	std::cout << sizeof(int) << " " << sizeof(short) << " " << sizeof(float) << "\n";
 
@@ -632,10 +638,11 @@ int main() {
 
 		float near_plane = .1f, far_plane = 30.0f;
 		//glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-		glm::mat4 lightProjection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, -.0001f, 1000.0f);
+		//glm::mat4 lightProjection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, -.0001f, 1000.0f);
+		glm::mat4 lightProjection = glm::perspective(glm::radians(120.0f),1.0f,.01f,1000.0f);
 		//glm::vec3(-2.0f, 5, 2.0f)
-		glm::mat4 lightView = glm::lookAt(glm::vec3(75,15,-75),
-			glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::mat4 lightView = glm::lookAt(glm::vec3(0-angle,20,-20),
+			glm::vec3(angle,0,0),
 			glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
@@ -643,6 +650,8 @@ int main() {
 		std::cout << "Position: " << Render::camera.cameraPos.x << " " << Render::camera.cameraPos.y << " " << Render::camera.cameraPos.z << "\n";
 		std::cout << "Front: " << Render::camera.cameraFront.x << " " << Render::camera.cameraFront.y << " " << Render::camera.cameraFront.z << "\n";
 		std::cout << "Up: " << Render::camera.cameraUp.x << " " << Render::camera.cameraUp.y << " " << Render::camera.cameraUp.z << "\n";
+
+		std::cout << "Angle: " << angle << "\n";
 
 
 

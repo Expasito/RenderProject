@@ -146,6 +146,19 @@ float ShadowCalculation(vec4 fragPosLightSpace) {
 	float closestDepth = texture(depth, projCoords.xy).r;
 	float currentDepth = projCoords.z;
 	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+
+	// if depth is outside of the range, then assume not in shadow
+	if (projCoords.z > 1.0) {
+		shadow = 0.0;
+	}
+	// remove shadows outsize of the texture range
+	if (projCoords.x > 1.0 || projCoords.x < 0.0) {
+		shadow = 0.0;
+	}
+	// remove also for y axis
+	if (projCoords.y > 1.0 || projCoords.y < 0.0) {
+		shadow = 0.0;
+	}
 	return shadow;
 }
 
@@ -182,14 +195,9 @@ void main() {
 	
 	float shadow = ShadowCalculation(fs_in.FragPosLightSpace);
 	
-	if (shadow < .5) {
-		FragColor = vec4(1, 1, 1, 1);
-	}
-	else {
-		FragColor = vec4(0, 1, 0, 1);
-	}
+
 	
-	FragColor = vec4(vec3(shadow), 1);
+	//FragColor = vec4(vec3(shadow), 1);
 	// if shadow is 1, then we are in shadow
 	vec3 result_ = (1 - shadow)* result;
 	
