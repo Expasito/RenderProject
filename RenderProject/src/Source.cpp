@@ -13,8 +13,11 @@
 
 
 
-
-
+std::ostream& operator<<(std::ostream& os, const glm::vec3& vec)
+{
+	os << vec.x << " " << vec.y << " " << vec.z << " ";
+	return os;
+}
 
 
 
@@ -526,6 +529,12 @@ int main() {
 
 	float angle = 0;
 
+	glm::vec3 position = glm::vec3(0, 20, 20);
+	glm::vec3 direction = glm::vec3(0.0001, -1, 0);
+	float fov = 80.0f;
+
+	//int key = Render::addInstance("Test", position-direction, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
+
 	
 	while (Render::keepWindow) {
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -639,19 +648,77 @@ int main() {
 		float near_plane = .1f, far_plane = 30.0f;
 		//glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
 		//glm::mat4 lightProjection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, -.0001f, 1000.0f);
-		glm::mat4 lightProjection = glm::perspective(glm::radians(120.0f),1.0f,.01f,1000.0f);
+		glm::mat4 lightProjection = glm::perspective(glm::radians(fov),1.0f,.00001f,1000.0f);
 		//glm::vec3(-2.0f, 5, 2.0f)
-		glm::mat4 lightView = glm::lookAt(glm::vec3(0-angle,20,-20),
-			glm::vec3(angle,0,0),
+		glm::mat4 lightView = glm::lookAt(position,
+			glm::vec3(direction+position),
 			glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
+		// update light position
+		if (Render::getKey(GLFW_KEY_LEFT)) {
+			position.x -= .1;
+		}
+		if (Render::getKey(GLFW_KEY_RIGHT)) {
+			position.x += .1;
+		}
 
-		std::cout << "Position: " << Render::camera.cameraPos.x << " " << Render::camera.cameraPos.y << " " << Render::camera.cameraPos.z << "\n";
-		std::cout << "Front: " << Render::camera.cameraFront.x << " " << Render::camera.cameraFront.y << " " << Render::camera.cameraFront.z << "\n";
-		std::cout << "Up: " << Render::camera.cameraUp.x << " " << Render::camera.cameraUp.y << " " << Render::camera.cameraUp.z << "\n";
+		if (Render::getKey(GLFW_KEY_UP)) {
+			position.z += .1;
+		}
+		if (Render::getKey(GLFW_KEY_DOWN)) {
+			position.z -= .1;
+		}
 
-		std::cout << "Angle: " << angle << "\n";
+		if (Render::getKey(GLFW_KEY_RIGHT_SHIFT)) {
+			position.y -= .1;
+		}
+		if (Render::getKey(GLFW_KEY_ENTER)) {
+			position.y += .1;
+		}
+
+		// fov
+		if (Render::getKey(GLFW_KEY_N)) {
+			fov -= .1;
+		}
+		if (Render::getKey(GLFW_KEY_M)) {
+			fov += .1;
+		}
+
+		// update the direction
+
+		if (Render::getKey(GLFW_KEY_J)) {
+			direction.x -= .01;
+		}
+		if (Render::getKey(GLFW_KEY_L)) {
+			direction.x += .01;
+		}
+
+		if (Render::getKey(GLFW_KEY_I)) {
+			direction.z += .01;
+		}
+		if (Render::getKey(GLFW_KEY_K)) {
+			direction.z -= .01;
+		}
+
+		if (Render::getKey(GLFW_KEY_O)) {
+			direction.y -= .01;
+		}
+		if (Render::getKey(GLFW_KEY_P)) {
+			direction.y += .01;
+		}
+
+
+		std::cout << "Position: " << position << "\n";
+		std::cout << "Direction: " << position + direction << "\n";
+		std::cout << "Fov: " << fov << "\n";
+
+
+		//std::cout << "Position: " << Render::camera.cameraPos.x << " " << Render::camera.cameraPos.y << " " << Render::camera.cameraPos.z << "\n";
+		//std::cout << "Front: " << Render::camera.cameraFront.x << " " << Render::camera.cameraFront.y << " " << Render::camera.cameraFront.z << "\n";
+		//std::cout << "Up: " << Render::camera.cameraUp.x << " " << Render::camera.cameraUp.y << " " << Render::camera.cameraUp.z << "\n";
+
+		//std::cout << "Angle: " << angle << "\n";
 
 
 
