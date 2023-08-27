@@ -49,8 +49,6 @@ mat4 RotateZ(float psi) {
         vec4(0., 0., 0., 1.));
 }
 
-uniform mat4 model;
-uniform mat4 view;
 uniform mat4 projection;
 
 
@@ -60,9 +58,6 @@ void main() {
 
     // now we can use this in the other shader
     vec4 transformed_coordinates = translate(-translations.x, translations.y, translations.z) * RotateX(rotations.x) * RotateY(rotations.y) * RotateZ(rotations.z) * scale(scalations.x, scalations.y, scalations.z) * vec4(aPos, 1);
-
-
-    gl_Position = projection * view * transformed_coordinates;
 
     gl_Position = projection * transformed_coordinates;
 

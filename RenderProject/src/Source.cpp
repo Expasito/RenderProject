@@ -115,6 +115,75 @@ int hash(int val, int size) {
 	return val % size;
 }
 
+
+class DirectionalLight {
+public:
+	unsigned int depthTexture;
+	unsigned int fbo;
+	unsigned int width, height;
+
+	float nearClip, farClip;
+
+	glm::mat4 lightProjection;
+	glm::mat4 lightView;
+	glm::mat4 lightSpaceMatrix;
+
+	glm::vec3 position;
+	glm::vec3 lookat;
+
+	DirectionalLight(int width_, int height_, float nearClip_, float farClip_, glm::vec3 position_, glm::vec3 lookat_) {
+
+		width = width_;
+		height = height_;
+		nearClip = nearClip_;
+		farClip = farClip_;
+
+
+		
+		glGenFramebuffers(1, &fbo);
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+		glGenTextures(1, &depthTexture);
+		glBindTexture(GL_TEXTURE_2D, depthTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, depthTexture);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+
+
+		position = position_;
+		lookat = lookat_;
+
+		lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearClip, farClip);
+
+		lightView = glm::lookAt(position,
+			lookat,
+			glm::vec3(0.0f, 1.0f, 0.0f));
+		lightSpaceMatrix = lightProjection * lightView;
+
+	}
+
+	void update(glm::vec3 position_, glm::vec3 lookat_) {
+		position = position_;
+		lookat = lookat_;
+		lightView = glm::lookAt(position,
+			lookat,
+			glm::vec3(0.0f, 1.0f, 0.0f));
+		lightSpaceMatrix = lightProjection * lightView;
+
+	}
+
+
+
+private:
+};
+
 int main() {
 
 	printf("%c", 178);
@@ -260,7 +329,7 @@ int main() {
 	//Render::addModel("assets/sphere.obj", "Cube");
 	//Render::addModel("assets/monkey.obj", "Monkey");
 
-	//Render::addModel("assets/room.obj", "Room", 10000, 10000);
+	Render::addModel("assets/room.obj", "Room", 10000, 10000);
 
 	//Render::addInstance("Room", { 20,0,0 }, { 0,0,0 }, { 1,1,1 }, { .5,.5,.5 });
 
@@ -463,27 +532,7 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
 
-
-	unsigned int depthFbo;
-	glGenFramebuffers(1, &depthFbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
-
-	unsigned int depthMap;
-	unsigned int swidth = 4096, sheight = 4096;
-	glGenTextures(1, &depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, swidth, sheight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	DirectionalLight dl(1024, 1024, 0.0f, 1000.0f, {20,50,20}, {0,0,0});
 
 
 
@@ -595,7 +644,7 @@ int main() {
 
 		// draw depths
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
+		glBindTexture(GL_TEXTURE_2D, dl.depthTexture);
 
 		glUniform1i(d, 1);
 
@@ -605,7 +654,7 @@ int main() {
 		glUseProgram(Render::shadowShader);
 
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
+		glBindTexture(GL_TEXTURE_2D, dl.depthTexture);
 
 		glUniform1i(d2, 0);
 
@@ -624,9 +673,9 @@ int main() {
 		//
 		//
 
-		glBindFramebuffer(GL_FRAMEBUFFER, depthFbo);
+		glBindFramebuffer(GL_FRAMEBUFFER, dl.fbo);
 		glCullFace(GL_FRONT);
-		glViewport(0, 0, swidth, sheight);
+		glViewport(0, 0, dl.width,dl.height);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		glVertexAttribDivisor(3, 1);
@@ -645,15 +694,15 @@ int main() {
 
 		angle += .01;
 
-		float near_plane = .1f, far_plane = 30.0f;
-		//glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-		//glm::mat4 lightProjection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, -.0001f, 1000.0f);
-		glm::mat4 lightProjection = glm::perspective(glm::radians(fov),1.0f,.00001f,1000.0f);
-		//glm::vec3(-2.0f, 5, 2.0f)
-		glm::mat4 lightView = glm::lookAt(position,
-			glm::vec3(direction+position),
-			glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+		//float near_plane = .1f, far_plane = 30.0f;
+		////glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+		////glm::mat4 lightProjection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, -.0001f, 1000.0f);
+		//glm::mat4 lightProjection = glm::perspective(glm::radians(fov),1.0f,.00001f,1000.0f);
+		////glm::vec3(-2.0f, 5, 2.0f)
+		//glm::mat4 lightView = glm::lookAt(position,
+		//	glm::vec3(direction+position),
+		//	glm::vec3(0.0f, 1.0f, 0.0f));
+		//glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
 		// update light position
 		if (Render::getKey(GLFW_KEY_LEFT)) {
@@ -723,9 +772,9 @@ int main() {
 
 
 
-		glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "model"), 1, GL_FALSE, glm::value_ptr(model));
-		glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "projection"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+		//glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		//glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "projection"), 1, GL_FALSE, glm::value_ptr(dl.lightSpaceMatrix));
 
 
 
@@ -792,14 +841,14 @@ int main() {
 
 		glUseProgram(Render::renderShader);
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
+		glBindTexture(GL_TEXTURE_2D, dl.depthTexture);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
+		glBindTexture(GL_TEXTURE_2D, dl.depthTexture);
 
 		//glBindTexture(GL_TEXTURE_2D, color);
 		// 
@@ -809,7 +858,7 @@ int main() {
 		glUniform3f(glGetUniformLocation(Render::renderShader, "material.specular"), material_specular.x, material_specular.y, material_specular.z);
 		glUniform1f(glGetUniformLocation(Render::renderShader, "material.shininess"), material_shininess);
 
-		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(dl.lightSpaceMatrix));
 
 
 		glVertexAttribDivisor(3, 1);
