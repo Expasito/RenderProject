@@ -67,7 +67,9 @@ uniform vec3 camPos;
 uniform vec3 camFront;
 
 
-uniform mat4 lightSpaceMatrix;
+uniform mat4 lightSpaceMatrix1;
+uniform mat4 lightSpaceMatrix2;
+
 
 
 
@@ -78,7 +80,8 @@ out VS_OUT{
     vec3 FragPos;
 vec3 Normal;
 vec2 TexCoords;
-vec4 FragPosLightSpace;
+vec4 FragPosLightSpace1;
+vec4 FragPosLightSpace2;
 } vs_out;
 
 
@@ -99,7 +102,8 @@ void main(){
     vs_out.FragPos = vec3(model * vec4(aPos,1));
     vs_out.Normal = transpose(inverse(mat3(model))) * normals;
     vs_out.TexCoords = texturecoords;
-    vs_out.FragPosLightSpace = lightSpaceMatrix * vec4(vs_out.FragPos, 1.0);
+    vs_out.FragPosLightSpace1 = lightSpaceMatrix1 * vec4(vs_out.FragPos, 1.0);
+    vs_out.FragPosLightSpace2 = lightSpaceMatrix2 * vec4(vs_out.FragPos, 1.);
 
     gl_Position = projection * view * vec4(vs_out.FragPos,1.0);
 

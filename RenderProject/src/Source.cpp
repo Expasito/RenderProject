@@ -411,7 +411,8 @@ int main() {
 
 	glUniform1i(t, 0);
 	glUniform1i(t2, 1);
-	glUniform1i(glGetUniformLocation(Render::renderShader, "depth"), 2);
+	glUniform1i(glGetUniformLocation(Render::renderShader, "depth1"), 2);
+	glUniform1i(glGetUniformLocation(Render::renderShader, "depth2"), 3);
 
 
 	int index_ = 14;
@@ -532,7 +533,12 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
 
-	DirectionalLight dl(1024, 1024, 0.0f, 1000.0f, {20,50,20}, {0,0,0});
+	//DirectionalLight dl(1024, 1024, 0.0f, 1000.0f, {20,50,20}, {0,0,0});
+
+	DirectionalLight dls[2] = { 
+		DirectionalLight(1024, 1024, -1.0f, 1000.0f, {-20,50,20}, {0,0,0}),
+		DirectionalLight(1024, 1024, -1.0f, 1000.0f, {-20,50,20}, {0,0,0}) 
+	};
 
 
 
@@ -642,9 +648,13 @@ int main() {
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		for (DirectionalLight dl : dls) {
+
+		}
+
 		// draw depths
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, dl.depthTexture);
+		glBindTexture(GL_TEXTURE_2D, dls[0].depthTexture);
 
 		glUniform1i(d, 1);
 
@@ -654,7 +664,7 @@ int main() {
 		glUseProgram(Render::shadowShader);
 
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, dl.depthTexture);
+		glBindTexture(GL_TEXTURE_2D, dls[0].depthTexture);
 
 		glUniform1i(d2, 0);
 
@@ -666,164 +676,163 @@ int main() {
 		glDrawArrays(GL_TRIANGLES, 12,6);
 
 
+		for (DirectionalLight dl : dls) {
+			glBindFramebuffer(GL_FRAMEBUFFER, dl.fbo);
+			glCullFace(GL_FRONT);
+			glViewport(0, 0, dl.width, dl.height);
+			glClear(GL_DEPTH_BUFFER_BIT);
 
-		//
-		//
-		// This is getting shadow information
-		//
-		//
+			glVertexAttribDivisor(3, 1);
+			glVertexAttribDivisor(1, 1);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, dl.fbo);
-		glCullFace(GL_FRONT);
-		glViewport(0, 0, dl.width,dl.height);
-		glClear(GL_DEPTH_BUFFER_BIT);
+			glEnable(GL_CULL_FACE);
+			glEnable(GL_DEPTH);
 
-		glVertexAttribDivisor(3, 1);
-		glVertexAttribDivisor(1, 1);
+			glUseProgram(Render::depthShader);
 
-		glEnable(GL_CULL_FACE);
-		glEnable(GL_DEPTH);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, texture1);
 
-		glUseProgram(Render::depthShader);
+			glm::mat4 model(1.0f);
+			glm::mat4 view = glm::lookAt(glm::vec3(0, 20, .0001), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, texture1);
+			angle += .01;
 
-		glm::mat4 model(1.0f);
-		glm::mat4 view = glm::lookAt(glm::vec3(0,20,.0001), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+			//float near_plane = .1f, far_plane = 30.0f;
+			////glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+			////glm::mat4 lightProjection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, -.0001f, 1000.0f);
+			//glm::mat4 lightProjection = glm::perspective(glm::radians(fov),1.0f,.00001f,1000.0f);
+			////glm::vec3(-2.0f, 5, 2.0f)
+			//glm::mat4 lightView = glm::lookAt(position,
+			//	glm::vec3(direction+position),
+			//	glm::vec3(0.0f, 1.0f, 0.0f));
+			//glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
-		angle += .01;
+			// update light position
+			if (Render::getKey(GLFW_KEY_LEFT)) {
+				position.x -= .1;
+			}
+			if (Render::getKey(GLFW_KEY_RIGHT)) {
+				position.x += .1;
+			}
 
-		//float near_plane = .1f, far_plane = 30.0f;
-		////glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-		////glm::mat4 lightProjection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, -.0001f, 1000.0f);
-		//glm::mat4 lightProjection = glm::perspective(glm::radians(fov),1.0f,.00001f,1000.0f);
-		////glm::vec3(-2.0f, 5, 2.0f)
-		//glm::mat4 lightView = glm::lookAt(position,
-		//	glm::vec3(direction+position),
-		//	glm::vec3(0.0f, 1.0f, 0.0f));
-		//glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+			if (Render::getKey(GLFW_KEY_UP)) {
+				position.z += .1;
+			}
+			if (Render::getKey(GLFW_KEY_DOWN)) {
+				position.z -= .1;
+			}
 
-		// update light position
-		if (Render::getKey(GLFW_KEY_LEFT)) {
-			position.x -= .1;
-		}
-		if (Render::getKey(GLFW_KEY_RIGHT)) {
-			position.x += .1;
-		}
+			if (Render::getKey(GLFW_KEY_RIGHT_SHIFT)) {
+				position.y -= .1;
+			}
+			if (Render::getKey(GLFW_KEY_ENTER)) {
+				position.y += .1;
+			}
 
-		if (Render::getKey(GLFW_KEY_UP)) {
-			position.z += .1;
-		}
-		if (Render::getKey(GLFW_KEY_DOWN)) {
-			position.z -= .1;
-		}
+			// fov
+			if (Render::getKey(GLFW_KEY_N)) {
+				fov -= .1;
+			}
+			if (Render::getKey(GLFW_KEY_M)) {
+				fov += .1;
+			}
 
-		if (Render::getKey(GLFW_KEY_RIGHT_SHIFT)) {
-			position.y -= .1;
-		}
-		if (Render::getKey(GLFW_KEY_ENTER)) {
-			position.y += .1;
-		}
+			// update the direction
 
-		// fov
-		if (Render::getKey(GLFW_KEY_N)) {
-			fov -= .1;
-		}
-		if (Render::getKey(GLFW_KEY_M)) {
-			fov += .1;
-		}
+			if (Render::getKey(GLFW_KEY_J)) {
+				direction.x -= .01;
+			}
+			if (Render::getKey(GLFW_KEY_L)) {
+				direction.x += .01;
+			}
 
-		// update the direction
+			if (Render::getKey(GLFW_KEY_I)) {
+				direction.z += .01;
+			}
+			if (Render::getKey(GLFW_KEY_K)) {
+				direction.z -= .01;
+			}
 
-		if (Render::getKey(GLFW_KEY_J)) {
-			direction.x -= .01;
-		}
-		if (Render::getKey(GLFW_KEY_L)) {
-			direction.x += .01;
-		}
-
-		if (Render::getKey(GLFW_KEY_I)) {
-			direction.z += .01;
-		}
-		if (Render::getKey(GLFW_KEY_K)) {
-			direction.z -= .01;
-		}
-
-		if (Render::getKey(GLFW_KEY_O)) {
-			direction.y -= .01;
-		}
-		if (Render::getKey(GLFW_KEY_P)) {
-			direction.y += .01;
-		}
-
-
-		std::cout << "Position: " << position << "\n";
-		std::cout << "Direction: " << position + direction << "\n";
-		std::cout << "Fov: " << fov << "\n";
-
-
-		//std::cout << "Position: " << Render::camera.cameraPos.x << " " << Render::camera.cameraPos.y << " " << Render::camera.cameraPos.z << "\n";
-		//std::cout << "Front: " << Render::camera.cameraFront.x << " " << Render::camera.cameraFront.y << " " << Render::camera.cameraFront.z << "\n";
-		//std::cout << "Up: " << Render::camera.cameraUp.x << " " << Render::camera.cameraUp.y << " " << Render::camera.cameraUp.z << "\n";
-
-		//std::cout << "Angle: " << angle << "\n";
-
-
-
-
-		//glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "model"), 1, GL_FALSE, glm::value_ptr(model));
-		//glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "projection"), 1, GL_FALSE, glm::value_ptr(dl.lightSpaceMatrix));
-
-
-
-		
-		for (Render::Object* o : Render::objects) {
-			int elements = o->insts->da->elements;
-			//std::cout << elements << "\n";
-			if (elements <= 0) {
-				continue;
+			if (Render::getKey(GLFW_KEY_O)) {
+				direction.y -= .01;
+			}
+			if (Render::getKey(GLFW_KEY_P)) {
+				direction.y += .01;
 			}
 
 
-			// bind the position buffer and send the vertices to gpu
-			glBindBuffer(GL_ARRAY_BUFFER, o->positions);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), 0);
-			//glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 1));
-			//glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 2));
-			//glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 3));
+			std::cout << "Position: " << position << "\n";
+			std::cout << "Direction: " << position + direction << "\n";
+			std::cout << "Fov: " << fov << "\n";
 
 
-			// load in the buffer of all instances
-			glBindBuffer(GL_ARRAY_BUFFER, o->insts->buffer);
+			//std::cout << "Position: " << Render::camera.cameraPos.x << " " << Render::camera.cameraPos.y << " " << Render::camera.cameraPos.z << "\n";
+			//std::cout << "Front: " << Render::camera.cameraFront.x << " " << Render::camera.cameraFront.y << " " << Render::camera.cameraFront.z << "\n";
+			//std::cout << "Up: " << Render::camera.cameraUp.x << " " << Render::camera.cameraUp.y << " " << Render::camera.cameraUp.z << "\n";
 
-
-			// this is translation
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
-
-			// this is rotation
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(glm::vec3) + sizeof(int)));
-
-			// this is for scalation
-			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 2 * sizeof(glm::vec3)));
-
-			// this is for color
-			//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
+			//std::cout << "Angle: " << angle << "\n";
 
 
 
 
-			// give the ebo to the gpu
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
+			//glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "model"), 1, GL_FALSE, glm::value_ptr(model));
+			//glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "projection"), 1, GL_FALSE, glm::value_ptr(dl.lightSpaceMatrix));
 
 
 
-			// finally, send the draw command to the gpu
-			glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elements);
+
+			for (Render::Object* o : Render::objects) {
+				int elements = o->insts->da->elements;
+				//std::cout << elements << "\n";
+				if (elements <= 0) {
+					continue;
+				}
 
 
+				// bind the position buffer and send the vertices to gpu
+				glBindBuffer(GL_ARRAY_BUFFER, o->positions);
+				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), 0);
+				//glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 1));
+				//glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 2));
+				//glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 3));
+
+
+				// load in the buffer of all instances
+				glBindBuffer(GL_ARRAY_BUFFER, o->insts->buffer);
+
+
+				// this is translation
+				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
+
+				// this is rotation
+				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(glm::vec3) + sizeof(int)));
+
+				// this is for scalation
+				glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 2 * sizeof(glm::vec3)));
+
+				// this is for color
+				//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
+
+
+
+
+				// give the ebo to the gpu
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
+
+
+
+				// finally, send the draw command to the gpu
+				glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elements);
+
+
+			}
 		}
+
+
+
+
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -841,14 +850,17 @@ int main() {
 
 		glUseProgram(Render::renderShader);
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, dl.depthTexture);
+		glBindTexture(GL_TEXTURE_2D, dls[0].depthTexture);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, dls[1].depthTexture);
+
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, dl.depthTexture);
+		//glActiveTexture(GL_TEXTURE2);
+		//glBindTexture(GL_TEXTURE_2D, dl.depthTexture);
 
 		//glBindTexture(GL_TEXTURE_2D, color);
 		// 
@@ -858,7 +870,9 @@ int main() {
 		glUniform3f(glGetUniformLocation(Render::renderShader, "material.specular"), material_specular.x, material_specular.y, material_specular.z);
 		glUniform1f(glGetUniformLocation(Render::renderShader, "material.shininess"), material_shininess);
 
-		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(dl.lightSpaceMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "lightSpaceMatrix1"), 1, GL_FALSE, glm::value_ptr(dls[0].lightSpaceMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "lightSpaceMatrix2"), 1, GL_FALSE, glm::value_ptr(dls[1].lightSpaceMatrix));
+
 
 
 		glVertexAttribDivisor(3, 1);

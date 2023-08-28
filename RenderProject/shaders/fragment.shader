@@ -23,18 +23,23 @@ layout(std430, binding = 3) buffer name
 	Light data[];
 };
 
+//layout(std430, binding = 3) uniform name2{
+//	sampler2D textures;
+//}
 
 
 
 uniform sampler2D t1;
 uniform sampler2D t2;
-uniform sampler2D depth;
+uniform sampler2D depth1;
+uniform sampler2D depth2;
 
 in VS_OUT{
 	vec3 FragPos;
 vec3 Normal;
 vec2 TexCoords;
-vec4 FragPosLightSpace;
+vec4 FragPosLightSpace1;
+vec4 FragPosLightSpace2;
 } fs_in;
 
 
@@ -140,10 +145,10 @@ vec3 base(Light light,vec3 specular_) {
 	return result;
 }
 
-float ShadowCalculation(vec4 fragPosLightSpace) {
+float ShadowCalculation(vec4 fragPosLightSpace, sampler2D text) {
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 	projCoords = projCoords * 0.5 + 0.5;
-	float closestDepth = texture(depth, projCoords.xy).r;
+	float closestDepth = texture(text, projCoords.xy).r;
 	float currentDepth = projCoords.z;
 	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
 
@@ -180,7 +185,8 @@ void main() {
 	DirectionalLight l = {{ 0,-1,0 }, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 }
 	};
 
-	vec3 result = directional(l,specular);
+	//vec3 result = directional(l,specular);
+	vec3 result = vec3(.25);
 	//result = vec3(0);
 
 	//Light l2 = { {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
@@ -193,13 +199,22 @@ void main() {
 
 	//result += data[1].position;
 	
-	float shadow = ShadowCalculation(fs_in.FragPosLightSpace);
+	float shadow1 = ShadowCalculation(fs_in.FragPosLightSpace1, depth1);
+	float shadow2 = ShadowCalculation(fs_in.FragPosLightSpace2, depth2);
+
+	vec3 result_;
+	if (shadow1 + shadow2 >1.5) {
+		result_ = vec3(0, 0, 0);
+	}
+	else {
+		result_ = result;
+	}
 	
 
 	
 	//FragColor = vec4(vec3(shadow), 1);
 	// if shadow is 1, then we are in shadow
-	vec3 result_ = (1 - shadow)* result;
+	//result_ = (1 - shadow1)* result;
 	
 	FragColor = vec4(result_, 1);
 
