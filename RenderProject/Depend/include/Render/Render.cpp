@@ -11,6 +11,9 @@ unsigned int Render::debugShader = -1;
 unsigned int Render::shadowShader = -1;
 unsigned int Render::depthShader = -1;
 
+int Render::width = 0;
+int Render::height = 0;
+
 std::vector<Render::Object*> Render::objects;
 glm::mat4 Render::model = glm::mat4(1.0f);
 glm::mat4 Render::view = glm::mat4(1.0f);
@@ -322,8 +325,10 @@ void Render::shaderBuildStatus(unsigned int shader, int result) {
 	}
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-	glViewport(0, 0, width, height);
+void framebuffer_size_callback(GLFWwindow* window, int width_, int height_) {
+	Render::width = width_;
+	Render::height = height_;
+	glViewport(0, 0, width_, height_);
 }
 bool wireframe = false;
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -380,7 +385,9 @@ void scrollCallBack(GLFWwindow* window, double xoffset, double yoffset) {
 
 }
 
-void Render::init(int width, int height, bool fullScreen) {
+void Render::init(int width_, int height_, bool fullScreen) {
+	width = width_;
+	height = height_;
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
@@ -407,6 +414,7 @@ void Render::init(int width, int height, bool fullScreen) {
 		return;
 	}
 
+	
 	glViewport(0, 0, width, height);
 
 	glfwSetFramebufferSizeCallback(Render::window, framebuffer_size_callback);

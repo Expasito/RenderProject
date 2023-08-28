@@ -65,6 +65,8 @@ public:
 	private:
 	};
 	
+	static int width, height;
+
 	// This will hold the value if they key is pressed
 	static std::vector<Render::Object*> objects;
 	static GLFWwindow* window;

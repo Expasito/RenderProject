@@ -536,7 +536,7 @@ int main() {
 	//DirectionalLight dl(1024, 1024, 0.0f, 1000.0f, {20,50,20}, {0,0,0});
 
 	DirectionalLight dls[2] = { 
-		DirectionalLight(1024, 1024, -1.0f, 1000.0f, {-20,50,20}, {0,0,0}),
+		DirectionalLight(1024, 1024, -1.0f, 1000.0f, {20,50,20}, {10,0,0}),
 		DirectionalLight(1024, 1024, -1.0f, 1000.0f, {-20,50,20}, {0,0,0}) 
 	};
 
@@ -647,10 +647,6 @@ int main() {
 		glUniform1i(d, 0);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		for (DirectionalLight dl : dls) {
-
-		}
 
 		// draw depths
 		glActiveTexture(GL_TEXTURE2);
@@ -845,7 +841,7 @@ int main() {
 
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		glCullFace(GL_BACK);
-		glViewport(0, 0, 800, 800);
+		glViewport(0, 0, Render::width, Render::height);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 		glUseProgram(Render::renderShader);
