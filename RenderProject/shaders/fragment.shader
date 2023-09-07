@@ -152,18 +152,18 @@ float ShadowCalculation(vec4 fragPosLightSpace, sampler2D text) {
 	float currentDepth = projCoords.z;
 	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
 
-	// if depth is outside of the range, then assume not in shadow
-	if (projCoords.z > 1.0) {
-		shadow = 0.0;
-	}
-	// remove shadows outsize of the texture range
-	if (projCoords.x > 1.0 || projCoords.x < 0.0) {
-		shadow = 0.0;
-	}
-	// remove also for y axis
-	if (projCoords.y > 1.0 || projCoords.y < 0.0) {
-		shadow = 0.0;
-	}
+	//// if depth is outside of the range, then assume not in shadow
+	//if (projCoords.z > 1.0 || projCoords.z < 0.0) {
+	//	shadow = 0.0;
+	//}
+	//// remove shadows outsize of the texture range
+	//if (projCoords.x > 1.0 || projCoords.x < 0.0) {
+	//	shadow = 0.0;
+	//}
+	//// remove also for y axis
+	//if (projCoords.y > 1.0 || projCoords.y < 0.0) {
+	//	shadow = 0.0;
+	//}
 	return shadow;
 }
 
@@ -180,19 +180,21 @@ float ShadowCalculation(vec4 fragPosLightSpace, sampler2D text) {
 void main() {
 
 
-	vec3 specular = vec3(texture(t2, texturecoords_).x);
+	//vec3 specular = vec3(texture(t2, texturecoords_).x);
+	vec3 specular = vec3(1, 1, 1);
 
-	DirectionalLight l = {{ 0,-1,0 }, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 }
-	};
+	DirectionalLight l = {{ -1,-1,1}, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 }};
 
-	//vec3 result = directional(l,specular);
-	vec3 result = vec3(.25);
+	vec3 result = directional(l,specular);
+	//vec3 result = vec3(0, 0, 0);
+	//vec3 result = vec3(.25);
 	//result = vec3(0);
 
 	//Light l2 = { {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
 	//result += base(l2);
 	for (int i = 0; i < size-size; i++) {
 		result += base(data[i],specular);
+		//result += data[i].position;
 	}
 	//result = vec3(0, 0, 0);
 
@@ -203,13 +205,15 @@ void main() {
 	float shadow2 = ShadowCalculation(fs_in.FragPosLightSpace2, depth2);
 
 	vec3 result_;
-	if (shadow1 + shadow2 >1.5) {
+	if (shadow1 + shadow2 >.5) {
 		result_ = vec3(0, 0, 0);
 	}
 	else {
-		result_ = result;
+		//result_ = result;
+		result_ = vec3(1, 1, 1);
 	}
 	
+
 
 	
 	//FragColor = vec4(vec3(shadow), 1);
@@ -217,6 +221,11 @@ void main() {
 	//result_ = (1 - shadow1)* result;
 	
 	FragColor = vec4(result_, 1);
+
+
+	FragColor = vec4(vec3(shadow1), 1);
+
+	//FragColor = vec4(result, 1);
 
 	//FragColor = vec4(1, 1, 1, 1);
 

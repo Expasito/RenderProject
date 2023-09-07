@@ -131,7 +131,7 @@ public:
 	glm::vec3 position;
 	glm::vec3 lookat;
 
-	DirectionalLight(int width_, int height_, float nearClip_, float farClip_, glm::vec3 position_, glm::vec3 lookat_) {
+	DirectionalLight(int width_, int height_, float nearClip_, float farClip_, glm::vec3 position_, glm::vec3 lookat_, float lw) {
 
 		width = width_;
 		height = height_;
@@ -160,7 +160,7 @@ public:
 		position = position_;
 		lookat = lookat_;
 
-		lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearClip, farClip);
+		lightProjection = glm::ortho(-lw, lw, -lw, lw, nearClip, farClip);
 
 		lightView = glm::lookAt(position,
 			lookat,
@@ -245,7 +245,7 @@ int main() {
 
 	srand(time(0));
 	Render::init(800,800,false);
-	Render::camera.baseSpeed = 10;
+	Render::camera.baseSpeed = 30;
 
 
 
@@ -333,17 +333,82 @@ int main() {
 
 	//Render::addInstance("Room", { 20,0,0 }, { 0,0,0 }, { 1,1,1 }, { .5,.5,.5 });
 
-	Render::addModel("assets/Cube3.obj", "CUBE", 100, 100);
+	Render::addModel("assets/Cube3.obj", "CUBE", 500000, 500000);
 	Render::addModel("assets/sphere.obj", "Sphere", 100, 100);
 
 	//Render::addInstance("CUBE", { 0,-10,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
-	Render::addInstance("Test", { 20,-2,0 }, { 0,0,0 }, { 1,1,1 }, {1,1,1});
-	Render::addInstance("Test", { 0,-2,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
+	//Render::addInstance("Test", { 20,-2,0 }, { 0,0,0 }, { 1,1,1 }, {1,1,1});
+	//Render::addInstance("Test", { 0,-2,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
 
-	Render::addInstance("Test", { 0,-5,0 }, { 0,0,0 }, { 10,1,10 }, { 1,1,1 });
+	//Render::addInstance("Test", { 0,-5,0 }, { 0,0,0 }, { 10,1,10 }, { 1,1,1 });
 
 
 	Render::addInstance("Test", { 0,-10,0 }, { 0,0,0 }, { 1000,1,1000 }, { 1,1,1 });
+
+	Render::addInstance("Test", {0,5,0}, {0,0,0}, {10,1,10}, {1,1,1});
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/*
+	* 
+	* Lets try some terrain generation to really test the shadows!
+	* 
+	* Plan: try to replicate a form of perlin noise and generate cubes at each point with the correct height
+	* 
+	*/
+
+	int mapX = 500;
+	int mapY = 500;
+
+	// make a 500 by 500 map to put values in
+	float* map1 = (float*)malloc(sizeof(int) * mapX * mapY);
+	int* map2 = (int*)malloc(sizeof(int) * mapX * mapY);
+	int* map3 = (int*)malloc(sizeof(int) * mapX * mapY);
+
+	for (int i = 0; i < mapX*mapY; i++) {
+		map1[i] = rand()/(float)RAND_MAX;
+		map2[i] = rand();
+		map3[i] = rand();
+	}
+
+	// Now we have 3 maps of random values
+
+	float maxHeight = 10;
+	float halfMaxHeight = maxHeight / 2.0;
+
+
+	for (int i = 0; i < mapX; i++) {
+		for (int j = 0; j < mapY; j++) {
+			float sum = 0;
+			for (int i = 0; i < 10; i++) {
+				sum += (float)rand() / (float)RAND_MAX;
+			}
+			sum /= 10.0;
+			//Render::addInstance("CUBE", { 2*i,100*cos(glm::radians((float)rand()/(float)RAND_MAX)),2*j}, {0,0,0}, {1,1,1}, {1,1,1});
+			//Render::addInstance("CUBE", { 2 * i, sum*20,2 * j}, {0,0,0}, {1,1,1}, {1,1,1});
+
+		}
+	}
+
+
+
+
+
+
+
+
+
+
 
 	//Render::addInstance("CUBE", { -10,-10,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
 
@@ -441,13 +506,13 @@ int main() {
 	};
 
 	Light lights[] = {
-		{{5,5,0},{1,1,1},{1,1,1},{1,1,1}},
-		{{-20,10,0},{1,1,1},{.2,.25,.25},{1,1,1}},
-		{{0,10,20},{0,0,1},{.5,0,.25},{.5,.5,1}}
+		{{0,0,0},{1,1,1},{1,1,1},{1,1,1}},
+		//{{-20,10,0},{1,1,1},{.2,.25,.25},{1,1,1}},
+		//{{0,10,20},{0,0,1},{.5,0,.25},{.5,.5,1}}
 	};
 
-	//int numLights = sizeof(lights) / sizeof(Light);
-	int numLights = 0;
+	int numLights = sizeof(lights) / sizeof(Light);
+	//int numLights = 3;
 	std::cout << sizeof(glm::vec3) << " size here <-" << "\n";
 	std::cout << sizeof(int) << " " << sizeof(short) << " " << sizeof(float) << "\n";
 
@@ -466,43 +531,36 @@ int main() {
 	// test drawing other stuff
 	float vertices[] = {
 		// x, y ,z, u, v
-		// do the bottom left triangle
-			0,0,0,1,1,
-			0,-1,0,1,0,
-			-1,0,0,0,1,
-			
 
-			0,-1,0,1,0,
-			-1,0,0,0,1,
+			// do the top right
+			1,1,0,1,1,
+			1,-1,0,1,0,
+			-1,1,0,0,1,
+
+			// do the bottom triangle
+			1,-1,0,1,0,
+			-1,1,0,0,1,
 			-1,-1,0,0,0,
 
-			// top right triangle
-			0,0,0,0,0,
-			0,1,0,0,1,
-			1,0,0,1,0,
+			//// and bottom left
+			//0,0,0,0,0,
+			//0,1,0,0,1,
+			//1,0,0,1,0,
 
 
-			0,1,0,0,1,
-			1,0,0,1,0,
-			1,1,0,1,1,
-
-			// bottom right triangle
-			0,0,0,0,1,
-			0,-1,0,0,0,
-			1,0,0,1,1,
-
-			0,-1,0,0,0,
-			1,0,0,1,1,
-			1,-1,0,1,0,
+			//0,1,0,0,1,
+			//1,0,0,1,0,
+			//1,1,0,1,1,
 
 			//// bottom right triangle
-			//-1,-1,0,0,0,
-			//-1,1,0,0,1,
+			//0,0,0,0,1,
+			//0,-1,0,0,0,
+			//1,0,0,1,1,
+
+			//0,-1,0,0,0,
+			//1,0,0,1,1,
 			//1,-1,0,1,0,
 
-			//-1,1,0,0,1,
-			//1,1,0,1,1,
-			//1,-1,0,1,0,
 
 	};
 	unsigned int screen;
@@ -536,8 +594,8 @@ int main() {
 	//DirectionalLight dl(1024, 1024, 0.0f, 1000.0f, {20,50,20}, {0,0,0});
 
 	DirectionalLight dls[2] = { 
-		DirectionalLight(1024, 1024, -1.0f, 1000.0f, {20,50,20}, {10,0,0}),
-		DirectionalLight(1024, 1024, -1.0f, 1000.0f, {-20,50,20}, {0,0,0}) 
+		DirectionalLight(1024, 1024, 0.0f, 1000.0f, {0.00001,50,0.001}, {0,0,0},10),
+		DirectionalLight(1024, 1024, 0.0f, 1000.0f, {0.00001,50,0.001}, {0,0,0},10) 
 	};
 
 
@@ -654,7 +712,7 @@ int main() {
 
 		glUniform1i(d, 1);
 
-		glDrawArrays(GL_TRIANGLES, 6, 6);
+		//glDrawArrays(GL_TRIANGLES, 6, 6);
 
 		// draw shadows
 		glUseProgram(Render::shadowShader);
@@ -669,12 +727,12 @@ int main() {
 
 
 
-		glDrawArrays(GL_TRIANGLES, 12,6);
+		//glDrawArrays(GL_TRIANGLES, 12,6);
 
 
 		for (DirectionalLight dl : dls) {
 			glBindFramebuffer(GL_FRAMEBUFFER, dl.fbo);
-			glCullFace(GL_FRONT);
+			//glCullFace(GL_FRONT);
 			glViewport(0, 0, dl.width, dl.height);
 			glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -758,9 +816,9 @@ int main() {
 			}
 
 
-			std::cout << "Position: " << position << "\n";
-			std::cout << "Direction: " << position + direction << "\n";
-			std::cout << "Fov: " << fov << "\n";
+			//std::cout << "Position: " << position << "\n";
+			//std::cout << "Direction: " << position + direction << "\n";
+			//std::cout << "Fov: " << fov << "\n";
 
 
 			//std::cout << "Position: " << Render::camera.cameraPos.x << " " << Render::camera.cameraPos.y << " " << Render::camera.cameraPos.z << "\n";
@@ -910,7 +968,7 @@ int main() {
 
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		milis = (end - begin).count() / 1000000.0;
-		//std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
+		std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
 
 	}
 
