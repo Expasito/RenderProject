@@ -225,6 +225,25 @@ void main() {
 
 	FragColor = vec4(vec3(shadow1), 1);
 
+
+	vec3 projCoords = fs_in.FragPosLightSpace1.xyz / fs_in.FragPosLightSpace1.w;
+	projCoords = projCoords * 0.5 + 0.5;
+
+	vec4 out_ = vec4(1, 1, 1, 1);
+
+	if (projCoords.x > 1.0) {
+		out_.x = 0;
+	}
+
+	if (projCoords.y > 1.0) {
+		out_.y = 0;
+	}
+
+	vec4 res = texture(depth1, projCoords.xy);
+	FragColor = vec4(projCoords.xy, 0, 1);
+
+	FragColor = out_;
+
 	//FragColor = vec4(result, 1);
 
 	//FragColor = vec4(1, 1, 1, 1);
