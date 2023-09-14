@@ -148,7 +148,7 @@ vec3 base(Light light,vec3 specular_) {
 float ShadowCalculation(vec4 fragPosLightSpace, sampler2D text) {
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 	projCoords = projCoords * 0.5 + 0.5;
-	float closestDepth = texture(text, projCoords.xy).r;
+	float closestDepth = texture(text, projCoords.xy).r + .0005;
 	float currentDepth = projCoords.z;
 	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
 
@@ -225,24 +225,38 @@ void main() {
 
 	FragColor = vec4(vec3(shadow1), 1);
 
+	vec4 fragPosLightSpace = fs_in.FragPosLightSpace1;
 
-	vec3 projCoords = fs_in.FragPosLightSpace1.xyz / fs_in.FragPosLightSpace1.w;
+
+	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 	projCoords = projCoords * 0.5 + 0.5;
+	float closestDepth = texture(depth1, projCoords.xy).r;
+	float currentDepth = projCoords.z;
+	float shadow = currentDepth-.005 > closestDepth ? 1.0 : 0.0;
 
-	vec4 out_ = vec4(1, 1, 1, 1);
-
-	if (projCoords.x > 1.0) {
-		out_.x = 0;
+	if (projCoords.x > 1 || projCoords.x < 0 || projCoords.y < 0 || projCoords.y > 1) {
+		// not in shadow, so result
+		FragColor = vec4(result, 1);
+	}
+	else {
+		//FragColor = vec4(vec3(projCoords.z*10), 1);
+		//FragColor = vec4(vec3(closestDepth*10), 1);
+		//FragColor = vec4(vec3(1-shadow), 1);
+		FragColor = vec4((1 - shadow) * result, 1);
+		//FragColor = vec4(0, 0, 0, 1);
+		//FragColor = vec4(1, 1, 1, 1);
 	}
 
-	if (projCoords.y > 1.0) {
-		out_.y = 0;
-	}
 
-	vec4 res = texture(depth1, projCoords.xy);
-	FragColor = vec4(projCoords.xy, 0, 1);
+	//FragColor = vec4(vec3(texture(depth1, projCoords.xy).x*10),1);
+	//FragColor = texture(depth1, fs_in.TexCoords)*10;
 
-	FragColor = out_;
+	//FragColor = vec4(projCoords, 1);
+	//FragColor = vec4(vec3(projCoords.z*10), 1);
+	//FragColor = vec4(vec3((1-shadow)*vec3(1,0,0)), 1);
+
+	//FragColor = vec4(1, 1, 1, 1);
+	//FragColor = vec4(vec3(currentDepth), 1);
 
 	//FragColor = vec4(result, 1);
 

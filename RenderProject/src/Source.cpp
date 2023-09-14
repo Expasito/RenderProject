@@ -594,7 +594,7 @@ int main() {
 	//DirectionalLight dl(1024, 1024, 0.0f, 1000.0f, {20,50,20}, {0,0,0});
 
 	DirectionalLight dls[2] = { 
-		DirectionalLight(1024, 1024, 0.0f, 1000.0f, {0.00001,50,0.001}, {0,0,0},10),
+		DirectionalLight(1024, 1024, 0.0f, 1000.0f, {1,50,1}, {0,0,0},30),
 		DirectionalLight(1024, 1024, 0.0f, 1000.0f, {0.00001,50,0.001}, {0,0,0},10) 
 	};
 
@@ -739,93 +739,15 @@ int main() {
 			glVertexAttribDivisor(3, 1);
 			glVertexAttribDivisor(1, 1);
 
-			glEnable(GL_CULL_FACE);
+			//glEnable(GL_CULL_FACE);
 			glEnable(GL_DEPTH);
 
 			glUseProgram(Render::depthShader);
 
 			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, texture1);
+			//glBindTexture(GL_TEXTURE_2D, texture1);
+			glBindTexture(GL_TEXTURE_2D, dl.depthTexture);
 
-			glm::mat4 model(1.0f);
-			glm::mat4 view = glm::lookAt(glm::vec3(0, 20, .0001), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-
-			angle += .01;
-
-			//float near_plane = .1f, far_plane = 30.0f;
-			////glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-			////glm::mat4 lightProjection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, -.0001f, 1000.0f);
-			//glm::mat4 lightProjection = glm::perspective(glm::radians(fov),1.0f,.00001f,1000.0f);
-			////glm::vec3(-2.0f, 5, 2.0f)
-			//glm::mat4 lightView = glm::lookAt(position,
-			//	glm::vec3(direction+position),
-			//	glm::vec3(0.0f, 1.0f, 0.0f));
-			//glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
-			// update light position
-			if (Render::getKey(GLFW_KEY_LEFT)) {
-				position.x -= .1;
-			}
-			if (Render::getKey(GLFW_KEY_RIGHT)) {
-				position.x += .1;
-			}
-
-			if (Render::getKey(GLFW_KEY_UP)) {
-				position.z += .1;
-			}
-			if (Render::getKey(GLFW_KEY_DOWN)) {
-				position.z -= .1;
-			}
-
-			if (Render::getKey(GLFW_KEY_RIGHT_SHIFT)) {
-				position.y -= .1;
-			}
-			if (Render::getKey(GLFW_KEY_ENTER)) {
-				position.y += .1;
-			}
-
-			// fov
-			if (Render::getKey(GLFW_KEY_N)) {
-				fov -= .1;
-			}
-			if (Render::getKey(GLFW_KEY_M)) {
-				fov += .1;
-			}
-
-			// update the direction
-
-			if (Render::getKey(GLFW_KEY_J)) {
-				direction.x -= .01;
-			}
-			if (Render::getKey(GLFW_KEY_L)) {
-				direction.x += .01;
-			}
-
-			if (Render::getKey(GLFW_KEY_I)) {
-				direction.z += .01;
-			}
-			if (Render::getKey(GLFW_KEY_K)) {
-				direction.z -= .01;
-			}
-
-			if (Render::getKey(GLFW_KEY_O)) {
-				direction.y -= .01;
-			}
-			if (Render::getKey(GLFW_KEY_P)) {
-				direction.y += .01;
-			}
-
-
-			//std::cout << "Position: " << position << "\n";
-			//std::cout << "Direction: " << position + direction << "\n";
-			//std::cout << "Fov: " << fov << "\n";
-
-
-			//std::cout << "Position: " << Render::camera.cameraPos.x << " " << Render::camera.cameraPos.y << " " << Render::camera.cameraPos.z << "\n";
-			//std::cout << "Front: " << Render::camera.cameraFront.x << " " << Render::camera.cameraFront.y << " " << Render::camera.cameraFront.z << "\n";
-			//std::cout << "Up: " << Render::camera.cameraUp.x << " " << Render::camera.cameraUp.y << " " << Render::camera.cameraUp.z << "\n";
-
-			//std::cout << "Angle: " << angle << "\n";
 
 
 
