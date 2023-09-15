@@ -367,8 +367,8 @@ int main() {
 	* 
 	*/
 
-	int mapX = 500;
-	int mapY = 500;
+	int mapX = 50;
+	int mapY = 50;
 
 	// make a 500 by 500 map to put values in
 	float* map1 = (float*)malloc(sizeof(int) * mapX * mapY);
@@ -393,9 +393,9 @@ int main() {
 			for (int i = 0; i < 10; i++) {
 				sum += (float)rand() / (float)RAND_MAX;
 			}
-			sum /= 10.0;
+			//sum /= 10.0;
 			//Render::addInstance("CUBE", { 2*i,100*cos(glm::radians((float)rand()/(float)RAND_MAX)),2*j}, {0,0,0}, {1,1,1}, {1,1,1});
-			//Render::addInstance("CUBE", { 2 * i, sum*20,2 * j}, {0,0,0}, {1,1,1}, {1,1,1});
+			Render::addInstance("CUBE", { 2 * i, sum*20,2 * j}, {0,0,0}, {1,1,1}, {1,1,1});
 
 		}
 	}
@@ -594,7 +594,7 @@ int main() {
 	//DirectionalLight dl(1024, 1024, 0.0f, 1000.0f, {20,50,20}, {0,0,0});
 
 	DirectionalLight dls[2] = { 
-		DirectionalLight(1024, 1024, 0.0f, 1000.0f, {1,50,1}, {0,0,0},30),
+		DirectionalLight(4096, 4096, 0.0f, 1000.0f, {1,100,1}, {0,0,0},1000),
 		DirectionalLight(1024, 1024, 0.0f, 1000.0f, {0.00001,50,0.001}, {0,0,0},10) 
 	};
 
@@ -732,14 +732,14 @@ int main() {
 
 		for (DirectionalLight dl : dls) {
 			glBindFramebuffer(GL_FRAMEBUFFER, dl.fbo);
-			//glCullFace(GL_FRONT);
+			glCullFace(GL_FRONT);
 			glViewport(0, 0, dl.width, dl.height);
 			glClear(GL_DEPTH_BUFFER_BIT);
 
 			glVertexAttribDivisor(3, 1);
 			glVertexAttribDivisor(1, 1);
 
-			//glEnable(GL_CULL_FACE);
+			glEnable(GL_CULL_FACE);
 			glEnable(GL_DEPTH);
 
 			glUseProgram(Render::depthShader);

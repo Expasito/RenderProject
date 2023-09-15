@@ -148,34 +148,28 @@ vec3 base(Light light,vec3 specular_) {
 float ShadowCalculation(vec4 fragPosLightSpace, sampler2D text) {
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 	projCoords = projCoords * 0.5 + 0.5;
-	float closestDepth = texture(text, projCoords.xy).r + .0005;
+
+	// first make sure the projection coordinates are within the 0 to 1 range
+	// and not to far out to me measured
+	if (projCoords.x > 1 || 
+		projCoords.x < 0 || 
+		projCoords.y < 0 || 
+		projCoords.y > 1
+		) {
+		return 0;
+	}
+
+	float closestDepth = texture(text, projCoords.xy).r;
 	float currentDepth = projCoords.z;
+	// add since we are culling front faces
+	//float shadow = currentDepth+.0001 > closestDepth ? 1.0 : 0.0;
 	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
 
-	//// if depth is outside of the range, then assume not in shadow
-	//if (projCoords.z > 1.0 || projCoords.z < 0.0) {
-	//	shadow = 0.0;
-	//}
-	//// remove shadows outsize of the texture range
-	//if (projCoords.x > 1.0 || projCoords.x < 0.0) {
-	//	shadow = 0.0;
-	//}
-	//// remove also for y axis
-	//if (projCoords.y > 1.0 || projCoords.y < 0.0) {
-	//	shadow = 0.0;
-	//}
+
+
 	return shadow;
 }
 
-//vec3 ShadowCalculation(vec4 fragPosLightSpace) {
-//	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-//	projCoords = projCoords * 0.5 + 0.5;
-//	return projCoords;
-//	float closestDepth = texture(depth, projCoords.xy).r;
-//	float currentDepth = projCoords.z;
-//	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
-//	return shadow;
-//}
 
 void main() {
 
@@ -186,13 +180,13 @@ void main() {
 	DirectionalLight l = {{ -1,-1,1}, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 }};
 
 	vec3 result = directional(l,specular);
-	//vec3 result = vec3(0, 0, 0);
+	//result = vec3(0, 0, 0);
 	//vec3 result = vec3(.25);
 	//result = vec3(0);
 
 	//Light l2 = { {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
 	//result += base(l2);
-	for (int i = 0; i < size-size; i++) {
+	for (int i = 0; i < size; i++) {
 		result += base(data[i],specular);
 		//result += data[i].position;
 	}
@@ -202,93 +196,27 @@ void main() {
 	//result += data[1].position;
 	
 	float shadow1 = ShadowCalculation(fs_in.FragPosLightSpace1, depth1);
-	float shadow2 = ShadowCalculation(fs_in.FragPosLightSpace2, depth2);
+	//float shadow2 = ShadowCalculation(fs_in.FragPosLightSpace2, depth2);
+
 
 	vec3 result_;
-	if (shadow1 + shadow2 >.5) {
+	if (shadow1 >.5) {
 		result_ = vec3(0, 0, 0);
 	}
 	else {
 		//result_ = result;
 		result_ = vec3(1, 1, 1);
 	}
+
+	result_ = (1 - shadow1) * result;
 	
 
 
-	
-	//FragColor = vec4(vec3(shadow), 1);
-	// if shadow is 1, then we are in shadow
-	//result_ = (1 - shadow1)* result;
+
+
 	
 	FragColor = vec4(result_, 1);
 
-
-	FragColor = vec4(vec3(shadow1), 1);
-
-	vec4 fragPosLightSpace = fs_in.FragPosLightSpace1;
-
-
-	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-	projCoords = projCoords * 0.5 + 0.5;
-	float closestDepth = texture(depth1, projCoords.xy).r;
-	float currentDepth = projCoords.z;
-	float shadow = currentDepth-.005 > closestDepth ? 1.0 : 0.0;
-
-	if (projCoords.x > 1 || projCoords.x < 0 || projCoords.y < 0 || projCoords.y > 1) {
-		// not in shadow, so result
-		FragColor = vec4(result, 1);
-	}
-	else {
-		//FragColor = vec4(vec3(projCoords.z*10), 1);
-		//FragColor = vec4(vec3(closestDepth*10), 1);
-		//FragColor = vec4(vec3(1-shadow), 1);
-		FragColor = vec4((1 - shadow) * result, 1);
-		//FragColor = vec4(0, 0, 0, 1);
-		//FragColor = vec4(1, 1, 1, 1);
-	}
-
-
-	//FragColor = vec4(vec3(texture(depth1, projCoords.xy).x*10),1);
-	//FragColor = texture(depth1, fs_in.TexCoords)*10;
-
-	//FragColor = vec4(projCoords, 1);
-	//FragColor = vec4(vec3(projCoords.z*10), 1);
-	//FragColor = vec4(vec3((1-shadow)*vec3(1,0,0)), 1);
-
-	//FragColor = vec4(1, 1, 1, 1);
-	//FragColor = vec4(vec3(currentDepth), 1);
-
-	//FragColor = vec4(result, 1);
-
-	//FragColor = vec4(1, 1, 1, 1);
-
-
-	//FragColor = vec4(ShadowCalculation(fs_in.FragPosLightSpace).xy/2,0,1);
-
-	//FragColor = vec4(vec3(shadow), 1);
-
-
-
-	//FragColor = vec4(1, 1, 1, 1);
-
-	//FragColor = vec4(shadow, shadow, shadow, 1);
-
-	//FragColor = texture(depth, texturecoords_);
-
-	//FragColor = vec4(1);
-
-	//FragColor = texture(t1, texturecoords_);
-
-
-	//float depth = gl_FragCoord.z * (1 / 1000.0 - 1 / .01) + 1/.01;
-	//FragColor = vec4(result,1);
-	//FragColor = vec4(vec3(depth), 1);
-
-	//FragColor = texture(t1, texturecoords_);
-
-	//FragColor = vec4(data[0].position, 1);
-
-	//FragColor = vec4(data[0], data[1], data[2], 1);
 
 
 }
