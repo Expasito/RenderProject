@@ -372,16 +372,36 @@ int main() {
 
 	// make a 500 by 500 map to put values in
 	float* map1 = (float*)malloc(sizeof(int) * mapX * mapY);
-	int* map2 = (int*)malloc(sizeof(int) * mapX * mapY);
-	int* map3 = (int*)malloc(sizeof(int) * mapX * mapY);
+	float* map2 = (float*)malloc(sizeof(float) * mapX * mapY);
+	float* map3 = (float*)malloc(sizeof(float) * mapX * mapY);
 
+	float* mapOut = (float*)malloc(sizeof(float) * (mapX-1) * (mapY-1));
+
+	// these hold the xyz values
 	for (int i = 0; i < mapX*mapY; i++) {
 		map1[i] = rand()/(float)RAND_MAX;
-		map2[i] = rand();
-		map3[i] = rand();
+		map2[i] = rand()/(float)RAND_MAX;
+		map3[i] = rand()/(float)RAND_MAX;
 	}
 
 	// Now we have 3 maps of random values
+
+	// so go through and create a new map that is the sum of each vector
+	for (int i = 0; i < mapX - 1; i++) {
+		for (int j = 0; j < mapY - 1; j++) {
+			float x = map1[i * mapX + j] + map1[i * mapX + j+1] + map1[i * (mapX+1) + j] + map1[i*(mapX+1) + j+1];
+			float y = map2[i * mapX + j] + map2[i * mapX + j + 1] + map2[i * (mapX + 1) + j] + map2[i * (mapX + 1) + j + 1];
+			float z = map3[i * mapX + j] + map3[i * mapX + j + 1] + map3[i * (mapX + 1) + j] + map3[i * (mapX + 1) + j + 1];
+			x = x / 4.0;
+			y = y / 4.0;
+			z = z / 4.0;
+			mapOut[i * (mapX-1) + j] = (x + y + z)/3;
+
+
+		}
+	}
+	//exit(1);
+
 
 	float maxHeight = 10;
 	float halfMaxHeight = maxHeight / 2.0;
@@ -393,13 +413,19 @@ int main() {
 			for (int i = 0; i < 10; i++) {
 				sum += (float)rand() / (float)RAND_MAX;
 			}
-			//sum /= 10.0;
+			sum /= 10.0;
 			//Render::addInstance("CUBE", { 2*i,100*cos(glm::radians((float)rand()/(float)RAND_MAX)),2*j}, {0,0,0}, {1,1,1}, {1,1,1});
-			Render::addInstance("CUBE", { 2 * i, sum*20,2 * j}, {0,0,0}, {1,1,1}, {1,1,1});
+			//Render::addInstance("CUBE", { 2 * i, sum*20,2 * j}, {0,0,0}, {1,1,1}, {1,1,1});
 
 		}
 	}
 
+	for (int i = 0; i < mapX - 1; i++) {
+		for (int j = 0; j < mapY - 1; j++) {
+			float hei = 20*(100 * mapOut[i * (mapX - 1) + j])/100;
+			Render::addInstance("CUBE", {2*i,hei,j * 2}, {0,0,0}, {1,1,1}, {1,1,1});
+		}
+	}
 
 
 
@@ -594,7 +620,7 @@ int main() {
 	//DirectionalLight dl(1024, 1024, 0.0f, 1000.0f, {20,50,20}, {0,0,0});
 
 	DirectionalLight dls[2] = { 
-		DirectionalLight(4096, 4096, 0.0f, 1000.0f, {1,100,1}, {0,0,0},1000),
+		DirectionalLight(4096, 4096, 0.0f, 1000.0f, {1,100,1}, {0,0,0},40),
 		DirectionalLight(1024, 1024, 0.0f, 1000.0f, {0.00001,50,0.001}, {0,0,0},10) 
 	};
 
@@ -732,7 +758,7 @@ int main() {
 
 		for (DirectionalLight dl : dls) {
 			glBindFramebuffer(GL_FRAMEBUFFER, dl.fbo);
-			glCullFace(GL_FRONT);
+			//glCullFace(GL_FRONT);
 			glViewport(0, 0, dl.width, dl.height);
 			glClear(GL_DEPTH_BUFFER_BIT);
 

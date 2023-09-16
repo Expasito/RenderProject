@@ -154,7 +154,8 @@ float ShadowCalculation(vec4 fragPosLightSpace, sampler2D text) {
 	if (projCoords.x > 1 || 
 		projCoords.x < 0 || 
 		projCoords.y < 0 || 
-		projCoords.y > 1
+		projCoords.y > 1 ||
+		projCoords.z > 1
 		) {
 		return 0;
 	}
@@ -162,8 +163,15 @@ float ShadowCalculation(vec4 fragPosLightSpace, sampler2D text) {
 	float closestDepth = texture(text, projCoords.xy).r;
 	float currentDepth = projCoords.z;
 	// add since we are culling front faces
-	//float shadow = currentDepth+.0001 > closestDepth ? 1.0 : 0.0;
-	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+
+	//float d = dot(fs_in.Normal, normalize(vec3(0, 0, 0) - vec3(1, 100, 1))) * .5 + .5;
+	//float d = dot(fs_in.Normal, normalize(vec3(0, 0, 0) - vec3(1, 100, 1)));
+
+	//float bias = -d*.0001;
+	float bias = max(0.005 * (1.0 - dot(fs_in.Normal, normalize(vec3(0, 0, 0) - vec3(1, 100, 1)))), 0.005);
+	//bias = .00005;
+	float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+	//float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
 
 
 
@@ -180,13 +188,13 @@ void main() {
 	DirectionalLight l = {{ -1,-1,1}, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 }};
 
 	vec3 result = directional(l,specular);
-	//result = vec3(0, 0, 0);
+	//result = vec3(.4, .3, .5);
 	//vec3 result = vec3(.25);
 	//result = vec3(0);
 
 	//Light l2 = { {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
 	//result += base(l2);
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; i < size-size; i++) {
 		result += base(data[i],specular);
 		//result += data[i].position;
 	}
@@ -216,6 +224,11 @@ void main() {
 
 	
 	FragColor = vec4(result_, 1);
+
+	vec3 lightPos = vec3(1, 100, 1);
+
+	float d = dot(fs_in.Normal, normalize(vec3(0,0,0)-vec3(1,100,1))) *.5 + .5;
+	//FragColor = vec4(vec3(d), 1);
 
 
 
