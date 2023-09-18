@@ -268,7 +268,7 @@ void Render::renderAll() {
 
 	Render::camera.translate(Render::left, Render::right, Render::up, Render::down, Render::forward, Render::backward);
 	Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
-	Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
+	Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 10000.0f);
 
 
 

@@ -333,7 +333,7 @@ int main() {
 
 	//Render::addInstance("Room", { 20,0,0 }, { 0,0,0 }, { 1,1,1 }, { .5,.5,.5 });
 
-	Render::addModel("assets/Cube3.obj", "CUBE", 500000, 500000);
+	Render::addModel("assets/Cube3.obj", "CUBE", 5000000, 5000000);
 	Render::addModel("assets/sphere.obj", "Sphere", 100, 100);
 
 	//Render::addInstance("CUBE", { 0,-10,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
@@ -343,9 +343,9 @@ int main() {
 	//Render::addInstance("Test", { 0,-5,0 }, { 0,0,0 }, { 10,1,10 }, { 1,1,1 });
 
 
-	Render::addInstance("Test", { 0,-10,0 }, { 0,0,0 }, { 1000,1,1000 }, { 1,1,1 });
+	//Render::addInstance("Test", { 0,-10,0 }, { 0,0,0 }, { 1000,1,1000 }, { 1,1,1 });
 
-	Render::addInstance("Test", {0,5,0}, {0,0,0}, {10,1,10}, {1,1,1});
+	//Render::addInstance("Test", {0,5,0}, {0,0,0}, {10,1,10}, {1,1,1});
 
 
 
@@ -367,67 +367,65 @@ int main() {
 	* 
 	*/
 
-	int mapX = 50;
-	int mapY = 50;
+	// has to be at least 2
+	const int width = 20;
+	const int height = 20;
 
-	// make a 500 by 500 map to put values in
-	float* map1 = (float*)malloc(sizeof(int) * mapX * mapY);
-	float* map2 = (float*)malloc(sizeof(float) * mapX * mapY);
-	float* map3 = (float*)malloc(sizeof(float) * mapX * mapY);
-
-	float* mapOut = (float*)malloc(sizeof(float) * (mapX-1) * (mapY-1));
-
-	// these hold the xyz values
-	for (int i = 0; i < mapX*mapY; i++) {
-		map1[i] = rand()/(float)RAND_MAX;
-		map2[i] = rand()/(float)RAND_MAX;
-		map3[i] = rand()/(float)RAND_MAX;
-	}
-
-	// Now we have 3 maps of random values
-
-	// so go through and create a new map that is the sum of each vector
-	for (int i = 0; i < mapX - 1; i++) {
-		for (int j = 0; j < mapY - 1; j++) {
-			float x = map1[i * mapX + j] + map1[i * mapX + j+1] + map1[i * (mapX+1) + j] + map1[i*(mapX+1) + j+1];
-			float y = map2[i * mapX + j] + map2[i * mapX + j + 1] + map2[i * (mapX + 1) + j] + map2[i * (mapX + 1) + j + 1];
-			float z = map3[i * mapX + j] + map3[i * mapX + j + 1] + map3[i * (mapX + 1) + j] + map3[i * (mapX + 1) + j + 1];
-			x = x / 4.0;
-			y = y / 4.0;
-			z = z / 4.0;
-			mapOut[i * (mapX-1) + j] = (x + y + z)/3;
-
-
+	int h_ = 50;
+	int arr[width][height];
+	for (int i = 0; i < width; i++) {
+		for (int j = 0; j < height; j++) {
+			arr[i][j] = (rand() / (float)RAND_MAX) * h_;
 		}
 	}
-	//exit(1);
+
+	//srand(0);
+
+	// generate a cool world with terrain
+	for (int i = 0; i < width-1; i++) {
+		for (int j = 0; j < height-1; j++) {
+			// this is the width and length
+			int blocks = 32;
+			float slopex = (arr[i+1][j] - arr[i][j])/(float)blocks;
+			float slopez = (arr[i][j+1] - arr[i][j])/(float)blocks;
+			for (int k = 0; k < blocks; k++) {
+				for (int l = 0; l < blocks; l++) {
+
+					// take each point out of the 4 and multiply by the situation where when the k and l values are
+					// at its location, the value at that point is used
+					float h = (arr[i][j]) * (1-(float)k / blocks) * (1-(float)l / blocks) + 
+						(arr[i+1][j+1]) * ((float)k / blocks) * ((float)l / blocks) +
+						(arr[i+1][j]) * ((float)k / blocks) * (1-(float)l / blocks) +
+						(arr[i][j+1]) * (1-(float)k / blocks) * ((float)l / blocks)
+						;
 
 
-	float maxHeight = 10;
-	float halfMaxHeight = maxHeight / 2.0;
+					//h = h / 2.0;
+					h = h*2;
+					h = (int)h;
+					for (int m = h-1; m < h; m++) {
+						// add a white cube for snow
+						if (h > h_ * 2 * .75) {
+							Render::addInstance("CUBE", { (i * blocks + k),m,(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { .75,.75,.75 });
+						}
+						else if (h < h_ * 2 * .25) {
 
-
-	for (int i = 0; i < mapX; i++) {
-		for (int j = 0; j < mapY; j++) {
-			float sum = 0;
-			for (int i = 0; i < 10; i++) {
-				sum += (float)rand() / (float)RAND_MAX;
+							Render::addInstance("CUBE", { (i * blocks + k),m,(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,0,.5 });
+						}
+						else {
+							Render::addInstance("CUBE", { (i * blocks + k),m,(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,.75,0 });
+						}
+					}
+					
+					//Render::addInstance("CUBE", {2*(i*blocks+k),h,2*(j*blocks+l)}, {0,0,0}, {1,1,1}, {1,1,1});
+				}
 			}
-			sum /= 10.0;
-			//Render::addInstance("CUBE", { 2*i,100*cos(glm::radians((float)rand()/(float)RAND_MAX)),2*j}, {0,0,0}, {1,1,1}, {1,1,1});
-			//Render::addInstance("CUBE", { 2 * i, sum*20,2 * j}, {0,0,0}, {1,1,1}, {1,1,1});
-
-		}
-	}
-
-	for (int i = 0; i < mapX - 1; i++) {
-		for (int j = 0; j < mapY - 1; j++) {
-			float hei = 20*(100 * mapOut[i * (mapX - 1) + j])/100;
-			Render::addInstance("CUBE", {2*i,hei,j * 2}, {0,0,0}, {1,1,1}, {1,1,1});
+			// right here, calculate the slope between the xs and zs and then add all of the points
 		}
 	}
 
 
+	
 
 
 
@@ -893,7 +891,7 @@ int main() {
 		Render::camera.translate(Render::left, Render::right, Render::up, Render::down, Render::forward, Render::backward);
 		Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
 		Render::projection = glm::ortho(-40.0f, 40.0f, -40.0f, 40.0f, .0001f, 1000.0f);
-		Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 1000.0f);
+		Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 10000.0f);
 
 
 		Render::draw();

@@ -29,10 +29,13 @@ layout(std430, binding = 3) buffer name
 
 
 
+
 uniform sampler2D t1;
 uniform sampler2D t2;
 uniform sampler2D depth1;
 uniform sampler2D depth2;
+
+
 
 in VS_OUT{
 	vec3 FragPos;
@@ -105,7 +108,8 @@ vec3 directional(DirectionalLight light, vec3 specular_) {
 	vec3 FragPos = transformed_.xyz;
 
 	// calculate ambient light
-	vec3 ambient = light.ambient * material.ambient;
+	//vec3 ambient = light.ambient * material.ambient;
+	vec3 ambient = light.ambient * colors_;
 
 	// calculate diffuse
 	vec3 norm = normalize(normals_);
@@ -168,7 +172,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, sampler2D text) {
 	//float d = dot(fs_in.Normal, normalize(vec3(0, 0, 0) - vec3(1, 100, 1)));
 
 	//float bias = -d*.0001;
-	float bias = max(0.005 * (1.0 - dot(fs_in.Normal, normalize(vec3(0, 0, 0) - vec3(1, 100, 1)))), 0.005);
+	float bias = max(0.005 * (1.0 - dot(fs_in.Normal, normalize(vec3(0, 0, 0) - vec3(1, 100, 1)))), 0.0005);
 	//bias = .00005;
 	float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
 	//float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
@@ -185,7 +189,9 @@ void main() {
 	//vec3 specular = vec3(texture(t2, texturecoords_).x);
 	vec3 specular = vec3(1, 1, 1);
 
-	DirectionalLight l = {{ -1,-1,1}, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 }};
+	//DirectionalLight l = { { -1,-1,1}, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 } };
+	DirectionalLight l = {{ 0,-1,0}, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 }};
+
 
 	vec3 result = directional(l,specular);
 	//result = vec3(.4, .3, .5);
@@ -230,6 +236,8 @@ void main() {
 	float d = dot(fs_in.Normal, normalize(vec3(0,0,0)-vec3(1,100,1))) *.5 + .5;
 	//FragColor = vec4(vec3(d), 1);
 
+
+	//FragColor = vec4(colors_, 1);
 
 
 }
