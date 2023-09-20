@@ -4,6 +4,18 @@
 #include <Soil/SOIL.h>
 
 
+// This supposively makes the program run faster by telling the gpu to run in performance mode?
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+	__declspec(dllexport) uint32_t NvOptimusEnablement = 1;
+	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+
+#ifdef __cplusplus
+}
+#endif
+
 /*
 *  Use WASD to move, mouse to look and B to change wireframe mode
 */
@@ -329,12 +341,16 @@ int main() {
 	//Render::addModel("assets/sphere.obj", "Cube");
 	//Render::addModel("assets/monkey.obj", "Monkey");
 
-	Render::addModel("assets/room.obj", "Room", 10000, 10000);
+	//Render::addModel("assets/room.obj", "Room", 10000, 10000);
 
 	//Render::addInstance("Room", { 20,0,0 }, { 0,0,0 }, { 1,1,1 }, { .5,.5,.5 });
 
-	Render::addModel("assets/Cube3.obj", "CUBE", 5000000, 5000000);
-	Render::addModel("assets/sphere.obj", "Sphere", 100, 100);
+	Render::addModel("assets/Cube3.obj", "CUBE", 1000000, 100000);
+	//Render::addModel("assets/sphere.obj", "Sphere", 100, 100);
+
+	//Render::addModel("../UserFiles/Assets/monkey.obj", "Monkey", 100, 100);
+
+	//Render::addInstance("Monkey", {0,0,0}, {0,0,0}, {1,1,1}, {1,1,1});
 
 	//Render::addInstance("CUBE", { 0,-10,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
 	//Render::addInstance("Test", { 20,-2,0 }, { 0,0,0 }, { 1,1,1 }, {1,1,1});
@@ -368,10 +384,11 @@ int main() {
 	*/
 
 	// has to be at least 2
-	const int width = 20;
-	const int height = 20;
+	// this represents the number of 'chunks' in each direction
+	const int width = 17;
+	const int height = 17;
 
-	int h_ = 50;
+	int h_ = 30;
 	int arr[width][height];
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
@@ -385,7 +402,8 @@ int main() {
 	for (int i = 0; i < width-1; i++) {
 		for (int j = 0; j < height-1; j++) {
 			// this is the width and length
-			int blocks = 32;
+			// this is the size of a 'chunk'
+			int blocks = 16;
 			float slopex = (arr[i+1][j] - arr[i][j])/(float)blocks;
 			float slopez = (arr[i][j+1] - arr[i][j])/(float)blocks;
 			for (int k = 0; k < blocks; k++) {
@@ -400,24 +418,23 @@ int main() {
 						;
 
 
-					//h = h / 2.0;
-					h = h*2;
-					h = (int)h;
-					for (int m = h-1; m < h; m++) {
+					// put the cubes in the right y axis location
+					h = round(h) * 2;
+					// h should always be even due to the *2 so we add 2 each layer
+					for (int m = 0; m <= h; m+=2) {
 						// add a white cube for snow
 						if (h > h_ * 2 * .75) {
-							Render::addInstance("CUBE", { (i * blocks + k),m,(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { .75,.75,.75 });
+							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { .75,.75,.75 });
 						}
 						else if (h < h_ * 2 * .25) {
-
-							Render::addInstance("CUBE", { (i * blocks + k),m,(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,0,.5 });
+							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,0,.5 });
 						}
 						else {
-							Render::addInstance("CUBE", { (i * blocks + k),m,(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,.75,0 });
+							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,.75,0 });
 						}
 					}
 					
-					//Render::addInstance("CUBE", {2*(i*blocks+k),h,2*(j*blocks+l)}, {0,0,0}, {1,1,1}, {1,1,1});
+					//Render::addInstance("CUBE", {2*(i*blocks+k),h,2*(j*blocks+l)}, {0,0,0}, {1,1,1}, {.5,.4,.6});
 				}
 			}
 			// right here, calculate the slope between the xs and zs and then add all of the points
@@ -618,7 +635,7 @@ int main() {
 	//DirectionalLight dl(1024, 1024, 0.0f, 1000.0f, {20,50,20}, {0,0,0});
 
 	DirectionalLight dls[2] = { 
-		DirectionalLight(4096, 4096, 0.0f, 1000.0f, {1,100,1}, {0,0,0},40),
+		DirectionalLight(4096, 4096, 0.0f, 1000.0f, {0,10,0}, {50,0,50},1000),
 		DirectionalLight(1024, 1024, 0.0f, 1000.0f, {0.00001,50,0.001}, {0,0,0},10) 
 	};
 
@@ -754,7 +771,18 @@ int main() {
 		//glDrawArrays(GL_TRIANGLES, 12,6);
 
 
+
+		/*
+		* 
+		* 
+		*  NOTE: WE DISABLED LIGHTING FOR NOW SINCE IT IS VERY PERFORMANCE INTENSIVE WITH LOTS OF OBJECTS
+		* 
+		* 
+		*/
+
+
 		for (DirectionalLight dl : dls) {
+			//continue;
 			glBindFramebuffer(GL_FRAMEBUFFER, dl.fbo);
 			//glCullFace(GL_FRONT);
 			glViewport(0, 0, dl.width, dl.height);
@@ -899,6 +927,11 @@ int main() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
+
+
+		
+
+		std::cout << "Rendered: " << Render::objects[1]->insts->da->elements << " Entities " << "\n";
 
 
 		

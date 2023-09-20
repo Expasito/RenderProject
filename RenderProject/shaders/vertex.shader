@@ -95,7 +95,6 @@ void main(){
     camFront_ = camFront;
 
     mat4 model = translate(-translations.x, translations.y, translations.z) * RotateX(rotations.x) * RotateY(rotations.y) * RotateZ(rotations.z) * scale(scalations.x, scalations.y, scalations.z);
-    //mat4 model = scale(scalations.x, scalations.y, scalations.z) * RotateX(rotations.x) * RotateY(rotations.y) * RotateZ(rotations.z) * translate(-translations.x, translations.y, translations.z);
     
     transformed_ = model * vec4(aPos, 1);;
 

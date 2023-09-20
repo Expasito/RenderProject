@@ -190,54 +190,33 @@ void main() {
 	vec3 specular = vec3(1, 1, 1);
 
 	//DirectionalLight l = { { -1,-1,1}, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 } };
-	DirectionalLight l = {{ 0,-1,0}, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 }};
+	DirectionalLight l = {{ 0,-1,0}, { 1,1,1 }, { .5,.5,.5 }, { 0,0,0}};
 
 
 	vec3 result = directional(l,specular);
-	//result = vec3(.4, .3, .5);
-	//vec3 result = vec3(.25);
-	//result = vec3(0);
 
-	//Light l2 = { {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
-	//result += base(l2);
+	//vec3 result = vec3(0);
+
+
 	for (int i = 0; i < size-size; i++) {
 		result += base(data[i],specular);
-		//result += data[i].position;
 	}
-	//result = vec3(0, 0, 0);
 
-
-	//result += data[1].position;
 	
 	float shadow1 = ShadowCalculation(fs_in.FragPosLightSpace1, depth1);
 	//float shadow2 = ShadowCalculation(fs_in.FragPosLightSpace2, depth2);
 
 
-	vec3 result_;
-	if (shadow1 >.5) {
-		result_ = vec3(0, 0, 0);
-	}
-	else {
-		//result_ = result;
-		result_ = vec3(1, 1, 1);
-	}
+	result = (1 - shadow1) * result;
 
-	result_ = (1 - shadow1) * result;
 	
 
 
 
 
 	
-	FragColor = vec4(result_, 1);
+	FragColor = vec4(result, 1);
 
-	vec3 lightPos = vec3(1, 100, 1);
-
-	float d = dot(fs_in.Normal, normalize(vec3(0,0,0)-vec3(1,100,1))) *.5 + .5;
-	//FragColor = vec4(vec3(d), 1);
-
-
-	//FragColor = vec4(colors_, 1);
 
 
 }
