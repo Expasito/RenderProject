@@ -388,7 +388,7 @@ int main() {
 	const int width = 17;
 	const int height = 17;
 
-	int h_ = 30;
+	int h_ = 50;
 	int arr[width][height];
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
@@ -421,16 +421,16 @@ int main() {
 					// put the cubes in the right y axis location
 					h = round(h) * 2;
 					// h should always be even due to the *2 so we add 2 each layer
-					for (int m = 0; m <= h; m+=2) {
+					for (int m = h/2; m <= h; m+=2) {
 						// add a white cube for snow
 						if (h > h_ * 2 * .75) {
-							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { .75,.75,.75 });
+							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { .25,.25,.25 });
 						}
 						else if (h < h_ * 2 * .25) {
-							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,0,.5 });
+							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,0,.25 });
 						}
 						else {
-							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,.75,0 });
+							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,.25,0 });
 						}
 					}
 					
@@ -635,9 +635,60 @@ int main() {
 	//DirectionalLight dl(1024, 1024, 0.0f, 1000.0f, {20,50,20}, {0,0,0});
 
 	DirectionalLight dls[2] = { 
-		DirectionalLight(4096, 4096, 0.0f, 1000.0f, {0,10,0}, {50,0,50},1000),
-		DirectionalLight(1024, 1024, 0.0f, 1000.0f, {0.00001,50,0.001}, {0,0,0},10) 
+		DirectionalLight(4096*2, 2*4096, 0.0f, 1000.0f, {0,41,0}, {0,40,1},1000),
+		DirectionalLight(1024, 1024, 0.0f, 1000.0f, {0.00001,50,0.001}, {0,0,0},10)
 	};
+
+
+	//dls[0].position;
+	//Render::addInstance("CUBE", dls[0].position, { 0,0,0 }, { 10,10,10 }, { 1,1,1 });
+	//Render::addInstance("CUBE", dls[0].lookat, {0,0,0}, {10,10,10}, {1,1,1});
+
+
+
+
+
+
+
+	/*
+	* 
+	* 
+	* Test creating a bunch of textures and add them to an array
+	* 
+	*/
+
+	// 4x4 image
+	char text1[] = {
+		255, 255, 255, 255,   255, 255, 255, 255,   255, 255, 000, 255,   000, 255, 255, 255,
+		255, 000, 255, 255,   255, 255, 255, 255,   255, 255, 000, 255,   000, 255, 255, 255,
+		255, 000, 255, 255,   255, 255, 255, 255,   255, 000, 255, 255,   255, 000, 255, 255,
+		000, 000, 255, 255,   255, 255, 000, 255,   000, 255, 255, 255,   255, 255, 255, 255,
+	};
+
+	char text2[] = {
+		000, 255, 000, 255,   255, 255, 255, 255,   255, 255, 000, 255,   000, 255, 255, 255,
+		255, 000, 255, 255,   255, 255, 255, 255,   000, 255, 000, 255,   000, 255, 255, 255,
+		255, 000, 000, 255,   255, 255, 255, 255,   255, 000, 255, 255,   255, 000, 255, 255,
+		000, 000, 255, 255,   255, 255, 000, 255,   000, 255, 255, 255,   255, 255, 255, 255,
+	};
+
+	unsigned int text1Texture;
+	glGenTextures(1, &text1Texture);
+	glBindTexture(GL_TEXTURE_2D, text1Texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 4, 4, 0, GL_RGB, GL_UNSIGNED_BYTE, text1);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	
+
+	unsigned int text2Texture;
+	glGenTextures(1, &text2Texture);
+	glBindTexture(GL_TEXTURE_2D, text2Texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 4, 4, 0, GL_RGB, GL_UNSIGNED_BYTE, text2);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+
+
+
+
 
 
 

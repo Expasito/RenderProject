@@ -96,13 +96,15 @@ void main(){
 
     mat4 model = translate(-translations.x, translations.y, translations.z) * RotateX(rotations.x) * RotateY(rotations.y) * RotateZ(rotations.z) * scale(scalations.x, scalations.y, scalations.z);
     
-    transformed_ = model * vec4(aPos, 1);;
+    //mat4 model = mat4(1);
+    transformed_ = model * vec4(aPos, 1);
+    //transformed_ = vec4(aPos, 1);
 
-    vs_out.FragPos = vec3(model * vec4(aPos,1));
+    vs_out.FragPos = vec3(transformed_);
     vs_out.Normal = transpose(inverse(mat3(model))) * normals;
     vs_out.TexCoords = texturecoords;
     vs_out.FragPosLightSpace1 = lightSpaceMatrix1 * vec4(vs_out.FragPos, 1.0);
-    vs_out.FragPosLightSpace2 = lightSpaceMatrix2 * vec4(vs_out.FragPos, 1.);
+    vs_out.FragPosLightSpace2 = lightSpaceMatrix2 * vec4(vs_out.FragPos, 1.0);
 
     gl_Position = projection * view * vec4(vs_out.FragPos,1.0);
 

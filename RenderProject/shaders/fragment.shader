@@ -104,50 +104,7 @@ struct SpotLight {
 uniform Material material;
 
 
-vec3 directional(DirectionalLight light, vec3 specular_) {
-	vec3 FragPos = transformed_.xyz;
 
-	// calculate ambient light
-	//vec3 ambient = light.ambient * material.ambient;
-	vec3 ambient = light.ambient * colors_;
-
-	// calculate diffuse
-	vec3 norm = normalize(normals_);
-	vec3 lightDir = normalize(-light.direction);
-	float diff = max(dot(norm, lightDir), 0);
-	vec3 diffuse = light.diffuse * (diff * material.diffuse);
-
-	// specular
-	vec3 viewDir = normalize(camPos_ - FragPos);
-	vec3 reflectDir = reflect(-lightDir, norm);
-	float spec = pow(float(max(dot(viewDir, reflectDir), 0)), material.shininess);
-	vec3 specular = light.specular * (spec * specular_);
-
-
-	vec3 result = ambient + diffuse + specular;
-	return result;
-}
-
-vec3 base(Light light,vec3 specular_) {
-	vec3 FragPos = transformed_.xyz;
-
-	// calculate ambient light
-	vec3 ambient = light.ambient * material.ambient;
-
-	// calculate diffuse
-	vec3 norm = normalize(normals_);
-	vec3 lightDir = normalize(light.position - FragPos);
-	float diff = max(dot(norm, lightDir), 0);
-	vec3 diffuse = light.diffuse * (diff * material.diffuse);
-
-	// specular
-	vec3 viewDir = normalize(camPos_ - FragPos);
-	vec3 reflectDir = reflect(-lightDir, norm);
-	float spec = pow(float(max(dot(viewDir, reflectDir), 0)), material.shininess);
-	vec3 specular = light.specular * (spec * specular_);
-	vec3 result = ambient + diffuse + specular;
-	return result;
-}
 
 float ShadowCalculation(vec4 fragPosLightSpace, sampler2D text) {
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -155,9 +112,9 @@ float ShadowCalculation(vec4 fragPosLightSpace, sampler2D text) {
 
 	// first make sure the projection coordinates are within the 0 to 1 range
 	// and not to far out to me measured
-	if (projCoords.x > 1 || 
-		projCoords.x < 0 || 
-		projCoords.y < 0 || 
+	if (projCoords.x > 1 ||
+		projCoords.x < 0 ||
+		projCoords.y < 0 ||
 		projCoords.y > 1 ||
 		projCoords.z > 1
 		) {
@@ -182,6 +139,58 @@ float ShadowCalculation(vec4 fragPosLightSpace, sampler2D text) {
 	return shadow;
 }
 
+vec3 directional(DirectionalLight light, vec3 specular_) {
+	vec3 FragPos = transformed_.xyz;
+
+	// calculate ambient light
+	//vec3 ambient = light.ambient * material.ambient;
+	vec3 ambient = light.ambient * colors_;
+
+	// calculate diffuse
+	vec3 norm = normalize(normals_);
+	vec3 lightDir = normalize(-light.direction);
+	float diff = max(dot(norm, lightDir), 0);
+	vec3 diffuse = light.diffuse * (diff * material.diffuse);
+
+	// specular
+	vec3 viewDir = normalize(camPos_ - FragPos);
+	vec3 reflectDir = reflect(-lightDir, norm);
+	float spec = pow(float(max(dot(viewDir, reflectDir), 0)), material.shininess);
+	vec3 specular = light.specular * (spec * specular_);
+
+	float shadow1 = ShadowCalculation(fs_in.FragPosLightSpace1, depth1);
+
+	vec3 result = ambient + (diffuse + specular) * (1 - shadow1);
+
+	//vec3 result = ambient + diffuse + specular;
+	return result;
+}
+
+vec3 base(Light light,vec3 specular_) {
+	vec3 FragPos = transformed_.xyz;
+
+	// calculate ambient light
+	vec3 ambient = light.ambient * material.ambient;
+
+	// calculate diffuse
+	vec3 norm = normalize(normals_);
+	vec3 lightDir = normalize(light.position - FragPos);
+	float diff = max(dot(norm, lightDir), 0);
+	vec3 diffuse = light.diffuse * (diff * material.diffuse);
+
+	// specular
+	vec3 viewDir = normalize(camPos_ - FragPos);
+	vec3 reflectDir = reflect(-lightDir, norm);
+	float spec = pow(float(max(dot(viewDir, reflectDir), 0)), material.shininess);
+	vec3 specular = light.specular * (spec * specular_);
+	float shadow1 = ShadowCalculation(fs_in.FragPosLightSpace1, depth1);
+
+	vec3 result = ambient + (diffuse + specular) * (1 - shadow1);
+	//vec3 result = ambient + diffuse + specular;
+	return result;
+}
+
+
 
 void main() {
 
@@ -190,7 +199,7 @@ void main() {
 	vec3 specular = vec3(1, 1, 1);
 
 	//DirectionalLight l = { { -1,-1,1}, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 } };
-	DirectionalLight l = {{ 0,-1,0}, { 1,1,1 }, { .5,.5,.5 }, { 0,0,0}};
+	DirectionalLight l = {{ 0,-1,0}, { 1,1,1 }, { .5,.5,.5 }, { .25,.25,.25}};
 
 
 	vec3 result = directional(l,specular);
@@ -203,11 +212,11 @@ void main() {
 	}
 
 	
-	float shadow1 = ShadowCalculation(fs_in.FragPosLightSpace1, depth1);
+	//float shadow1 = ShadowCalculation(fs_in.FragPosLightSpace1, depth1);
 	//float shadow2 = ShadowCalculation(fs_in.FragPosLightSpace2, depth2);
 
 
-	result = (1 - shadow1) * result;
+	//result = (1 - shadow1) * result;
 
 	
 
