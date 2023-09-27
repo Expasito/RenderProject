@@ -143,8 +143,8 @@ vec3 directional(DirectionalLight light, vec3 specular_) {
 	vec3 FragPos = transformed_.xyz;
 
 	// calculate ambient light
-	//vec3 ambient = light.ambient * material.ambient;
-	vec3 ambient = light.ambient * colors_;
+	vec3 ambient = light.ambient * material.ambient;
+	//vec3 ambient = light.ambient * colors_;
 
 	// calculate diffuse
 	vec3 norm = normalize(normals_);
@@ -160,7 +160,7 @@ vec3 directional(DirectionalLight light, vec3 specular_) {
 
 	float shadow1 = ShadowCalculation(fs_in.FragPosLightSpace1, depth1);
 
-	vec3 result = ambient + (diffuse + specular) * (1 - shadow1);
+	vec3 result = (ambient + (diffuse + specular) * (1 - shadow1)) * colors_;
 
 	//vec3 result = ambient + diffuse + specular;
 	return result;
@@ -199,7 +199,7 @@ void main() {
 	vec3 specular = vec3(1, 1, 1);
 
 	//DirectionalLight l = { { -1,-1,1}, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 } };
-	DirectionalLight l = {{ 0,-1,0}, { 1,1,1 }, { .5,.5,.5 }, { .25,.25,.25}};
+	DirectionalLight l = {{ 0,-1,0}, { 1,1,1 }, { .5,.5,.5 }, { .05,.05,.05}};
 
 
 	vec3 result = directional(l,specular);

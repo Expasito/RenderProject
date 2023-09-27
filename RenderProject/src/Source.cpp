@@ -421,16 +421,16 @@ int main() {
 					// put the cubes in the right y axis location
 					h = round(h) * 2;
 					// h should always be even due to the *2 so we add 2 each layer
-					for (int m = h/2; m <= h; m+=2) {
+					for (int m = h-2-2-2-2; m <= h; m+=2) {
 						// add a white cube for snow
 						if (h > h_ * 2 * .75) {
-							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { .25,.25,.25 });
+							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { .75,.75,.75 });
 						}
 						else if (h < h_ * 2 * .25) {
-							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,0,.25 });
+							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,0,.75 });
 						}
 						else {
-							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,.25,0 });
+							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,.75,0 });
 						}
 					}
 					
@@ -533,10 +533,10 @@ int main() {
 	glm::vec3 light_diffuse(0, 0, 0);
 	glm::vec3 light_specular(0,0,0);
 
-	glm::vec3 material_ambient(.25, .114, .06);
-	glm::vec3 material_diffuse(.4, .23, .103);
-	glm::vec3 material_specular(.77, .45, .2);
-	float material_shininess = 76.8;
+	glm::vec3 material_ambient(.5, .75, .5);
+	glm::vec3 material_diffuse(.5, .75, .5);
+	glm::vec3 material_specular(.9, .9, .9);
+	float material_shininess = 500.0;
 
 
 	struct Light {
