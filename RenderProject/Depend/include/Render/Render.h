@@ -102,6 +102,7 @@ public:
 	static void drawDebug(float milis);
 	static void initDebugScreen();
 	
+	static Render::Model loadModel(const char* path);
 	
 	static unsigned int VAO;
 private:
@@ -109,7 +110,6 @@ private:
 	static void shaderBuildStatus(unsigned int shader, int result);
 	static void compileShader(const char* filepath1, const char* filepath2, unsigned int* program);
 	static std::vector<std::string> strsplit(std::string str, char dem);
-	static Render::Model loadModel(const char* path);
 	static void prepBuffers();
 };
 

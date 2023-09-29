@@ -243,7 +243,7 @@ int main() {
 	//}
 
 
-	
+
 
 	//exit(1);
 
@@ -256,7 +256,7 @@ int main() {
 
 
 	srand(time(0));
-	Render::init(800,800,false);
+	Render::init(800, 800, false);
 	Render::camera.baseSpeed = 30;
 
 
@@ -303,7 +303,7 @@ int main() {
 		//// bottom face
 		0,4,2,
 		4,6,2,
-		
+
 
 
 	};
@@ -320,7 +320,7 @@ int main() {
 
 
 	std::vector<unsigned int> ebo;
-	for (int i = 0; i < sizeof(ebo_)/sizeof(unsigned int); i++) {
+	for (int i = 0; i < sizeof(ebo_) / sizeof(unsigned int); i++) {
 		std::cout << i << "\n";
 		ebo.push_back(ebo_[i]);
 	}
@@ -328,7 +328,7 @@ int main() {
 	unsigned int test_, test2_;
 	glGenBuffers(1, &test_);
 	glBindBuffer(GL_ARRAY_BUFFER, test_);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Render::vertex)*positions.size(), &positions[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Render::vertex) * positions.size(), &positions[0], GL_STATIC_DRAW);
 
 	glGenBuffers(1, &test2_);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, test2_);
@@ -345,7 +345,7 @@ int main() {
 
 	//Render::addInstance("Room", { 20,0,0 }, { 0,0,0 }, { 1,1,1 }, { .5,.5,.5 });
 
-	Render::addModel("assets/Cube3.obj", "CUBE", 1000000, 100000);
+	Render::addModel("assets/Cube3.obj", "CUBE", 100000000, 10000000);
 	//Render::addModel("assets/sphere.obj", "Sphere", 100, 100);
 
 	//Render::addModel("../UserFiles/Assets/monkey.obj", "Monkey", 100, 100);
@@ -376,64 +376,69 @@ int main() {
 
 
 	/*
-	* 
+	*
 	* Lets try some terrain generation to really test the shadows!
-	* 
+	*
 	* Plan: try to replicate a form of perlin noise and generate cubes at each point with the correct height
-	* 
+	*
 	*/
 
 	// has to be at least 2
 	// this represents the number of 'chunks' in each direction
-	const int width = 17;
-	const int height = 17;
+	const int width = 33;
+	const int height = 33;
 
 	int h_ = 50;
 	int arr[width][height];
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
+			//h_ = rand() % 
 			arr[i][j] = (rand() / (float)RAND_MAX) * h_;
 		}
 	}
 
+	h_ = 50;
+
 	//srand(0);
 
 	// generate a cool world with terrain
-	for (int i = 0; i < width-1; i++) {
-		for (int j = 0; j < height-1; j++) {
+	for (int i = 0; i < width - 1; i++) {
+		for (int j = 0; j < height - 1; j++) {
 			// this is the width and length
 			// this is the size of a 'chunk'
 			int blocks = 16;
-			float slopex = (arr[i+1][j] - arr[i][j])/(float)blocks;
-			float slopez = (arr[i][j+1] - arr[i][j])/(float)blocks;
+			float slopex = (arr[i + 1][j] - arr[i][j]) / (float)blocks;
+			float slopez = (arr[i][j + 1] - arr[i][j]) / (float)blocks;
 			for (int k = 0; k < blocks; k++) {
 				for (int l = 0; l < blocks; l++) {
 
 					// take each point out of the 4 and multiply by the situation where when the k and l values are
 					// at its location, the value at that point is used
-					float h = (arr[i][j]) * (1-(float)k / blocks) * (1-(float)l / blocks) + 
-						(arr[i+1][j+1]) * ((float)k / blocks) * ((float)l / blocks) +
-						(arr[i+1][j]) * ((float)k / blocks) * (1-(float)l / blocks) +
-						(arr[i][j+1]) * (1-(float)k / blocks) * ((float)l / blocks)
+					float h = (arr[i][j]) * (1 - (float)k / blocks) * (1 - (float)l / blocks) +
+						(arr[i + 1][j + 1]) * ((float)k / blocks) * ((float)l / blocks) +
+						(arr[i + 1][j]) * ((float)k / blocks) * (1 - (float)l / blocks) +
+						(arr[i][j + 1]) * (1 - (float)k / blocks) * ((float)l / blocks)
 						;
 
 
 					// put the cubes in the right y axis location
 					h = round(h) * 2;
 					// h should always be even due to the *2 so we add 2 each layer
-					for (int m = h-2-2-2-2; m <= h; m+=2) {
+					for (int m = h - 2 - 2 - 2 - 2; m <= h; m += 2) {
 						// add a white cube for snow
 						if (h > h_ * 2 * .75) {
-							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { .75,.75,.75 });
+							//Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { .75,.75,.75 });
 						}
 						else if (h < h_ * 2 * .25) {
-							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,0,.75 });
+							//Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,0,.75 });
 						}
 						else {
-							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,.75,0 });
+							//Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,.75,0 });
 						}
+
+						//Render::addInstance("CUBE", { 0,0,0 }, { 0,0,0 }, { 1,1,1 }, { .5,.5,.5 });
 					}
-					
+
 					//Render::addInstance("CUBE", {2*(i*blocks+k),h,2*(j*blocks+l)}, {0,0,0}, {1,1,1}, {.5,.4,.6});
 				}
 			}
@@ -442,7 +447,7 @@ int main() {
 	}
 
 
-	
+
 
 
 
@@ -459,7 +464,7 @@ int main() {
 	// this will be 5 by 5
 
 	glUseProgram(Render::renderShader);
-	
+
 	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	unsigned int texture1;
@@ -510,8 +515,8 @@ int main() {
 
 
 	auto t = glGetUniformLocation(Render::renderShader, "t1");
-	auto t2 =glGetUniformLocation(Render::renderShader, "t2");
-	
+	auto t2 = glGetUniformLocation(Render::renderShader, "t2");
+
 
 	std::cout << "loc1: " << t << "  Loc2: " << t2 << "\n";
 
@@ -523,17 +528,17 @@ int main() {
 
 	int index_ = 14;
 
-	float milis=0;
+	float milis = 0;
 	float dist = 0;
-		
+
 	float lightLocx = 0;
 
 	glm::vec3 light_position(0, 0, 0);
 	glm::vec3 light_ambient(0, 0, 0);
 	glm::vec3 light_diffuse(0, 0, 0);
-	glm::vec3 light_specular(0,0,0);
+	glm::vec3 light_specular(0, 0, 0);
 
-	glm::vec3 material_ambient(.5, .75, .5);
+	glm::vec3 material_ambient(.5, .5, .5);
 	glm::vec3 material_diffuse(.5, .75, .5);
 	glm::vec3 material_specular(.9, .9, .9);
 	float material_shininess = 500.0;
@@ -562,10 +567,10 @@ int main() {
 	unsigned int ssbo;
 	glGenBuffers(1, &ssbo);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(lights)+sizeof(int)*4, NULL, GL_STATIC_DRAW);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(lights) + sizeof(int) * 4, NULL, GL_STATIC_DRAW);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(int), &numLights);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 16, sizeof(Light)*numLights, lights);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 16, sizeof(Light) * numLights, lights);
 
 
 
@@ -613,12 +618,12 @@ int main() {
 	glGenFramebuffers(1, &fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-	unsigned int depth,color;
+	unsigned int depth, color;
 	glGenTextures(1, &depth);
 	glGenTextures(1, &color);
 
 	glBindTexture(GL_TEXTURE_2D, color);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 800,0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 800, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color, 0);
@@ -634,9 +639,9 @@ int main() {
 
 	//DirectionalLight dl(1024, 1024, 0.0f, 1000.0f, {20,50,20}, {0,0,0});
 
-	DirectionalLight dls[2] = { 
-		DirectionalLight(4096*2, 2*4096, 0.0f, 1000.0f, {0,41,0}, {0,40,1},1000),
-		DirectionalLight(1024, 1024, 0.0f, 1000.0f, {0.00001,50,0.001}, {0,0,0},10)
+	DirectionalLight dls[2] = {
+		DirectionalLight(4096 / 32, 4096 / 32, 0.0f, 1000.0f, {0,41,0}, {0,40,1},1000),
+		DirectionalLight(32, 32, 0.0f, 1000.0f, {0.00001,50,0.001}, {0,0,0},10)
 	};
 
 
@@ -651,10 +656,10 @@ int main() {
 
 
 	/*
-	* 
-	* 
+	*
+	*
 	* Test creating a bunch of textures and add them to an array
-	* 
+	*
 	*/
 
 	// 4x4 image
@@ -677,7 +682,7 @@ int main() {
 	glBindTexture(GL_TEXTURE_2D, text1Texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 4, 4, 0, GL_RGB, GL_UNSIGNED_BYTE, text1);
 	glGenerateMipmap(GL_TEXTURE_2D);
-	
+
 
 	unsigned int text2Texture;
 	glGenTextures(1, &text2Texture);
@@ -739,6 +744,84 @@ int main() {
 	float fov = 80.0f;
 
 	//int key = Render::addInstance("Test", position-direction, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
+
+
+
+
+
+	const char* path = "../UserFiles/Assets/Cube3.obj";
+
+	Render::Model m = Render::loadModel(path);
+	for (int i = 0; i < m.indices.size(); i++) {
+		//std::cout << m.indices.at(i) << "\n";
+	}
+
+
+	/*
+	*
+	* We are going to try adding frustrum culling by setting up a chunking system.
+	* Basically, when adding object to the scene, theo object is also added to the chunks it resides in
+	* When updating, it is double checked that it is still in those chunks and alos if its in new ones.
+	* We then will iterate over the list of chunks to remove chunks that are out of the viewing range.
+	* 
+	* This could alos add occlusion culling if we figure that out.
+	* 
+	*/
+
+	int chunks = 10;
+
+	std::vector<FillerArray*> fillers(chunks*chunks);
+
+	int blocksPerChunk = 16;
+
+	// this is a copy of the pointers so we can reset if we need
+	std::vector<FillerArray**> fillersAll(chunks* chunks);
+
+
+	for (int i = 0; i < chunks; i++) {
+		for (int j = 0; j < chunks; j++) {
+			//std::cout << i << "\n";
+			FillerArray* fa = new FillerArray(16 * 16 * 16 * 2, 16*16*16*2);
+			fillers.push_back(fa);
+			fillersAll.push_back(&fa);
+			for (int k = 0; k < blocksPerChunk; k++) {
+				for (int l = 0; l < blocksPerChunk; l++) {
+					for (int m = 0; m < blocksPerChunk; m++) {
+						fa->add({ 2*(i * blocksPerChunk + k),2*m,2*(j * blocksPerChunk + l) }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
+					}
+					
+				}
+			}
+			
+			char name[7] = "Orbj";
+			name[4] = '0' + i;
+			name[5] = '0' + j;
+			std::cout << name << "\n";
+			Render::objects.push_back(new Render::Object(name, path, m.positions, m.ebo, m.indices.size() - 3, fa));
+		}
+		
+	}
+
+
+	
+
+	//FillerArray* fa = new FillerArray(100, 100);
+
+	//Render::objects.push_back(new Render::Object("Orbj", path, m.positions, m.ebo, m.indices.size() - 3,fa));
+
+	//for (Render::Object* o : Render::objects) {
+	//	if (o->name.compare("Orbj") == 0) {
+	//		return o->insts->add(pos, rot, scal, colo);
+
+	//	}
+
+	//}
+
+	//fa->add({ 0,0,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
+
+
+
+
 
 	
 	while (Render::keepWindow) {
@@ -833,7 +916,7 @@ int main() {
 
 
 		for (DirectionalLight dl : dls) {
-			//continue;
+			continue;
 			glBindFramebuffer(GL_FRAMEBUFFER, dl.fbo);
 			//glCullFace(GL_FRONT);
 			glViewport(0, 0, dl.width, dl.height);
@@ -865,7 +948,7 @@ int main() {
 			for (Render::Object* o : Render::objects) {
 				int elements = o->insts->da->elements;
 				//std::cout << elements << "\n";
-				if (elements <= 0) {
+				if (elements <= 0 && o != NULL) {
 					continue;
 				}
 
@@ -908,6 +991,19 @@ int main() {
 
 			}
 		}
+
+
+
+
+		/*
+		* 
+		* We are doing frustrum culling here first
+		* 
+		* 
+		*/
+
+
+		fillers.at(0) = NULL;
 
 
 
@@ -982,7 +1078,7 @@ int main() {
 
 		
 
-		std::cout << "Rendered: " << Render::objects[1]->insts->da->elements << " Entities " << "\n";
+		//std::cout << "Rendered: " << Render::objects[1]->insts->da->elements << " Entities " << "\n";
 
 
 		
@@ -991,14 +1087,14 @@ int main() {
 
 
 		
-		Render::drawDebug(milis);
+		//Render::drawDebug(milis);
 		glfwSwapBuffers(Render::window);
 		glfwPollEvents();
 		Render::keepWindow = !glfwWindowShouldClose(Render::window);
 
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		milis = (end - begin).count() / 1000000.0;
-		std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
+		//std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
 
 	}
 

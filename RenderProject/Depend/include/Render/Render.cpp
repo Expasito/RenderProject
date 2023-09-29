@@ -200,7 +200,8 @@ void Render::draw() {
 	for (Render::Object* o : Render::objects) {
 		int elements = o->insts->da->elements;
 		//std::cout << elements << "\n";
-		if (elements <= 0) {
+		// make sure there are elements and not a null pointer
+		if (elements <= 0 && o != NULL) {
 			continue;
 		}
 
@@ -241,6 +242,7 @@ void Render::draw() {
 
 		// finally, send the draw command to the gpu
 		glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elements);
+
 
 
 

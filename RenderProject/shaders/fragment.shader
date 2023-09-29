@@ -199,7 +199,7 @@ void main() {
 	vec3 specular = vec3(1, 1, 1);
 
 	//DirectionalLight l = { { -1,-1,1}, { 1,1,1 }, { .5,.5,.5 }, { 1,1,1 } };
-	DirectionalLight l = {{ 0,-1,0}, { 1,1,1 }, { .5,.5,.5 }, { .05,.05,.05}};
+	DirectionalLight l = {{ 1,-1,1}, { 1,1,1 }, { .5,.5,.5 }, { .05,.05,.05}};
 
 
 	vec3 result = directional(l,specular);
