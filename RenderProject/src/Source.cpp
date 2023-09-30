@@ -335,7 +335,7 @@ int main() {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * ebo.size(), &ebo[0], GL_STATIC_DRAW);
 
 
-	Render::objects.push_back(new Render::Object("Test", "..", test_, test2_, ebo.size(), new FillerArray(100, 100)));
+	//Render::objects.push_back(new Render::Object("Test", "..", test_, test2_, ebo.size(), new FillerArray(100, 100)));
 
 	//Render::addModel("assets/sphere.obj", "Cube",100,100);
 	//Render::addModel("assets/sphere.obj", "Cube");
@@ -770,7 +770,7 @@ int main() {
 
 	int chunks = 10;
 
-	std::vector<FillerArray*> fillers(chunks*chunks);
+	std::vector<FillerArray*> fillers;
 
 	int blocksPerChunk = 16;
 
@@ -797,7 +797,7 @@ int main() {
 			name[4] = '0' + i;
 			name[5] = '0' + j;
 			std::cout << name << "\n";
-			Render::objects.push_back(new Render::Object(name, path, m.positions, m.ebo, m.indices.size() - 3, fa));
+			//Render::objects.push_back(new Render::Object(name, path, m.positions, m.ebo, m.indices.size() - 3, fillers.at(fillers.size()-1)));
 		}
 		
 	}
@@ -820,7 +820,40 @@ int main() {
 	//fa->add({ 0,0,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
 
 
+	struct Output {
+		// cap of the array
+		int capacity;
+		// num elements
+		int elements;
+		unsigned int buff;
+	};
 
+	Output output;
+	output.capacity = blocksPerChunk*blocksPerChunk*blocksPerChunk*chunks*chunks;
+	output.elements = 0;
+	glGenBuffers(1, &output.buff);
+	glBindBuffer(GL_ARRAY_BUFFER, output.buff);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element)* output.capacity, NULL, GL_DYNAMIC_DRAW);
+
+	//FillerArray::Element data = { 0,{0,0,0},{0,0,0},{1,1,1}, {1,1,1} };
+	//glBufferSubData(GL_ARRAY_BUFFER, output.elements * sizeof(FillerArray::Element), sizeof(FillerArray::Element), &data);
+	//output.elements++;
+	
+
+	// this is the main fillerarray to draw from
+	//FillerArray* ARRAY = new FillerArray(100000, 10000);
+	Render::Object* o = Render::objects.at(0);
+
+	std::cout << o->name << "\n";
+	//exit(1);
+
+
+	unsigned int read;
+	glGenBuffers(1, &read);
+
+
+
+	//glGenBuffers(1,&ARRAY)
 
 
 	
@@ -948,7 +981,7 @@ int main() {
 			for (Render::Object* o : Render::objects) {
 				int elements = o->insts->da->elements;
 				//std::cout << elements << "\n";
-				if (elements <= 0 && o != NULL) {
+				if (elements <= 0) {
 					continue;
 				}
 
@@ -1003,13 +1036,13 @@ int main() {
 		*/
 
 
-		fillers.at(0) = NULL;
+		//fillers.at(2) = NULL;
 
 
 
 
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
 		//
@@ -1071,18 +1104,140 @@ int main() {
 
 		Render::draw();
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-
+		std::cout << "Begin sorting\n";
 
 		
+		//std::cout << "O: " << o->name << "\n";
+
+		//std::cout << "Size: " << fillers.size() << "\n";
+
+		
+
+
+		/*
+		* 
+		* Go through each element and order them front to back so the gpu overdraws the least
+		* 
+		*/
+
+		std::cout << "Starting to process " << fillers.size() << " elements\n";
+
+		//ARRAY->clear();
+
+		output.elements = 0;
+
+		
+
+		for (int j = 0; j < fillers.size(); j++) {
+			FillerArray* f = fillers.at(j);
+			//std::cout << "Processing: " << f <<  " at: " << j << "\n";
+			if (f == NULL) {
+				continue;
+
+			}
+			// now get all elements and add to the base one
+			//FillerArray::Element* temp = (FillerArray::Element*)malloc(sizeof(FillerArray::Element) * f->da->elements);
+			glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
+			//glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(FillerArray::Element)* f->da->elements,temp);
+
+			// now copy the buffers
+			glBindBuffer(GL_COPY_READ_BUFFER, read);
+			glBufferData(GL_COPY_READ_BUFFER, sizeof(FillerArray::Element) * f->da->elements, NULL, GL_DYNAMIC_DRAW);
+			glCopyBufferSubData(GL_ARRAY_BUFFER, GL_COPY_READ_BUFFER, 0, 0, sizeof(FillerArray::Element) * f->da->elements);
+			//glCopyBufferSubData()
+			
+			glBindBuffer(GL_ARRAY_BUFFER, output.buff);
+			glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, output.elements * sizeof(FillerArray::Element), sizeof(FillerArray::Element) * f->da->elements);
+
+			output.elements += f->da->elements;
+			//for (int i = f->da->elements-1; i < f->da->elements;i++) {
+			//	FillerArray::Element t = temp[i];
+			//	//ARRAY->add(t.translations, t.rotations, t.scalations, t.colors);
+			//}
+			//free(temp);
+
+		}
+
+
+		std::cout << "Drawing now\n";
+		//std::cout << "FA has: " << ARRAY->da->elements << "\n";
+
+		// This is the actual drawing
+		
+
+			//std::cout << "     O: " << fa << "\n";
+
+			//if (fa == NULL) {
+			//	goto NODRAW
+			//	//continue;
+			//}
+		int elements = output.elements;
+		std::cout << "OUTPUT ELEMENTS: " << elements << "\n";
+
+			//std::cout << "     O: " << fa << "   Elements: " << elements << "\n";
+			//std::cout << elements << "\n";
+			// make sure there are elements and not a null pointer
+			if (elements <= 0) {
+				//break;
+			}
+
+			//std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+			std::cout << "Preparing attribs\n";
+
+			// bind the position buffer and send the vertices to gpu
+			glBindBuffer(GL_ARRAY_BUFFER, o->positions);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), 0);
+			glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 1));
+			glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 2));
+			glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 3));
+
+
+			// load in the buffer of all instances
+			glBindBuffer(GL_ARRAY_BUFFER, output.buff);
+
+			std::cout << "Buffer bound\n";
+
+
+			// this is translation
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
+
+			// this is rotation
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(glm::vec3) + sizeof(int)));
+
+			// this is for scalation
+			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 2 * sizeof(glm::vec3)));
+
+			// this is for color
+			glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
+
+
+
+
+			// give the ebo to the gpu
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
+
+			std::cout << "drawing\n";
+
+
+
+			// finally, send the draw command to the gpu
+			glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elements);
+
+			std::cout << "finishd eqnueu\n";
+		
+
+
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 
 		//std::cout << "Rendered: " << Render::objects[1]->insts->da->elements << " Entities " << "\n";
 
 
 		
-
+			std::cout << "Stuff has been drawn\n";
 
 
 
@@ -1094,7 +1249,7 @@ int main() {
 
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 		milis = (end - begin).count() / 1000000.0;
-		//std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
+		std::cout << "Total Time difference = " << milis << "[ms]" << " FPS: " << 1000.0 / milis << "\n";
 
 	}
 

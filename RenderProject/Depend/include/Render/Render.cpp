@@ -201,9 +201,11 @@ void Render::draw() {
 		int elements = o->insts->da->elements;
 		//std::cout << elements << "\n";
 		// make sure there are elements and not a null pointer
-		if (elements <= 0 && o != NULL) {
+		if (elements <= 0 || o == NULL) {
 			continue;
 		}
+
+		//std::cout << "Objectname: " << o->name << "\n";
 
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		

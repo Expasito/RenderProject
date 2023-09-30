@@ -171,6 +171,14 @@ public:
 			}
 		}
 
+		void clear() {
+			// make it so each element is not used
+			for (int i = 0; i < size; i++) {
+				arr[i].used = 0;
+			}
+			elements = 0;
+		}
+
 		int _hash(int key) {
 			return key % size;
 		}
@@ -272,6 +280,10 @@ public:
 			//arr = temp;
 			size = size_;
 
+		}
+
+		void clear() {
+			elements = 0;
 		}
 
 		void see() {
@@ -400,6 +412,11 @@ public:
 		//std::cout << ht->get(key)->key << "\n";
 
 		return out;
+	}
+
+	void clear() {
+		da->clear();
+		ht->clear();
 	}
 
 	// time to add the method for getting keys
