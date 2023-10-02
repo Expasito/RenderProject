@@ -69,7 +69,20 @@ std::ostream& operator<<(std::ostream& os, const glm::vec3& vec)
 
 
 
+/*
+* 
+* This checks for errors in the program and catches them 
+* 
+*/
+void checkErrors() {
+	GLenum err;
 
+
+	while ((err = glGetError()) != GL_NO_ERROR) {
+		std::cout << "ERROR: " << err << "\n";
+		exit(1);
+	}
+}
 
 
 
@@ -163,7 +176,7 @@ public:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, depthTexture);
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
@@ -195,6 +208,9 @@ public:
 
 private:
 };
+
+
+
 
 int main() {
 
@@ -397,6 +413,8 @@ int main() {
 		}
 	}
 
+	int counter__ = 0;
+
 	h_ = 50;
 
 	//srand(0);
@@ -423,17 +441,19 @@ int main() {
 
 					// put the cubes in the right y axis location
 					h = round(h) * 2;
+					//std::cout << "H: " << h << "\n";
 					// h should always be even due to the *2 so we add 2 each layer
 					for (int m = h - 2 - 2 - 2 - 2; m <= h; m += 2) {
+						counter__++;
 						// add a white cube for snow
 						if (h > h_ * 2 * .75) {
-							//Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { .75,.75,.75 });
+							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { .75,.75,.75 });
 						}
 						else if (h < h_ * 2 * .25) {
-							//Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,0,.75 });
+							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,0,.75 });
 						}
 						else {
-							//Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,.75,0 });
+							Render::addInstance("CUBE", { 2*(i * blocks + k),m,2*(j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,.75,0 });
 						}
 
 						//Render::addInstance("CUBE", { 0,0,0 }, { 0,0,0 }, { 1,1,1 }, { .5,.5,.5 });
@@ -446,6 +466,9 @@ int main() {
 		}
 	}
 
+
+	std::cout << "Origional draws: " << counter__ << " entities\n";
+	//exit(1);
 
 
 
@@ -474,13 +497,12 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 
 
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width__, height__, 0, GL_RGB, GL_UNSIGNED_BYTE, data_);
-
 
 
 	glGenerateMipmap(GL_TEXTURE_2D);
@@ -492,7 +514,7 @@ int main() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	char data2_[] = {
 		255,255,255,255,255,255,255,255,
@@ -524,6 +546,10 @@ int main() {
 	glUniform1i(t2, 1);
 	glUniform1i(glGetUniformLocation(Render::renderShader, "depth1"), 2);
 	glUniform1i(glGetUniformLocation(Render::renderShader, "depth2"), 3);
+
+
+
+
 
 
 	int index_ = 14;
@@ -768,7 +794,7 @@ int main() {
 	* 
 	*/
 
-	int chunks = 10;
+	int chunks = 33;
 
 	std::vector<FillerArray*> fillers;
 
@@ -781,22 +807,22 @@ int main() {
 	for (int i = 0; i < chunks; i++) {
 		for (int j = 0; j < chunks; j++) {
 			//std::cout << i << "\n";
-			FillerArray* fa = new FillerArray(16 * 16 * 16 * 2, 16*16*16*2);
+			FillerArray* fa = new FillerArray(blocksPerChunk*blocksPerChunk*2, blocksPerChunk * blocksPerChunk * 2);
 			fillers.push_back(fa);
 			fillersAll.push_back(&fa);
 			for (int k = 0; k < blocksPerChunk; k++) {
 				for (int l = 0; l < blocksPerChunk; l++) {
-					for (int m = 0; m < blocksPerChunk; m++) {
+					for (int m = 0; m < 5; m++) {
 						fa->add({ 2*(i * blocksPerChunk + k),2*m,2*(j * blocksPerChunk + l) }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
 					}
 					
 				}
 			}
 			
-			char name[7] = "Orbj";
-			name[4] = '0' + i;
-			name[5] = '0' + j;
-			std::cout << name << "\n";
+			//char name[7] = "Orbj";
+			//name[4] = '0' + i;
+			//name[5] = '0' + j;
+			//std::cout << name << "\n";
 			//Render::objects.push_back(new Render::Object(name, path, m.positions, m.ebo, m.indices.size() - 3, fillers.at(fillers.size()-1)));
 		}
 		
@@ -820,6 +846,8 @@ int main() {
 	//fa->add({ 0,0,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
 
 
+
+
 	struct Output {
 		// cap of the array
 		int capacity;
@@ -829,7 +857,8 @@ int main() {
 	};
 
 	Output output;
-	output.capacity = blocksPerChunk*blocksPerChunk*blocksPerChunk*chunks*chunks;
+	output.capacity = blocksPerChunk*blocksPerChunk*50*chunks*chunks;
+	//output.capacity = chunks * chunks * 2;
 	output.elements = 0;
 	glGenBuffers(1, &output.buff);
 	glBindBuffer(GL_ARRAY_BUFFER, output.buff);
@@ -891,7 +920,7 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glDisable(GL_CULL_FACE);
-		glDisable(GL_DEPTH);
+		glDisable(GL_DEPTH_TEST);
 		glUseProgram(Render::screenShader);
 
 
@@ -915,27 +944,29 @@ int main() {
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// draw depths
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, dls[0].depthTexture);
+		//glActiveTexture(GL_TEXTURE2);
+		//glBindTexture(GL_TEXTURE_2D, dls[0].depthTexture);
 
-		glUniform1i(d, 1);
+		//glUniform1i(d, 1);
 
 		//glDrawArrays(GL_TRIANGLES, 6, 6);
 
 		// draw shadows
-		glUseProgram(Render::shadowShader);
+		//glUseProgram(Render::shadowShader);
 
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, dls[0].depthTexture);
+		//glActiveTexture(GL_TEXTURE2);
+		//glBindTexture(GL_TEXTURE_2D, dls[0].depthTexture);
 
-		glUniform1i(d2, 0);
+		//glUniform1i(d2, 0);
 
 		// give cam pos
-		glUniform3f(glGetUniformLocation(Render::shadowShader,"camPos"),Render::camera.cameraPos.x, Render::camera.cameraPos.y, Render::camera.cameraPos.z);
+		//glUniform3f(glGetUniformLocation(Render::shadowShader,"camPos"),Render::camera.cameraPos.x, Render::camera.cameraPos.y, Render::camera.cameraPos.z);
 
 
 
 		//glDrawArrays(GL_TRIANGLES, 12,6);
+
+
 
 
 
@@ -1087,7 +1118,7 @@ int main() {
 		glVertexAttribDivisor(1, 1);
 
 		glEnable(GL_CULL_FACE);
-		glEnable(GL_DEPTH);
+		glEnable(GL_DEPTH_TEST);
 		
 		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "model"), 1, GL_FALSE, glm::value_ptr(Render::model));
 		glUniformMatrix4fv(glGetUniformLocation(Render::renderShader, "view"), 1, GL_FALSE, glm::value_ptr(Render::view));
@@ -1098,11 +1129,11 @@ int main() {
 
 		Render::camera.translate(Render::left, Render::right, Render::up, Render::down, Render::forward, Render::backward);
 		Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
-		Render::projection = glm::ortho(-40.0f, 40.0f, -40.0f, 40.0f, .0001f, 1000.0f);
+		//Render::projection = glm::ortho(-40.0f, 40.0f, -40.0f, 40.0f, .0001f, 1000.0f);
 		Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 10000.0f);
 
 
-		Render::draw();
+		//Render::draw();
 
 		std::cout << "Begin sorting\n";
 
@@ -1140,16 +1171,28 @@ int main() {
 			glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
 			//glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(FillerArray::Element)* f->da->elements,temp);
 
+			//std::cout << "          Elements to copy: " << f->da->elements << "\n";
+			int elementsToCopy = f->da->elements;
+
 			// now copy the buffers
 			glBindBuffer(GL_COPY_READ_BUFFER, read);
-			glBufferData(GL_COPY_READ_BUFFER, sizeof(FillerArray::Element) * f->da->elements, NULL, GL_DYNAMIC_DRAW);
-			glCopyBufferSubData(GL_ARRAY_BUFFER, GL_COPY_READ_BUFFER, 0, 0, sizeof(FillerArray::Element) * f->da->elements);
-			//glCopyBufferSubData()
+			glBufferData(GL_COPY_READ_BUFFER, sizeof(FillerArray::Element) * elementsToCopy, NULL, GL_DYNAMIC_DRAW);
+			glCopyBufferSubData(GL_ARRAY_BUFFER, GL_COPY_READ_BUFFER, 0, 0, sizeof(FillerArray::Element) * elementsToCopy);
+
 			
 			glBindBuffer(GL_ARRAY_BUFFER, output.buff);
-			glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, output.elements * sizeof(FillerArray::Element), sizeof(FillerArray::Element) * f->da->elements);
+			//glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, output.elements * sizeof(FillerArray::Element), sizeof(FillerArray::Element) * f->da->elements);
+			//glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, output.elements * sizeof(FillerArray::Element), sizeof(FillerArray::Element) * 2);
+			//glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, output.elements*sizeof(FillerArray::Element), sizeof(FillerArray::Element) * 1);
 
-			output.elements += f->da->elements;
+
+			glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, output.elements * sizeof(FillerArray::Element), sizeof(FillerArray::Element) * elementsToCopy);
+
+
+
+			//output.elements += f->da->elements;
+			output.elements += elementsToCopy;
+
 			//for (int i = f->da->elements-1; i < f->da->elements;i++) {
 			//	FillerArray::Element t = temp[i];
 			//	//ARRAY->add(t.translations, t.rotations, t.scalations, t.colors);
@@ -1157,6 +1200,19 @@ int main() {
 			//free(temp);
 
 		}
+
+
+		/*
+		* 
+		* Read in OPNEGL errors to see what is happening if anything
+		* 
+		*/
+
+		
+
+		
+
+		//output.elements = 6;
 
 
 		std::cout << "Drawing now\n";
@@ -1241,10 +1297,21 @@ int main() {
 
 
 
+			/*
+			* 
+			* 
+			* Our goal is to beat 1,310,720 at 21 fps using the new method
+			* 
+			* Current: 8 fps
+			* 
+			* 
+			*/
+
 		
 		//Render::drawDebug(milis);
 		glfwSwapBuffers(Render::window);
 		glfwPollEvents();
+		checkErrors();
 		Render::keepWindow = !glfwWindowShouldClose(Render::window);
 
 		std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
