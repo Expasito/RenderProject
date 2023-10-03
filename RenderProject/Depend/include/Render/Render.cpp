@@ -10,6 +10,7 @@ unsigned int Render::screenShader = -1;
 unsigned int Render::debugShader = -1;
 unsigned int Render::shadowShader = -1;
 unsigned int Render::depthShader = -1;
+unsigned int Render::multiShader = -1;
 
 int Render::width = 0;
 int Render::height = 0;
@@ -433,7 +434,7 @@ void Render::init(int width_, int height_, bool fullScreen) {
 	compileShader("shaders/screenFragment.shader", "shaders/screenVertex.shader", &Render::screenShader);
 	compileShader("shaders/shadowFragment.shader", "shaders/shadowVertex.shader", &Render::shadowShader);
 	compileShader("shaders/depthFragment.shader", "shaders/depthVertex.shader", &Render::depthShader);
-
+	compileShader("shaders/multiDrawFragment.shader", "shaders/multiDrawVertex.shader", &Render::multiShader);
 	//glUseProgram(Render::screenShader);
 	
 	Render::prepBuffers();

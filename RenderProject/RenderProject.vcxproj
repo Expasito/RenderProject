@@ -596,6 +596,8 @@
     <None Include="shaders\fragment.shader" />
     <None Include="shaders\debugFragment.shader" />
     <None Include="shaders\geometry.shader" />
+    <None Include="shaders\multiDrawFragment.shader" />
+    <None Include="shaders\multiDrawVertex.shader" />
     <None Include="shaders\screenFragment.shader" />
     <None Include="shaders\screenVertex.shader" />
     <None Include="shaders\shadowFragment.shader" />

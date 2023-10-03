@@ -72,7 +72,7 @@ public:
 	static GLFWwindow* window;
 
 	// these are shader programs
-	static unsigned int renderShader, screenShader, debugShader, shadowShader, depthShader;
+	static unsigned int renderShader, screenShader, debugShader, shadowShader, depthShader, multiShader;
 
 	static bool left, right, down, up, forward, backward;
 	static bool leftMouseButton, rightMouseButton, middleMouseButton;

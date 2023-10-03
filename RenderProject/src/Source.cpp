@@ -794,7 +794,7 @@ int main() {
 	* 
 	*/
 
-	int chunks = 33;
+	int chunks = 16;
 
 	std::vector<FillerArray*> fillers;
 
@@ -883,6 +883,37 @@ int main() {
 
 
 	//glGenBuffers(1,&ARRAY)
+
+
+	unsigned int multiBuff;
+	glGenBuffers(1, &multiBuff);
+	glBindBuffer(GL_ARRAY_BUFFER, multiBuff);
+	// we need some transform data, etc
+
+
+	//FillerArray::Element multiData[] = {
+	//	{0, {0,0,0},{0,0,0},{1,1,1},{1,1,1}},
+	//	{0, {10,10,10},{0,0,0},{1,1,1},{1,1,1}},
+
+
+	//};
+
+	float multiData[] = {
+		// first triangle
+		-1,-1,0,
+		-.5,-.5,0,
+		0,-1,0,
+		// second triangle
+		1,-1,0,
+		.5,-.5,0,
+		0,-1,0,
+		// third triangle
+		-1,1,0,
+		-.5,.5,0,
+		0,-1,0,
+
+	};
+	glBufferData(GL_ARRAY_BUFFER, sizeof(multiData), multiData, GL_DYNAMIC_DRAW);
 
 
 	
@@ -1135,12 +1166,6 @@ int main() {
 
 		//Render::draw();
 
-		std::cout << "Begin sorting\n";
-
-		
-		//std::cout << "O: " << o->name << "\n";
-
-		//std::cout << "Size: " << fillers.size() << "\n";
 
 		
 
@@ -1151,27 +1176,18 @@ int main() {
 		* 
 		*/
 
-		std::cout << "Starting to process " << fillers.size() << " elements\n";
-
-		//ARRAY->clear();
-
 		output.elements = 0;
 
 		
-
+		/*
 		for (int j = 0; j < fillers.size(); j++) {
 			FillerArray* f = fillers.at(j);
-			//std::cout << "Processing: " << f <<  " at: " << j << "\n";
 			if (f == NULL) {
 				continue;
 
 			}
-			// now get all elements and add to the base one
-			//FillerArray::Element* temp = (FillerArray::Element*)malloc(sizeof(FillerArray::Element) * f->da->elements);
 			glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
-			//glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(FillerArray::Element)* f->da->elements,temp);
 
-			//std::cout << "          Elements to copy: " << f->da->elements << "\n";
 			int elementsToCopy = f->da->elements;
 
 			// now copy the buffers
@@ -1181,11 +1197,6 @@ int main() {
 
 			
 			glBindBuffer(GL_ARRAY_BUFFER, output.buff);
-			//glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, output.elements * sizeof(FillerArray::Element), sizeof(FillerArray::Element) * f->da->elements);
-			//glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, output.elements * sizeof(FillerArray::Element), sizeof(FillerArray::Element) * 2);
-			//glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, output.elements*sizeof(FillerArray::Element), sizeof(FillerArray::Element) * 1);
-
-
 			glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_ARRAY_BUFFER, 0, output.elements * sizeof(FillerArray::Element), sizeof(FillerArray::Element) * elementsToCopy);
 
 
@@ -1193,42 +1204,23 @@ int main() {
 			//output.elements += f->da->elements;
 			output.elements += elementsToCopy;
 
-			//for (int i = f->da->elements-1; i < f->da->elements;i++) {
-			//	FillerArray::Element t = temp[i];
-			//	//ARRAY->add(t.translations, t.rotations, t.scalations, t.colors);
-			//}
-			//free(temp);
+			//break;
+
+
 
 		}
-
-
-		/*
-		* 
-		* Read in OPNEGL errors to see what is happening if anything
-		* 
 		*/
 
-		
+
+
+
+
 
 		
-
-		//output.elements = 6;
-
-
-		std::cout << "Drawing now\n";
-		//std::cout << "FA has: " << ARRAY->da->elements << "\n";
-
-		// This is the actual drawing
+		/*
 		
-
-			//std::cout << "     O: " << fa << "\n";
-
-			//if (fa == NULL) {
-			//	goto NODRAW
-			//	//continue;
-			//}
 		int elements = output.elements;
-		std::cout << "OUTPUT ELEMENTS: " << elements << "\n";
+		//std::cout << "OUTPUT ELEMENTS: " << elements << "\n";
 
 			//std::cout << "     O: " << fa << "   Elements: " << elements << "\n";
 			//std::cout << elements << "\n";
@@ -1238,8 +1230,6 @@ int main() {
 			}
 
 			//std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-
-			std::cout << "Preparing attribs\n";
 
 			// bind the position buffer and send the vertices to gpu
 			glBindBuffer(GL_ARRAY_BUFFER, o->positions);
@@ -1251,8 +1241,6 @@ int main() {
 
 			// load in the buffer of all instances
 			glBindBuffer(GL_ARRAY_BUFFER, output.buff);
-
-			std::cout << "Buffer bound\n";
 
 
 			// this is translation
@@ -1273,28 +1261,124 @@ int main() {
 			// give the ebo to the gpu
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
 
-			std::cout << "drawing\n";
-
-
-
 			// finally, send the draw command to the gpu
 			glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elements);
 
-			std::cout << "finishd eqnueu\n";
-		
-
-
-
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-
-		//std::cout << "Rendered: " << Render::objects[1]->insts->da->elements << " Entities " << "\n";
-
 
 		
-			std::cout << "Stuff has been drawn\n";
 
+
+		// Now bind the default frame buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+		*/
+
+
+
+		long totalElements = 0;
+
+	for (int j = 0; j < fillers.size(); j++) {
+		break;
+		FillerArray* f = fillers.at(j);
+		if (f == NULL) {
+			continue;
+
+		}
+		glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
+
+		int elementsToCopy = f->da->elements;
+		totalElements += elementsToCopy;
+
+
+
+		// bind the position buffer and send the vertices to gpu
+		glBindBuffer(GL_ARRAY_BUFFER, o->positions);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), 0);
+		glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 1));
+		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 2));
+		glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 3));
+
+
+		// load in the buffer of all instances
+		//glBindBuffer(GL_ARRAY_BUFFER, output.buff);
+		glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
+
+
+		// this is translation
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
+
+		// this is rotation
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(glm::vec3) + sizeof(int)));
+
+		// this is for scalation
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 2 * sizeof(glm::vec3)));
+
+		// this is for color
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
+
+
+
+
+		// give the ebo to the gpu
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
+
+		// finally, send the draw command to the gpu
+		glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elementsToCopy);
+		//break;
+
+
+
+	}
+
+
+	/*
+	* 
+	* Test multidraw here
+	* 
+	*/
+	glUseProgram(Render::multiShader);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+
+	// load in the buffer of all instances
+	//glBindBuffer(GL_ARRAY_BUFFER, output.buff);
+	glBindBuffer(GL_ARRAY_BUFFER, multiBuff);
+
+
+	// this is translation
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, (void*)0);
+
+	glVertexAttribDivisor(0, 0);
+
+	// this is rotation
+	//glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(glm::vec3) + sizeof(int)));
+
+	// this is for scalation
+	//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 2 * sizeof(glm::vec3)));
+
+	// this is for color
+	//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
+
+
+
+
+	// give the ebo to the gpu
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
+
+	// finally, send the draw command to the gpu
+	//glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elementsToCopy);
+	int first[] = { 0,6 };
+	int count[] = { 3,3 };
+	//glMultiDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, NULL, 1);
+	//glMultiDrawArrays(GL_TRIANGLES, first, count, 1);
+	//glDrawArrays(GL_TRIANGLES, 0, 3);
+	glMultiDrawArrays(GL_TRIANGLES, first, count, 2);
+
+
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	std::cout << "Elements: " << totalElements << "\n";
 
 
 			/*
