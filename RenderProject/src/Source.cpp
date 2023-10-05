@@ -389,15 +389,9 @@ int main() {
 
 
 
-
-
-	/*
-	*
-	* Lets try some terrain generation to really test the shadows!
-	*
-	* Plan: try to replicate a form of perlin noise and generate cubes at each point with the correct height
-	*
-	*/
+/*
+* 
+* 
 
 	// has to be at least 2
 	// this represents the number of 'chunks' in each direction
@@ -417,14 +411,14 @@ int main() {
 
 	h_ = 50;
 
+	// this is the size of a 'chunk'
+	int blocks = 16;
 	//srand(0);
 
 	// generate a cool world with terrain
 	for (int i = 0; i < width - 1; i++) {
 		for (int j = 0; j < height - 1; j++) {
 			// this is the width and length
-			// this is the size of a 'chunk'
-			int blocks = 16;
 			float slopex = (arr[i + 1][j] - arr[i][j]) / (float)blocks;
 			float slopez = (arr[i][j + 1] - arr[i][j]) / (float)blocks;
 			for (int k = 0; k < blocks; k++) {
@@ -472,10 +466,99 @@ int main() {
 
 
 
+*/
+
+
+
+	/*
+	*
+	* 
+	* Keep the old one above so we can not mess it up. This will be used with the chunking system for testing
+	* Lets try some terrain generation to really test the shadows!
+	*
+	* Plan: try to replicate a form of perlin noise and generate cubes at each point with the correct height
+	*
+	*/
 
 
 
 
+
+
+// this is a copy of the pointers so we can reset if we need
+
+
+
+	// has to be at least 2
+	// this represents the number of 'chunks' in each direction
+	const int width = 33;
+	const int height = 33;
+
+std::vector<FillerArray*> fillers(width*height);
+
+	int h_ = 10;
+	int arr[width][height];
+	for (int i = 0; i < width; i++) {
+		for (int j = 0; j < height; j++) {
+			//h_ = rand() % 
+			arr[i][j] = (rand() / (float)RAND_MAX) * h_;
+		}
+	}
+
+	int counter__ = 0;
+
+	// this is the size of a 'chunk'
+	int blocks = 16;
+	//srand(0);
+
+	// generate a cool world with terrain
+	for (int i = 0; i < width - 1; i++) {
+		for (int j = 0; j < height - 1; j++) {
+			// this is the width and length
+			float slopex = (arr[i + 1][j] - arr[i][j]) / (float)blocks;
+			float slopez = (arr[i][j + 1] - arr[i][j]) / (float)blocks;
+
+			// Init the filler array and add to the list of arrays
+			FillerArray* fa = new FillerArray(blocks * blocks * h_ * 2, blocks * blocks * h_ * 2);
+			fillers.push_back(fa);
+
+			for (int k = 0; k < blocks; k++) {
+				for (int l = 0; l < blocks; l++) {
+
+					// take each point out of the 4 and multiply by the situation where when the k and l values are
+					// at its location, the value at that point is used
+					float h = (arr[i][j]) * (1 - (float)k / blocks) * (1 - (float)l / blocks) +
+						(arr[i + 1][j + 1]) * ((float)k / blocks) * ((float)l / blocks) +
+						(arr[i + 1][j]) * ((float)k / blocks) * (1 - (float)l / blocks) +
+						(arr[i][j + 1]) * (1 - (float)k / blocks) * ((float)l / blocks)
+						;
+
+
+					// put the cubes in the right y axis location
+					h = round(h) * 2;
+					//std::cout << "H: " << h << "\n";
+					// h should always be even due to the *2 so we add 2 each layer
+					for (int m = h - 2 - 2 - 2 - 2; m <= h; m += 2) {
+						counter__++;
+
+
+						// add a white cube for snow
+						if (h > h_ * 2 * .75) {
+							fa->add({ 2 * (i * blocks + k),m,2 * (j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { .75,.75,.75});
+						}
+						else if (h < h_ * 2 * .25) {
+							fa->add({ 2 * (i * blocks + k),m,2 * (j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,0,.75 });
+						}
+						else {
+							fa->add({ 2 * (i * blocks + k),m,2 * (j * blocks + l) }, { 0,0,0 }, { 1,1,1 }, { 0,.75,0 });
+						}
+
+					}
+
+				}
+			}
+		}
+	}
 
 
 
@@ -794,11 +877,13 @@ int main() {
 	* 
 	*/
 
+	/*
+
 	int chunks = 16;
 
 	std::vector<FillerArray*> fillers;
 
-	int blocksPerChunk = 16;
+	int blocksPerChunk = 32;
 
 	// this is a copy of the pointers so we can reset if we need
 	std::vector<FillerArray**> fillersAll(chunks* chunks);
@@ -807,7 +892,7 @@ int main() {
 	for (int i = 0; i < chunks; i++) {
 		for (int j = 0; j < chunks; j++) {
 			//std::cout << i << "\n";
-			FillerArray* fa = new FillerArray(blocksPerChunk*blocksPerChunk*2, blocksPerChunk * blocksPerChunk * 2);
+			FillerArray* fa = new FillerArray(blocksPerChunk*blocksPerChunk*5*2, blocksPerChunk * blocksPerChunk * 5*2);
 			fillers.push_back(fa);
 			fillersAll.push_back(&fa);
 			for (int k = 0; k < blocksPerChunk; k++) {
@@ -828,7 +913,7 @@ int main() {
 		
 	}
 
-
+	*/
 	
 
 	//FillerArray* fa = new FillerArray(100, 100);
@@ -857,7 +942,7 @@ int main() {
 	};
 
 	Output output;
-	output.capacity = blocksPerChunk*blocksPerChunk*50*chunks*chunks;
+	output.capacity = blocks*blocks*50*width*height;
 	//output.capacity = chunks * chunks * 2;
 	output.elements = 0;
 	glGenBuffers(1, &output.buff);
@@ -882,38 +967,7 @@ int main() {
 
 
 
-	//glGenBuffers(1,&ARRAY)
 
-
-	unsigned int multiBuff;
-	glGenBuffers(1, &multiBuff);
-	glBindBuffer(GL_ARRAY_BUFFER, multiBuff);
-	// we need some transform data, etc
-
-
-	//FillerArray::Element multiData[] = {
-	//	{0, {0,0,0},{0,0,0},{1,1,1},{1,1,1}},
-	//	{0, {10,10,10},{0,0,0},{1,1,1},{1,1,1}},
-
-
-	//};
-
-	float multiData[] = {
-		// first triangle
-		-1,-1,0,
-		-.5,-.5,0,
-		0,-1,0,
-		// second triangle
-		1,-1,0,
-		.5,-.5,0,
-		0,-1,0,
-		// third triangle
-		-1,1,0,
-		-.5,.5,0,
-		0,-1,0,
-
-	};
-	glBufferData(GL_ARRAY_BUFFER, sizeof(multiData), multiData, GL_DYNAMIC_DRAW);
 
 
 	
@@ -1021,7 +1075,7 @@ int main() {
 			glVertexAttribDivisor(1, 1);
 
 			glEnable(GL_CULL_FACE);
-			glEnable(GL_DEPTH);
+			glEnable(GL_DEPTH_TEST);
 
 			glUseProgram(Render::depthShader);
 
@@ -1092,13 +1146,12 @@ int main() {
 
 		/*
 		* 
-		* We are doing frustrum culling here first
+		* We are going to be doing frustrum culling here first
 		* 
 		* 
 		*/
 
 
-		//fillers.at(2) = NULL;
 
 
 
@@ -1278,32 +1331,33 @@ int main() {
 
 		long totalElements = 0;
 
+
+	// These can be done outside of the loop since the object is the same:
+
+	// give the ebo to the gpu
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
+
+	// bind the position buffer and send the vertices to gpu
+	glBindBuffer(GL_ARRAY_BUFFER, o->positions);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), 0);
+	glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 1));
+	glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 2));
+	glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 3));
+
 	for (int j = 0; j < fillers.size(); j++) {
-		break;
 		FillerArray* f = fillers.at(j);
 		if (f == NULL) {
 			continue;
 
 		}
-		glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
+		//glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
 
 		int elementsToCopy = f->da->elements;
 		totalElements += elementsToCopy;
 
-
-
-		// bind the position buffer and send the vertices to gpu
-		glBindBuffer(GL_ARRAY_BUFFER, o->positions);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), 0);
-		glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 1));
-		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 2));
-		glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 3));
-
-
 		// load in the buffer of all instances
 		//glBindBuffer(GL_ARRAY_BUFFER, output.buff);
 		glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
-
 
 		// this is translation
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
@@ -1320,60 +1374,15 @@ int main() {
 
 
 
-		// give the ebo to the gpu
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
+
 
 		// finally, send the draw command to the gpu
 		glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elementsToCopy);
-		//break;
-
 
 
 	}
 
 
-	/*
-	* 
-	* Test multidraw here
-	* 
-	*/
-	glUseProgram(Render::multiShader);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-
-	// load in the buffer of all instances
-	//glBindBuffer(GL_ARRAY_BUFFER, output.buff);
-	glBindBuffer(GL_ARRAY_BUFFER, multiBuff);
-
-
-	// this is translation
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*3, (void*)0);
-
-	glVertexAttribDivisor(0, 0);
-
-	// this is rotation
-	//glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(glm::vec3) + sizeof(int)));
-
-	// this is for scalation
-	//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 2 * sizeof(glm::vec3)));
-
-	// this is for color
-	//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
-
-
-
-
-	// give the ebo to the gpu
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
-
-	// finally, send the draw command to the gpu
-	//glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elementsToCopy);
-	int first[] = { 0,6 };
-	int count[] = { 3,3 };
-	//glMultiDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, NULL, 1);
-	//glMultiDrawArrays(GL_TRIANGLES, first, count, 1);
-	//glDrawArrays(GL_TRIANGLES, 0, 3);
-	glMultiDrawArrays(GL_TRIANGLES, first, count, 2);
 
 
 
@@ -1386,8 +1395,13 @@ int main() {
 			* 
 			* Our goal is to beat 1,310,720 at 21 fps using the new method
 			* 
-			* Current: 8 fps
+			* Old Method: 21 fps using the idea of drawing all at once, no culling and no chunking
 			* 
+			* New Method 1: 8 fps with copying the good chunks into a large buffer and drawing all
+			* 
+			* New Method 2: 21 fps with drawing each chunk and no buffer copying
+			* 
+			* So now we implement culling and stuff like that while reducing the number of draw calls overall
 			* 
 			*/
 
