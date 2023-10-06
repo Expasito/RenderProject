@@ -34,6 +34,11 @@ std::ostream& operator<<(std::ostream& os, const glm::vec3& vec)
 
 
 
+/*
+* 
+* Note: For importing models, rename the extention to .rpo so the linker does not mistake the .obj file as a c object file. 
+* 
+*/
 
 
 
@@ -41,12 +46,6 @@ std::ostream& operator<<(std::ostream& os, const glm::vec3& vec)
 
 
 
-
-
-
-
-// For when choosing if we want to use diffuse/specular maps or use vec3s, have either option and then calculate yes or no in the vertex shader
-// so the fragment has less work to do. So when creating an object, have it pas in which textures to use/ which values for specular and diffuse.
 
 
 
@@ -341,43 +340,19 @@ int main() {
 		ebo.push_back(ebo_[i]);
 	}
 
-	unsigned int test_, test2_;
-	glGenBuffers(1, &test_);
-	glBindBuffer(GL_ARRAY_BUFFER, test_);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Render::vertex) * positions.size(), &positions[0], GL_STATIC_DRAW);
+	//unsigned int test_, test2_;
+	//glGenBuffers(1, &test_);
+	//glBindBuffer(GL_ARRAY_BUFFER, test_);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(Render::vertex) * positions.size(), &positions[0], GL_STATIC_DRAW);
 
-	glGenBuffers(1, &test2_);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, test2_);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * ebo.size(), &ebo[0], GL_STATIC_DRAW);
-
-
-	//Render::objects.push_back(new Render::Object("Test", "..", test_, test2_, ebo.size(), new FillerArray(100, 100)));
-
-	//Render::addModel("assets/sphere.obj", "Cube",100,100);
-	//Render::addModel("assets/sphere.obj", "Cube");
-	//Render::addModel("assets/monkey.obj", "Monkey");
-
-	//Render::addModel("assets/room.obj", "Room", 10000, 10000);
-
-	//Render::addInstance("Room", { 20,0,0 }, { 0,0,0 }, { 1,1,1 }, { .5,.5,.5 });
-
-	Render::addModel("assets/Cube3.obj", "CUBE", 100000000, 10000000);
-	//Render::addModel("assets/sphere.obj", "Sphere", 100, 100);
-
-	//Render::addModel("../UserFiles/Assets/monkey.obj", "Monkey", 100, 100);
-
-	//Render::addInstance("Monkey", {0,0,0}, {0,0,0}, {1,1,1}, {1,1,1});
-
-	//Render::addInstance("CUBE", { 0,-10,0 }, { 0,0,0 }, { 10,1,10 }, {1,1,1});
-	//Render::addInstance("Test", { 20,-2,0 }, { 0,0,0 }, { 1,1,1 }, {1,1,1});
-	//Render::addInstance("Test", { 0,-2,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
-
-	//Render::addInstance("Test", { 0,-5,0 }, { 0,0,0 }, { 10,1,10 }, { 1,1,1 });
+	//glGenBuffers(1, &test2_);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, test2_);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * ebo.size(), &ebo[0], GL_STATIC_DRAW);
 
 
-	//Render::addInstance("Test", { 0,-10,0 }, { 0,0,0 }, { 1000,1,1000 }, { 1,1,1 });
 
-	//Render::addInstance("Test", {0,5,0}, {0,0,0}, {10,1,10}, {1,1,1});
+
+	Render::addModel("assets/Cube3.rpo", "CUBE", 100000000, 10000000);
 
 
 
@@ -496,7 +471,7 @@ int main() {
 
 std::vector<FillerArray*> fillers(width*height);
 
-	int h_ = 10;
+	int h_ = 50;
 	int arr[width][height];
 	for (int i = 0; i < width; i++) {
 		for (int j = 0; j < height; j++) {
@@ -749,7 +724,7 @@ std::vector<FillerArray*> fillers(width*height);
 	//DirectionalLight dl(1024, 1024, 0.0f, 1000.0f, {20,50,20}, {0,0,0});
 
 	DirectionalLight dls[2] = {
-		DirectionalLight(4096 / 32, 4096 / 32, 0.0f, 1000.0f, {0,41,0}, {0,40,1},1000),
+		DirectionalLight(4096, 4096, 0.0f, 1000.0f, {0,41,0}, {0,40,1},1000),
 		DirectionalLight(32, 32, 0.0f, 1000.0f, {0.00001,50,0.001}, {0,0,0},10)
 	};
 
@@ -858,7 +833,7 @@ std::vector<FillerArray*> fillers(width*height);
 
 
 
-	const char* path = "../UserFiles/Assets/Cube3.obj";
+	const char* path = "Assets/Cube3.rpo";
 
 	Render::Model m = Render::loadModel(path);
 	for (int i = 0; i < m.indices.size(); i++) {
@@ -978,30 +953,6 @@ std::vector<FillerArray*> fillers(width*height);
 		Render::lastFrame = currentFrame;
 		Render::camera.speed = Render::camera.baseSpeed * Render::dt;
 
-		//float* buff = new float[800 * 800 * 4];
-		//glBindTexture(GL_TEXTURE_2D, depthMap);
-		//glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,GL_FLOAT,buff);
-
-	/*	int c = 0;
-		for (int i = 0; i < 50; i++) {
-			for (int j = 0; j < 50; j++) {
-				std::cout << (int)buff[c++] << " ";
-
-			}
-			std::cout << "\n";
-		}*/
-
-		//float out = ((1.0 / buff[0]) - (1.0 / .01)) / (1 / 1000.0 - 1 / .01);
-
-		//float out = (buff[0]) * (1 / 1000.0 - 1 / .01) + 1 / .01;
-
-		//std::cout << 1/out << "\n";
-
-		//std::cout << "\n\n";
-
-		//std::cout << (int)buff[4 * 100 * 50] << "\n";
-
-		//delete[] buff;
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glDisable(GL_CULL_FACE);
@@ -1028,31 +979,6 @@ std::vector<FillerArray*> fillers(width*height);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		// draw depths
-		//glActiveTexture(GL_TEXTURE2);
-		//glBindTexture(GL_TEXTURE_2D, dls[0].depthTexture);
-
-		//glUniform1i(d, 1);
-
-		//glDrawArrays(GL_TRIANGLES, 6, 6);
-
-		// draw shadows
-		//glUseProgram(Render::shadowShader);
-
-		//glActiveTexture(GL_TEXTURE2);
-		//glBindTexture(GL_TEXTURE_2D, dls[0].depthTexture);
-
-		//glUniform1i(d2, 0);
-
-		// give cam pos
-		//glUniform3f(glGetUniformLocation(Render::shadowShader,"camPos"),Render::camera.cameraPos.x, Render::camera.cameraPos.y, Render::camera.cameraPos.z);
-
-
-
-		//glDrawArrays(GL_TRIANGLES, 12,6);
-
-
-
 
 
 		/*
@@ -1065,7 +991,7 @@ std::vector<FillerArray*> fillers(width*height);
 
 
 		for (DirectionalLight dl : dls) {
-			continue;
+			//continue;
 			glBindFramebuffer(GL_FRAMEBUFFER, dl.fbo);
 			//glCullFace(GL_FRONT);
 			glViewport(0, 0, dl.width, dl.height);
@@ -1092,27 +1018,27 @@ std::vector<FillerArray*> fillers(width*height);
 			glUniformMatrix4fv(glGetUniformLocation(Render::depthShader, "projection"), 1, GL_FALSE, glm::value_ptr(dl.lightSpaceMatrix));
 
 
+			// give the ebo to the gpu
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
 
+			// bind the position buffer and send the vertices to gpu
+			glBindBuffer(GL_ARRAY_BUFFER, o->positions);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), 0);
+			glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 1));
+			glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 2));
+			glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 3));
 
-			for (Render::Object* o : Render::objects) {
-				int elements = o->insts->da->elements;
-				//std::cout << elements << "\n";
-				if (elements <= 0) {
+			for (int j = 0; j < fillers.size(); j++) {
+				FillerArray* f = fillers.at(j);
+				if (f == NULL) {
 					continue;
+
 				}
 
-
-				// bind the position buffer and send the vertices to gpu
-				glBindBuffer(GL_ARRAY_BUFFER, o->positions);
-				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), 0);
-				//glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 1));
-				//glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 2));
-				//glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 3));
-
+				int elementsToCopy = f->da->elements;
 
 				// load in the buffer of all instances
-				glBindBuffer(GL_ARRAY_BUFFER, o->insts->buffer);
-
+				glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
 
 				// this is translation
 				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
@@ -1124,21 +1050,14 @@ std::vector<FillerArray*> fillers(width*height);
 				glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 2 * sizeof(glm::vec3)));
 
 				// this is for color
-				//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
-
-
-
-
-				// give the ebo to the gpu
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, o->ebo);
-
-
+				glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
 
 				// finally, send the draw command to the gpu
-				glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elements);
+				glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elementsToCopy);
 
 
 			}
+
 		}
 
 
@@ -1213,7 +1132,6 @@ std::vector<FillerArray*> fillers(width*height);
 
 		Render::camera.translate(Render::left, Render::right, Render::up, Render::down, Render::forward, Render::backward);
 		Render::view = glm::lookAt(Render::camera.cameraPos, Render::camera.cameraPos + Render::camera.cameraFront, Render::camera.cameraUp);
-		//Render::projection = glm::ortho(-40.0f, 40.0f, -40.0f, 40.0f, .0001f, 1000.0f);
 		Render::projection = glm::perspective(glm::radians(Render::camera.fov), (float)(800.0 / 800.0), .01f, 10000.0f);
 
 
@@ -1350,13 +1268,11 @@ std::vector<FillerArray*> fillers(width*height);
 			continue;
 
 		}
-		//glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
 
 		int elementsToCopy = f->da->elements;
 		totalElements += elementsToCopy;
 
 		// load in the buffer of all instances
-		//glBindBuffer(GL_ARRAY_BUFFER, output.buff);
 		glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
 
 		// this is translation
@@ -1370,11 +1286,6 @@ std::vector<FillerArray*> fillers(width*height);
 
 		// this is for color
 		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
-
-
-
-
-
 
 		// finally, send the draw command to the gpu
 		glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elementsToCopy);

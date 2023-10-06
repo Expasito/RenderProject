@@ -449,6 +449,15 @@
     <ClInclude Include="Depend\include\Soil\stb_image_aug.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\colored_cube.rpo" />
+    <None Include="assets\cube.rpo" />
+    <None Include="assets\cube2.rpo" />
+    <None Include="assets\Cube3.rpo" />
+    <None Include="assets\final.rpo" />
+    <None Include="assets\monkey.rpo" />
+    <None Include="assets\room.rpo" />
+    <None Include="assets\sphere.rpo" />
+    <None Include="assets\thing.rpo" />
     <None Include="Depend\include\glm\detail\func_common.inl" />
     <None Include="Depend\include\glm\detail\func_common_simd.inl" />
     <None Include="Depend\include\glm\detail\func_exponential.inl" />

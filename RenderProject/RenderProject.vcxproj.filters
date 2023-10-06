@@ -1389,6 +1389,15 @@
     <None Include="shaders\depthFragment.shader" />
     <None Include="shaders\multiDrawFragment.shader" />
     <None Include="shaders\multiDrawVertex.shader" />
+    <None Include="assets\colored_cube.rpo" />
+    <None Include="assets\thing.rpo" />
+    <None Include="assets\sphere.rpo" />
+    <None Include="assets\room.rpo" />
+    <None Include="assets\monkey.rpo" />
+    <None Include="assets\final.rpo" />
+    <None Include="assets\Cube3.rpo" />
+    <None Include="assets\cube2.rpo" />
+    <None Include="assets\cube.rpo" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Depend\lib\glfw3.lib" />
