@@ -161,7 +161,7 @@ long Render::addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::ve
 	}
 }
 
-void Render::editInstance(std::string name, unsigned long long id, glm::vec3 pos, glm::bvec3 rot, glm::vec3 scal, glm::vec3 color) {
+void Render::editInstance(std::string name, unsigned long long id, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color) {
 
 }
 

@@ -89,7 +89,7 @@ public:
 	static void exit();
 	static void addModel(const char* path, std::string name, int hashtablesize, int dynamicarraysize);
 	static long addInstance(std::string name, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal,glm::vec3 colors);
-	static void editInstance(std::string name, unsigned long long id, glm::vec3 pos, glm::bvec3 rot, glm::vec3 scal, glm::vec3 color);
+	static void editInstance(std::string name, unsigned long long id, glm::vec3 pos, glm::vec3 rot, glm::vec3 scal, glm::vec3 color);
 	static void removeInstances(std::string name);
 	static void removeAllInstances();
 	static void draw();

@@ -989,7 +989,7 @@ std::vector<FillerArray*> fillers(width*height);
 		* 
 		*/
 
-
+		// Undo that disable for showing features
 		for (DirectionalLight dl : dls) {
 			//continue;
 			glBindFramebuffer(GL_FRAMEBUFFER, dl.fbo);
