@@ -206,6 +206,8 @@ void main() {
 
 	//vec3 result = vec3(1);
 
+	result = colors_;
+
 
 	for (int i = 0; i < size-size; i++) {
 		result += base(data[i],specular);
@@ -219,12 +221,16 @@ void main() {
 	//result = (1 - shadow1) * result;
 
 	
+	FragColor = vec4(result, 1);
 
-
+	if (result.z > 200) {
+		FragColor = vec4(result.x, result.y, result.z, .05);
+	}
 
 
 	
-	FragColor = vec4(result, 1);
+
+	//FragColor = vec4(result, .5);
 
 
 

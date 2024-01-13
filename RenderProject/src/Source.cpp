@@ -209,6 +209,22 @@ private:
 };
 
 
+void GLAPIENTRY MessageCallback(GLenum source,
+	GLenum type,
+	GLuint id,
+	GLenum severity,
+	GLsizei length,
+	const GLchar* message,
+	const void* userParam)
+{
+	//fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+	//	(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+	//	type, severity, message);
+
+	//exit(1);
+}
+
+
 
 
 int main() {
@@ -271,6 +287,7 @@ int main() {
 
 
 	srand(time(0));
+	srand(0);
 	Render::init(800, 800, false);
 	Render::camera.baseSpeed = 30;
 
@@ -494,6 +511,7 @@ std::vector<FillerArray*> fillers(width*height);
 			float slopez = (arr[i][j + 1] - arr[i][j]) / (float)blocks;
 
 			// Init the filler array and add to the list of arrays
+			std::cout << "Creating filler array\n";
 			FillerArray* fa = new FillerArray(blocks * blocks * h_ * 2, blocks * blocks * h_ * 2);
 			fillers.push_back(fa);
 
@@ -535,6 +553,9 @@ std::vector<FillerArray*> fillers(width*height);
 		}
 	}
 
+
+	glEnable(GL_DEBUG_OUTPUT);
+	glDebugMessageCallback(MessageCallback, 0);
 
 
 	//Render::addInstance("CUBE", { -10,-10,0 }, { 0,0,0 }, { 1,1,1 }, { 1,1,1 });
@@ -732,7 +753,6 @@ std::vector<FillerArray*> fillers(width*height);
 	//dls[0].position;
 	//Render::addInstance("CUBE", dls[0].position, { 0,0,0 }, { 10,10,10 }, { 1,1,1 });
 	//Render::addInstance("CUBE", dls[0].lookat, {0,0,0}, {10,10,10}, {1,1,1});
-
 
 
 
@@ -957,9 +977,16 @@ std::vector<FillerArray*> fillers(width*height);
 
 
 
+	//exit(1);
 
+
+	// this is the bounding box buffer
+	uint32_t bb;
+	glGenBuffers(1, &bb);
+	glBindBuffer(GL_ARRAY_BUFFER, bb);
 	
 	while (Render::keepWindow) {
+
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 		float currentFrame = glfwGetTime();
 		Render::dt = currentFrame - Render::lastFrame;
@@ -1276,7 +1303,7 @@ std::vector<FillerArray*> fillers(width*height);
 	glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 3));
 
 
-
+	//glDisable(GL_CULL_FACE);
 
 	for (int j = 0; j < fillers.size(); j++) {
 		FillerArray* f = fillers.at(j);
@@ -1290,33 +1317,47 @@ std::vector<FillerArray*> fillers(width*height);
 
 		//std::cout << f->da->elements << "\n";
 
-		uint32_t bb;
-		glGenBuffers(1, &bb);
-		glBindBuffer(GL_ARRAY_BUFFER, bb);
+		
 
 		glm::vec3 pos(0.0f);
-		for (int k = 0; k < f->da->elements; k++) {
-			//std::cout << f->da->get(k).translations << "\n";
-			//pos += f->da->get(k).translations;
-		}
+		//std::cout << "Start:\n";
+		//for (int k = 0; k < f->da->elements; k++) {
+		//	FillerArray::Element element = f->da->get(k);
+		//	//std::cout << element.translations << "\n";
+		//	// 
+		//	pos.x += element.translations.x;
+		//	pos.y += element.translations.y;
+		//	pos.z += element.translations.z;
+		//	//std::cout << f->da->get(k).translations << "\n";
+		//	//pos += f->da->get(k).translations;
+		//}
 
-		//pos /= (float)f->da->elements;
+		//std::cout << "End\n\n";
+
+		// get the average
+		pos = f->translationSum;
+		pos /= (float)f->da->elements;
 
 		//std::cout << pos << "\n";
 
-		FillerArray::Element dat;
+		FillerArray::Element dat{};
 		dat.rotations = {0,0,0};
-		dat.scalations = { 32,20,32 };
-		//f->da->get(0);
-		dat.translations = f->da->get(0).translations;
-		dat.colors = { 255,0,255 };
+		// height is the difference of the max and min divide by 2 and +1
+		dat.scalations = { 16,(f->maxHeight - f->minHeight) / 2.0f + 1,16 };
+
+		dat.translations = pos;
+		
+		// adjust the y position to be the average of the max and min height
+		dat.translations.y = (f->maxHeight + f->minHeight) / 2;
+		dat.colors = { j,0,255 };
 
 
+		glBindBuffer(GL_ARRAY_BUFFER, bb);
 		//dat.add({}, {}, {}, {});
 		glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element), &dat, GL_STATIC_DRAW);
 
 		// load in the buffer of all instances
-		//glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
 
 		// this is translation
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
@@ -1338,12 +1379,29 @@ std::vector<FillerArray*> fillers(width*height);
 
 		glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elementsToCopy);
 
-		glDeleteBuffers(1, &bb);
+		glBindBuffer(GL_ARRAY_BUFFER, bb);
+		// this is translation
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
+
+		// this is rotation
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(glm::vec3) + sizeof(int)));
+
+		// this is for scalation
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 2 * sizeof(glm::vec3)));
+
+		// this is for color
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
+
+		glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, 1);
+
+
+		//glDeleteBuffers(1, &bb);
 
 	}
 
 
 
+		//exit(1);
 
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

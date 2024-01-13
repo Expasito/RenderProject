@@ -45,6 +45,22 @@ public:
 		glm::vec3 colors;
 	};
 
+
+	// This is the sum of all positions
+	glm::vec3 translationSum;
+
+	// max and min height over all elements
+	float maxHeight = -1e9;
+	float minHeight = 1e9;
+
+
+	// This is the bounding box for the filler array objects
+	Element boundingBox{};
+
+	/*Element getBoundingBox() {
+
+	}*/
+
 	// this will hold the keys and indexes
 	// Note:  a returned Element object with index of -1 means the get/remove function failed to find since index of -1 is not legal
 	class HashTable {
@@ -354,6 +370,17 @@ public:
 
 	long add(glm::vec3 trans_, glm::vec3 rot_, glm::vec3 scal_, glm::vec3 color_) {
 		long newkey = getNextKey();
+
+		// add the translation to the sum
+		translationSum += trans_;
+
+		// update the max and min height;
+		if (maxHeight < trans_.y) {
+			maxHeight = trans_.y;
+		}
+		if (minHeight > trans_.y) {
+			minHeight = trans_.y;
+		}
 
 		ht->add(newkey, da->elements);
 		da->add(newkey, trans_, rot_, scal_, color_);
