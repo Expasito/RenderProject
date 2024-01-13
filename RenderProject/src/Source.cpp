@@ -941,6 +941,19 @@ std::vector<FillerArray*> fillers(width*height);
 	glGenBuffers(1, &read);
 
 
+	// This is the start of our bounding box idea.
+	// Basically we will check if the boudning box is visible before drawing to remove
+	// usless draw calls to the screen
+	// should also allow for fast ordering of objects due to less vertices to check
+	struct BoundingBox {
+		// position of the box
+		glm::vec3 position;
+		glm::vec3 translation;
+		glm::vec3 rotation;
+		glm::vec3 scalation;
+
+	};
+
 
 
 
@@ -991,7 +1004,7 @@ std::vector<FillerArray*> fillers(width*height);
 
 		// Undo that disable for showing features
 		for (DirectionalLight dl : dls) {
-			//continue;
+			continue;
 			glBindFramebuffer(GL_FRAMEBUFFER, dl.fbo);
 			//glCullFace(GL_FRONT);
 			glViewport(0, 0, dl.width, dl.height);
@@ -1262,6 +1275,9 @@ std::vector<FillerArray*> fillers(width*height);
 	glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 2));
 	glVertexAttribPointer(7, 2, GL_FLOAT, GL_FALSE, sizeof(Render::vertex), (void*)(sizeof(glm::vec3) * 3));
 
+
+
+
 	for (int j = 0; j < fillers.size(); j++) {
 		FillerArray* f = fillers.at(j);
 		if (f == NULL) {
@@ -1272,8 +1288,35 @@ std::vector<FillerArray*> fillers(width*height);
 		int elementsToCopy = f->da->elements;
 		totalElements += elementsToCopy;
 
+		//std::cout << f->da->elements << "\n";
+
+		uint32_t bb;
+		glGenBuffers(1, &bb);
+		glBindBuffer(GL_ARRAY_BUFFER, bb);
+
+		glm::vec3 pos(0.0f);
+		for (int k = 0; k < f->da->elements; k++) {
+			//std::cout << f->da->get(k).translations << "\n";
+			//pos += f->da->get(k).translations;
+		}
+
+		//pos /= (float)f->da->elements;
+
+		//std::cout << pos << "\n";
+
+		FillerArray::Element dat;
+		dat.rotations = {0,0,0};
+		dat.scalations = { 32,20,32 };
+		//f->da->get(0);
+		dat.translations = f->da->get(0).translations;
+		dat.colors = { 255,0,255 };
+
+
+		//dat.add({}, {}, {}, {});
+		glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element), &dat, GL_STATIC_DRAW);
+
 		// load in the buffer of all instances
-		glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
+		//glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
 
 		// this is translation
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
@@ -1288,8 +1331,14 @@ std::vector<FillerArray*> fillers(width*height);
 		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
 
 		// finally, send the draw command to the gpu
+
+
+
+
+
 		glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elementsToCopy);
 
+		glDeleteBuffers(1, &bb);
 
 	}
 
