@@ -57,9 +57,30 @@ public:
 	// This is the bounding box for the filler array objects
 	Element boundingBox{};
 
-	/*Element getBoundingBox() {
+	uint32_t boundingBoxBuffer = 0;
+	bool bufferLoaded = false;
 
-	}*/
+	void updateBoudingBox() {
+		if (bufferLoaded == false) {
+			bufferLoaded = true;
+			glGenBuffers(1, &boundingBoxBuffer);
+		}
+
+		glBindBuffer(GL_ARRAY_BUFFER, boundingBoxBuffer);
+
+		boundingBox.colors = { 255,0,255 };
+		boundingBox.rotations = { 0,0,0 };
+		glm::vec3 pos = translationSum / ((float)da->elements);
+		boundingBox.scalations = { 16, (maxHeight - minHeight) / 2.0f + 1,16 };
+		boundingBox.translations = pos;
+		boundingBox.translations.y = (maxHeight + minHeight) / 2;
+
+
+		glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element), &boundingBox, GL_STATIC_DRAW);
+
+
+
+	}
 
 	// this will hold the keys and indexes
 	// Note:  a returned Element object with index of -1 means the get/remove function failed to find since index of -1 is not legal
@@ -408,6 +429,8 @@ public:
 			ht = temp;
 		}
 
+		// update the bounding box before leaving
+		updateBoudingBox();
 		return newkey;
 	}
 

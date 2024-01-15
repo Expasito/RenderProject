@@ -224,7 +224,7 @@ void main() {
 	FragColor = vec4(result, 1);
 
 	if (result.z > 200) {
-		FragColor = vec4(result.x, result.y, result.z, .05);
+		FragColor = vec4(result.x, result.y, result.z, .15);
 	}
 
 

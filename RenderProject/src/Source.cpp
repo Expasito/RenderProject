@@ -2,6 +2,7 @@
 #include <Render/Render.h>
 #include <chrono>
 #include <Soil/SOIL.h>
+#include <queue>
 
 
 // This supposively makes the program run faster by telling the gpu to run in performance mode?
@@ -486,7 +487,7 @@ int main() {
 	const int width = 33;
 	const int height = 33;
 
-std::vector<FillerArray*> fillers(width*height);
+std::vector<FillerArray*> fillers;
 
 	int h_ = 50;
 	int arr[width][height];
@@ -1305,56 +1306,42 @@ std::vector<FillerArray*> fillers(width*height);
 
 	//glDisable(GL_CULL_FACE);
 
+	std::priority_queue < std::pair<float, FillerArray*>> pq;
 	for (int j = 0; j < fillers.size(); j++) {
 		FillerArray* f = fillers.at(j);
-		if (f == NULL) {
-			continue;
 
-		}
 
-		int elementsToCopy = f->da->elements;
-		totalElements += elementsToCopy;
+		// first check if its out of the viewing frame 
 
-		//std::cout << f->da->elements << "\n";
 
-		
+		glm::vec3 bbPos = f->boundingBox.translations;
+		// invert the bbPos
+		bbPos.x = -bbPos.x;
+		glm::vec3 cPos = Render::camera.cameraPos;
 
-		glm::vec3 pos(0.0f);
-		//std::cout << "Start:\n";
-		//for (int k = 0; k < f->da->elements; k++) {
-		//	FillerArray::Element element = f->da->get(k);
-		//	//std::cout << element.translations << "\n";
-		//	// 
-		//	pos.x += element.translations.x;
-		//	pos.y += element.translations.y;
-		//	pos.z += element.translations.z;
-		//	//std::cout << f->da->get(k).translations << "\n";
-		//	//pos += f->da->get(k).translations;
+		float dot = glm::dot(glm::normalize(bbPos - cPos), glm::normalize(Render::camera.cameraDirection));
+
+		//if (dot <= cosf(glm::radians(Render::camera.fov))) {
+		//	continue;
 		//}
+		if (dot <= -.5) {
+			continue;
+		}
+		//std::cout << "Camera: " << cPos << " Box: " << bbPos << "\n";
+		bbPos.y = 0;
+		cPos.y = 0;
 
-		//std::cout << "End\n\n";
+		// get the length of the vector from the bounding box to the camera position
+		float dist = glm::length(bbPos - cPos);
+		//std::cout << dist << "\n";
+		pq.push(std::make_pair(dist, f));
+	}
 
-		// get the average
-		pos = f->translationSum;
-		pos /= (float)f->da->elements;
-
-		//std::cout << pos << "\n";
-
-		FillerArray::Element dat{};
-		dat.rotations = {0,0,0};
-		// height is the difference of the max and min divide by 2 and +1
-		dat.scalations = { 16,(f->maxHeight - f->minHeight) / 2.0f + 1,16 };
-
-		dat.translations = pos;
-		
-		// adjust the y position to be the average of the max and min height
-		dat.translations.y = (f->maxHeight + f->minHeight) / 2;
-		dat.colors = { j,0,255 };
-
-
-		glBindBuffer(GL_ARRAY_BUFFER, bb);
-		//dat.add({}, {}, {}, {});
-		glBufferData(GL_ARRAY_BUFFER, sizeof(FillerArray::Element), &dat, GL_STATIC_DRAW);
+	while (pq.empty() == false) {
+		std::pair<float, FillerArray*> el = pq.top();
+		//std::cout << el.first << "\n";
+		pq.pop();
+		FillerArray* f = el.second;
 
 		// load in the buffer of all instances
 		glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
@@ -1377,9 +1364,9 @@ std::vector<FillerArray*> fillers(width*height);
 
 
 
-		glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elementsToCopy);
+		glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, f->da->elements);
 
-		glBindBuffer(GL_ARRAY_BUFFER, bb);
+		glBindBuffer(GL_ARRAY_BUFFER, f->boundingBoxBuffer);
 		// this is translation
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
 
@@ -1393,11 +1380,62 @@ std::vector<FillerArray*> fillers(width*height);
 		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
 
 		glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, 1);
-
-
-		//glDeleteBuffers(1, &bb);
-
+		
 	}
+	
+
+	//for (int j = 0; j < fillers.size(); j++) {
+	//	FillerArray* f = fillers.at(j);
+
+	//	int elementsToCopy = f->da->elements;
+	//	totalElements += elementsToCopy;
+
+
+
+	//	glBindBuffer(GL_ARRAY_BUFFER, bb);
+
+	//	// load in the buffer of all instances
+	//	glBindBuffer(GL_ARRAY_BUFFER, f->buffer);
+
+	//	// this is translation
+	//	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
+
+	//	// this is rotation
+	//	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(glm::vec3) + sizeof(int)));
+
+	//	// this is for scalation
+	//	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 2 * sizeof(glm::vec3)));
+
+	//	// this is for color
+	//	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
+
+	//	// finally, send the draw command to the gpu
+
+
+
+
+
+	//	glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, elementsToCopy);
+
+	//	glBindBuffer(GL_ARRAY_BUFFER, f->boundingBoxBuffer);
+	//	// this is translation
+	//	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int)));
+
+	//	// this is rotation
+	//	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(glm::vec3) + sizeof(int)));
+
+	//	// this is for scalation
+	//	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 2 * sizeof(glm::vec3)));
+
+	//	// this is for color
+	//	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FillerArray::Element), (void*)(sizeof(int) + 3 * sizeof(glm::vec3)));
+
+	//	glDrawElementsInstanced(GL_TRIANGLES, o->eboSize, GL_UNSIGNED_INT, 0, 1);
+
+
+	//	//glDeleteBuffers(1, &bb);
+
+	//}
 
 
 
